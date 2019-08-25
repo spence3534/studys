@@ -1,0 +1,16 @@
+1.JavaScript基本数据类型包括undefined，null，Boolean，number和string
+  当然ES6增加了Symbol数据类型，后续在ECMAScript6入门的时候会将到
+2.JavaScript与其他语言不同，JavaScript没有为整数和浮点数值分别定义不同
+  的数据类型，Number类型可用于表示所有数值。
+3.JavaScript中也有一种复杂的数据类型，即object类型，该类型是这门语言中
+  所有对象的基础类型
+4.JavaScript提供了很多与C及其他类C语言中相同的基本操作符，包括算术操作
+  布尔操作符，关系操作符，相等操作符以及赋值操作符等。
+5.JavaScript从其他语言中借鉴了很多流控制语句，例如if语句，for语句和switch语句等。
+  JavaScript中的函数与其他语言中的函数有诸多不同之处。
+6.无须指定函数的返回值，因为任何JavaScript函数都可以在任何时候返回任何值。
+  实际上，未指定返回值的函数返回的是一个特殊的undefined值。
+7.JavaScript也没有函数签名的概念，因为其函数参数是一个包含零或多个值的数
+  组的形式传递的。
+8.可以向JavaScript函数传递任意数量的参数，并且可以通过arguments对象来访
+  问这些参数。由于不存在函数签名的特性，JavaScript函数不能重载
