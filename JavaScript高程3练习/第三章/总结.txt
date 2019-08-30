@@ -1,5 +1,5 @@
 1.JavaScript基本数据类型包括undefined，null，Boolean，number和string
-  当然ES6增加了Symbol数据类型，后续在ECMAScript6入门的时候会将到
+  当然ES6增加了Symbol数据类型，后续在ECMAScript6入门的时候会讲到
 2.JavaScript与其他语言不同，JavaScript没有为整数和浮点数值分别定义不同
   的数据类型，Number类型可用于表示所有数值。
 3.JavaScript中也有一种复杂的数据类型，即object类型，该类型是这门语言中

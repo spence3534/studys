@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>执行环境及作用域</title>
+  <script>
+    //------------ 执行环境及作用域---------------------
+    /**
+     * 执行环境:执行环境可分为全局执行环境和局部执行环境。每一个执行环境都有一个
+     * 与之关联的变量对象，这个变量对象包含了这个执行环境的变量和函数。
+     * 
+     * 执行环境流机制:每个函数都有自己的执行环境，当执行流进入一个函数时，这时会
+     * 把函数这个执行环境放到环境栈中，放到最上面，在这个环境栈最上面就是当前的执行
+     * 环境，而当这个函数执行结束了，这个栈就把这个环境弹出，执行权交给包含刚才那个环境
+     * 
+     * 作用域链:当代码在一个环境执行时，会创建一个这个变量对象的作用域链，这个作用域链
+     * 保证了执行环境有权访问变量和函数的有序访问。在这个环境总可以访问本身的变量和外部
+     * 环境的变量，但是外部访问不到内部变量。
+    **/
+  
+    /**
+     * 在这个简单的例子中，函数changeColor()的作用域链包含两个对象:它自己的
+     * 变量对象(其中定义这arguments对象)和全局环境的变量对象。可以在函数内部
+     * 访问变量color，就是因为可以在这个作用域中找到它
+     * var color = "blue";
+     * function changeColor() {
+     *  if(color === "blue") {
+     *   color = "red";
+     *  } else {
+     *   color = "blue";
+     *  }
+     * }
+     * changeColor();
+     * console.log("Color in now" + color);
+     * **/
+
+     /**
+      * 在局部作用域中定义的变量可以在局部环境中与全部变量互换使用
+      * 在下面一个例子中，共涉及到了3个执行环境:全局环境，changeColor()
+      * 的局部环境和swapColors()的局部环境。全局环境中有一个变量color和一个
+      * 函数changeColor()。changeColor的局部环境中有一个名为anotherColor的
+      * 变量和一个名为swapColors()函数，但它也可以访问全局环境中的变量color。
+      * swapColors()的局部环境中有一个变量tempColor，该变量只能在这个环境中访问到。
+      * 无论全局环境还是changeColor()的局部环境都无权访问tempColor。然而在swapColors()
+      * 内部则可以访问其他两个环境中的所有变量，因为那两个环境是它的父执行环境
+      * 
+      * var color = "blue";
+      * function changeColor() {
+      *   var anotherColor = "red";
+      *   function swapColors() {
+      *     var tempColor = anotherColor;
+      *     anotherColor = color;
+      *     color = tempColor;
+      *     // 这里可以访问color，anotherColor和tempColor
+      *   }
+      *   // 这里可以访问color，anotherColor和tempColor
+      *   swapColors();
+      * }
+      * //这里只能访问color
+      * changeColor();
+     **/
+
+    //  切记！内部环境可以通过作用域链访问所有的外部环境，但外部环境不能访问内部环境中
+    //  的任何变量的函数。这些环境之间的联系是线性，有次序的。每个环境都可以向上搜索作
+    //  用域链，以查询变量和函数名，但任何环境都不能通过向下搜索作用域链而进入另一个执
+    //  行环境
+
+    /**
+     * 延长作用域链
+     * 虽然执行环境的类型总共只有两种类型---全局和局部(函数),但还是有其他方法来延长
+     * 作用域链。这么说因为有些语句可以在作用域链的前端临时增加一个变量对象，该变量
+     * 对象会在代码执行后被移除。在两种情况下会发生这种想象。具体来说，就是当执行流
+     * 进入下列任何语句时，作用域链就会得到加长:
+     *  try-catch语句的catch块;  还有with语句。
+     * 这两个语句都会在作用域的前端添加一变量对象。在with语句来说，会将指定的对象添加
+     * 到作用域链中。对catch语句来说，会创建一个新的变量对象。其中包含的是被抛出的错误
+     * 对象的声明
+    **/
+
+    /**
+     * with语句接收的是一个location对象，因此其变量对象中就包含了location对象的所有
+     * 属性和方法，而在这个变量对象被添加到了作用域链的前端。buildUrl()函数定义了一个
+     * 变量qs。当在with语句中引用变量href时(实际引用的是location.href)，可以在当前
+     * 执行环境的变量对象中找到。当引用变量qs时，引用的则是在buildUrl中定义的那个变量
+     * 而该变量位于函数环境的变量对象中。至于with语句内部，则定义了一个名为url的变量，因
+     * 而url就成了函数执行环境的一部分，所以可以作为函数的值被返回
+     * function buildUrl() {
+     *  var qs = "?debug=true";
+     *  with(location){
+     *    var url = href + qs;
+     *  }
+     *  return url;
+     * }
+     * console.log(buildUrl())
+     * **/
+  </script>
+</head>
+<body>
+  
+</body>
+</html>

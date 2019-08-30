@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>检测类型</title>
+  <script>
+    /**
+     * 如果要检测一个变量是不是基本数据类型，那么typeof操作符是最佳工具。
+     * typeof操作符是确定一个变量是字符串，数值，布尔值，还是undefined的最佳工具。
+     * 如果变量的值是一个对象和null的话，则会返回一个object。
+     * var s = "xiaoli";
+     * var b = true;
+     * var i = 22;
+     * var u;
+     * var n = null;
+     * var o = new Object();
+     * console.log(typeof s); //string
+     * console.log(typeof b); //boolean
+     * console.log(typeof i); //number
+     * console.log(typeof u); //undefined
+     * console.log(typeof n); //object
+     * console.log(typeof o); //object
+     * **/
+    /**
+     * 虽然说typeof是检测基本数据类型时非常得力的助手，但是在检测引用类型的值时
+     * 这个操作符的用处不大，我们并不是想知道某个值是对象，而是想知道它是什么类型的对象
+     * 这里就用到了instanceof操作符
+     * 如果变量是给定引用类型（根据它的原型链来识别，后面会讲到原型链）的实例，
+     * 那么instanceof操作符就会返回true，根据规定，所有引用类型的值都是object的实例
+     * 因此，在检测引用类型值和object构造函数时，instanceof操作符始终都会返回true。
+     * 如果使用instanceof检测基本类型则会返回false，因为基本类型不是对象。
+     * var person = new Object();
+     * var perno = new Array;
+     * var pername = new RegExp;
+     * console.log(person instanceof Object); //true
+     * console.log(perno instanceof Array ); //true
+     * console.log(pername instanceof RegExp); //true
+     * **/
+  </script>
+</head>
+<body>
+  
+</body>
+</html>
