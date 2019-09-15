@@ -13,7 +13,6 @@
    * 这段代码创建了object引用类型的一个新实例，然后把该实例保存在了变量person中。
    * 使用的构造函数是object，它只为新对象定义了默认的属性和方法。
   */
-
   //-------------------Object类型--------------------
   /**
    * object是ECMAscript中使用最多的一个类型。
@@ -46,13 +45,13 @@
    * 的数据。这两次调用传递的参数虽然不同，但函数都能正常执行。
    * function displayInfo (args) {
    *  var output = '';
-   * if (typeof args.name === "string") {
-   *  output += 'Name：' + args.name + "\n"
-   * }
-   * if(typeof args.age === "number") {
+   *  if (typeof args.name === "string") {
+   *    output += 'Name：' + args.name + "\n"
+   *  }
+   *  if(typeof args.age === "number") {
    *   output += "Age：" + args.age + "\n"
-   * }
-   * console.log(output)//Name：xiaoli Age：29  Name：xiaolun
+   *  }
+   *  console.log(output)//Name：xiaoli Age：29  Name：xiaolun
    * }
    * displayInfo({
    *  name:'xiaoli',

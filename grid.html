@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>grid布局</title>
+  <style>
+    /* 
+      下面谈谈grid布局
+      网格布局（grid）是最强大的css布局 
+      它是将网页划分成一个个网格，可以任意组合不同的网络，做出各种各样的布局。以前，只能通过
+      复杂的css框架达到的效果，现在浏览器里面内置了。
+
+      Flex 布局是轴线布局，只能指定"项目"针对轴线的位置，可以看作是一维布局。Grid 布局则是将容器划分成"行"和"列"，产生单元格，然后指定"项目所在"的单元格，可以看作是二维布局。Grid 布局远比 Flex 布局强大。
+    */
+    .container {
+      display: grid;
+      width: 750px;
+      margin: 0 auto;
+      grid-template-columns: 100px 100px 100px;
+      grid-template-rows: 100px 100px 100px;
+      /* grid-auto-rows: 50px; */
+      /* grid-auto-columns: 50px; */
+    }
+
+    .item-1 {
+      background: #ccc;
+      color: #fff;
+      grid-column: 1;
+      grid-row: 1;
+      /* 
+      grid-area还可以用于最下面的那四个值的合并简写形式
+      grid-area: 1 / 1 / 3 /3; */
+      /* 
+      grid-area属性指定项目放在哪一个区域。
+      grid-area: e; */
+      /* grid-column: 1 / 3;
+      grid-row: 1 / 3; */
+
+      /* 
+      上面两个属性的值是等于这里的两个值的
+      grid-column-start: span 2;
+      grid-column-end: span 2; */
+      /* 
+      grid-column: 1 / 3;
+      grid-row: 2 / 4;
+      上面两个属性是下面的四个属性的缩写
+      grid-column-start: 1;
+      grid-column-end: 3;
+      grid-row-start: 2;
+      grid-row-end: 4; */
+      /* grid-column-start: span 3; */
+      /* grid-column-end: span 3; */
+    }
+    .item-2 {
+      background: #ccc;
+      color: #fff;
+    }
+    .item-3 {
+      background: #ccc;
+      color: #fff;
+    }
+    .item-4 {
+      background: #ccc;
+      color: #fff;
+    }
+    .item-5 {
+      background: #ccc;
+      color: #fff;
+    }
+    .item-6 {
+      background: #ccc;
+      color: #fff;
+    }
+    .item-7 {
+      background: #ccc;
+      color: #fff;
+    }
+    .item-8{
+      /* grid-row-start: 4;
+      grid-column: 2; */
+      background: #ccc;
+    }
+    .item-9{
+      background: #ccc;
+      /* grid-row-start: 5;
+      grid-column-start: 3; */
+    }
+    /* grid-template-columns: repeat(3,100px);
+      grid-template-rows: repeat(3,100px); */
+      /* gap: 20px; */
+    /* grid-template-columns: 33% 33% 33%;
+      grid-template-rows: 33% 33% 33%; */
+      /* grid-template-columns: repeat(3,33%);
+      grid-template-rows: repeat(3,33%); */
+      /* grid-template-columns: repeat(2, 100px 20px 80px);
+      grid-template-rows: repeat(2, 100px 20px 80px); */
+      /* grid-template-columns: repeat(auto-fill,100px); */
+      /* grid-template-columns:150px 1fr 2fr; */
+      /* grid-template-columns: minmax(100px, 1fr); */
+      /* grid-template-columns: 100px auto 100px; */
+      /* grid-template-columns: [c1] 100px [c2] 100px [c3] auto [c4];
+      grid-template-rows: [r1] 100px [r2] 100px [r3] auto [r4]; */
+      /* grid-template-columns: 70% 30%; */
+      /* grid-row-gap: 20px;
+      grid-column-gap: 20px; */
+    /* grid-template-areas:'a b c'
+                          'd e f'
+                          'g h i'; */
+      /* grid-auto-flow: column; */
+      /* justify-items: start; */
+      /* justify-items: end; */
+      /* justify-items: center; */
+      /* align-items: start; */
+      /* place-items: start end; */
+      /* justify-content: start; */
+      /* justify-content: end; */
+      /* justify-content: center; */
+      /* justify-content: stretch; */
+      /* justify-content: space-around; */
+      /* justify-content: space-between; */
+      /* justify-content: space-evenly; */
+      /* align-content: center; align-content属性和以上的justify-content的属性也是一样的 */
+      /* place-content: space-around space-evenly; */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="item-1">1</div>
+    <div class="item-2">2</div>
+    <div class="item-3">3</div>
+    <div class="item-4">4</div>
+    <div class="item-5">5</div>
+    <div class="item-6">6</div>
+    <div class="item-7">7</div>
+    <div class="item-8">8</div>
+    <div class="item-9">9</div>
+  </div>
+</body>
+</html>

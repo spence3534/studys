@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Date类型</title>
+  <script>
+    // 要创建一个日期对象，使用new操作符和Date构造函数即可
+    // var now = new Date();
+    // console.log(now);
+
+    // 在调用Date构造函数而不传递参数的情况下，新创建的对象自动获取当前日期和时间。
+    // 如果想根据特定的日期和时间创建日期对象，必须传入表示该日期的毫秒数(即从UTC
+    // 时间1970年1月1日午夜起至该日期止经过的毫秒数)。为了简化这一计算过程，ECMAScript
+    // 提供了两个方法:Date.parse()和Date.UTC()
+    // 其中，Date.parse()方法接收一个表示日期的字符串参数，然后尝试根据这个字符串返回
+    // 对应的毫秒数。ECMA-262没有定义Date.parse()应该支持哪种日期尝试，因此这个方法的
+    // 行为因实现而异，而且通常是因地区而异。将地区设置为美国的浏览器通常都接受下列日期格式
+    //  1."月/日/年",如6/13/2004
+    //  2."英文月名 日，年"，如January 12,2004;
+    //  3."英文星期几英文月名日年时:分:秒:时区"，如Tue May 25 2004 00:00:00 GMT-0700。
+    //  4.ISO 8601扩展格式YYYY-MM-DDTHH:mm:ss:sssZ(例如2004-05-25T00:00:00)。只有兼容
+    //  ECMAScript5的实现支持这种格式。
+    // 例如，要为2004年5月25日创建一个日期对象，可以使用下面的代码:
+    // var someDate = new Date(Date.parse("May 25, 2004"))
+    // console.log(someDate) //Tue May 25 2004 00:00:00
+    // 如果传入Date.parse()方法的字符串不能表示日期，那么它会返回NaN。实际上，如果直接将表
+    // 示日期的字符串传递给Date()构造函数，也会在后台调用Date.parse()。换句话说，下面的代码
+    // 与前面的例子是等价的:
+    // var someDate = new Date("May 25, 2004");
+    // console.log(someDate)
+    // 这行代码将会得到与前面相同的日期对象。
+
+    // Date.UTC()方法同样也返回表示日期的毫秒数，但它与Date.parse()在构建值时使用不同的信息。
+    // Date.UTC的参数分别是年份、基于0的月份(一月是0，二月是1，以此类推)、月中的哪一天(1到31)
+    // 小时数(0到23)、分钟、秒以及毫秒数。在这些参数中，只有前两个参数(年和月)是必需的。如果
+    // 没有提供月中的天数，则假设天数为1;如果省略其他参数，则统统假设为0.以下是两个使用Date.UTC()
+    // 方法的例子：
+    // var y2k = new Date(Date.UTC(2000,0));
+    // var allFives = new Date(Date.UTC(2005,4,5,17,55,55));
+    // console.log(y2k);
+    // console.log(allFives);
+
+    // 至于Date类型的valueOf(),则根据不返回字符串，而是返回日期的毫秒表示。因此，可以方便使用
+    // 比较操作符(小于或大于)来比较日期值。请看下面的例子
+    // var date1 = new Date(2018,0,1);
+    // var date2 = new Date(2019,0,1);
+    // console.log(date1 < date2) //true
+    // console.log(date2>date1)  //true
+  </script>
+</head>
+<body>
+  
+</body>
+</html>
