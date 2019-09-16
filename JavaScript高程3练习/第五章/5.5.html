@@ -163,7 +163,7 @@
       这里，我们创建了一个包含两个对象的数组data。其中，每个对象都包含一个name属性和一个age属性。
       在默认情况下，sort()方法会调用每个对象的toString()方法以确定它们的次序；但得到的结果往往
       并不符合人类的思维习惯。因此我们调用createComparisonFunction("name")方法创建了一个比较
-      函数，以便按照每个对象的name属性值进行排序。而结果排在前面的第一项name为"xiaoyan"，age是28
+      函数，以便按照每个对象的name属性值进行排序。而结果排在前面的第一项name为"xiaoli"，age是18
       的对象。然后我们又使用了createComparisonFunction("age")返回的比较函数，这次是按照对象的age
       属性排序。得到的结果是name值为"xiaoyan"，age值是28的对象排在了第一位。
     */
@@ -198,7 +198,7 @@
         factorial = function () {
           return 0;
         };
-        console.log(trueFactorial);
+        console.log(trueFactorial(5));
         console.log(factorial(5))
       
       在此，变量trueFactorial获得了factorial的值，实际上是在另一个位置上保存了一个函数的指针。然后，
@@ -206,7 +206,6 @@
       调用trueFactorial()就会返回0。可是，解除了函数体内的代码与函数名的耦合状态之后，trueFactorial()
       仍然能够正常地计算阶乘，至于factorial()，它现在只是一个返回0的函数。
     */
-
     /**
       函数内部的另一个特殊对象是this，其行为与Java和C#中的this大致类似。换句话说，this引用的是函数执行
       的环境对象----或者也可以说是this值（当在网页的全局作用域中调用函数时，this对象引用的就是window）。
@@ -286,7 +285,7 @@
     /**
         在ECMAScript核心所定义的全部属性中，最耐人寻味的就是数prototype属性了。对于ECMAScript中的引用类型而言，
       prototype是保存它们所有实例方法的真正所在。换句话，诸如toString()和valueOf()等方法实际上都保存在prototype
-      名下，只不过是通过各自对象的实例访问罢了。在创建自定义引用类型以及实现继承是，prototype属性的作用是极为重要
+      名下，只不过是通过各自对象的实例访问罢了。在创建自定义引用类型以及实现继承时，prototype属性的作用是极为重要
       的（后续会详情介绍）。在ECMAScript5中，prototype属性是不可枚举的，因此使用for-in无法发现。
         每个函数都包含两个非继承而来的方法：apply()和call()。这两个方法的用途都是在特定的作用域中调用函数，实际上
       等于设置函数体内this对象的值。首先，apply()方法接收两个参数：一个是在其中运行函数的作用域，另一个是参数数组。
