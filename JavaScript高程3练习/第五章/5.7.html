@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>单体内置对象</title>
+  <script>
+    // ----------------Global对象--------------------
+    /**
+      URI编码方法和eval方法在这就不说了 因为两者都不常用。
+
+      window对象
+      ECMAScript虽然没有指出如何直接访问Global对象，但web浏览器都是将这个全局对象作为
+      window对象的一部分加以实现的。因此，在全局作用域中声明的所有变量和函数，就都成为
+      了window对象的属性。来看下面的例子。
+
+      var color = "red";
+      function sayColor() {
+        console.log(window.color); // red
+      }
+      window.sayColor();
+
+      这里定义了一个名为color的全局变量和一个名为sayColor()的全局函数。在sayColor()内部，
+      我们通过window.color来访问color变量，以说明全局变量是window对象的属性。然后，又使用
+      window.sayColor()来直接通过window对象调用这个函数，结果打印出来得到red。
+
+      另一种取得Global对象的方法是使用一下代码：
+      var global = function() {
+        return this;
+      }();
+      console.log(global);
+
+      以上代码创建了一个立即调用的函数表达式，返回this的值。如前所述，在没有给函数明确指定
+      this值的情况下（无论是通过将函数添加为对象的方法，还是通过调用call()或apply()），
+      this值等于Global对象。而像这样通过简单地返回this来取得Global对象，在任何执行环境下
+      都可行的。后面深入讨论函数表达式。
+
+      Math对象
+      ECMAScrpipt还为保存数学公式和信息提供了一个公共位置，即Math对象。与我们在JavaScript
+      直接编写的计算功能相比，Math对象提供的计算功能执行起来要快得多。Math对象中还提供了辅
+      助完成这些计算的属性和方法。
+
+      min()和max()方法
+      Math对象还包含许多方法，用于辅助完成简单和复杂的数学计算。
+      其中，min()和max()方法用于确定一组数值中的最小值和最大值。这两个方法都可以接收任意多
+      个数值参数，如下面的例子所示。
+
+      var max = Math.max(3,54,32,16);
+      var min = Math.min(3,54,32,16);
+      console.log(max); // 54
+      console.log(min); // 3
+
+      对于3、54、32和16，Math.max()返回54，而Math.min()返回3。这两个方法经常用于避免多余
+      的循环和在if语句中确定一组数的最大值。
+      要找到数组中的最大或最小值，可以像下面这样使用apply()方法。
+
+      var values = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      var max = Math.max.apply(Math,values);
+      console.log(max); // 9
+
+      这个技巧的关键是把Math对象作为apply()的第一个参数，从而确定地设置this值。然后，可以将
+      任何数组作为第二个参数。
+
+      舍入方法
+      下面来介绍将小数值舍入为整数的几个方法：Math.celi()、Math.floor()和Math.round()。
+      这三个方法分别遵循下列舍入规则：
+        Math.ceil()执行向上舍入，即它总是将数值向上舍入为最接近的整数；
+        Math.floor()执行向下舍入，即它总是将数值向下舍入为最接近的整数；
+        Math.round()执行标准舍入，即它总是将数值四舍五入为最接近的整数（这也是我们在数学课上学到的舍入规则）。
+
+        console.log(Math.ceil(25.9)); // 26
+        console.log(Math.ceil(25.5)); // 26
+        console.log(Math.ceil(25.1)); // 26
+
+        console.log(Math.round(25.9)); // 26
+        console.log(Math.round(25.5)); // 26
+        console.log(Math.round(25.1)); // 25
+
+        console.log(Math.floor(25.9)); // 25
+        console.log(Math.floor(25.5)); // 25
+        console.log(Math.floor(25.1)); // 25
+
+        对于所有介于25和26（不包括26）之间的数值，Math.ceil()始终返回26，因为它执行的是向上舍入。
+        Math.round()方法只在数值大于等于25.5时返回26；否则返回25。最后，Math.floor()对所有介于
+        25和26（不包括26）之间的数值都返回25。
+      
+      random()方法
+      Math.random()方法返回大于等于0小于1的一个随机数。对于某些站点来说，这个方法非常实用，
+      因为可以利用它来随机显示一些名人名言和新闻事件。套用下面的公式，就可以利用Math.random()
+      从某个整数范围内随机选择一个值。
+
+        值 = Math.floor(Math.random() * 可能值的总数 + 第一个可能的值)
+      
+      公式中用到了Math.floor()方法，这是因为Math.random()总返回一个小数值。而用这个小数值乘以一
+      个整数，然后再加上一个整数，最终结果仍然还是一个小数。举例来说，如果你想选择一个1到10之间的
+      数值，可以像下面这样编写代码：
+
+      var num = Math.floor(Math.random() * 10 + 1);
+
+      总共有10个可能的值（1到10），而第一个可能的值是1。而如果想要选择一个介于2到10之间的值，就应该
+      将上面的代码改成这样：
+
+      var num = Math.floor(Math.random() * 9 + 2);
+
+      从2数到10要数9个数，因此可能值的总数就是9，而第一个可能的值就是2。多数情况下，其实都可以通过一
+      个函数来计算可能值的总数和第一个可能的值，例如：
+      function selectFrom(lowerValue, upperValue) {
+        var choices = upperValue - lowerValue + 1;
+        return Math.floor(Math.random() * choices + lowerValue);
+      }
+      var num = selectFrom(2,10);
+      console.log(num); // 介于2和10之间（包括2和10）的一个数值
+
+      函数selectFrom()接受两个参数：应该返回的最小值和最大值。而用最大值减最小值再加1得到了可能值的
+      总数，然后它又把这些数值套用到了前面的公式中。这样，通过调用selectFrom(2,10)就可以得到一个介
+      于2和10之间（包括2和10）的数值了。利用这个函数，可以方便地从数组中随机取出一项，例如：
+
+      function selectFrom(lowerValue, upperValue) {
+        var choices = upperValue - lowerValue + 1;
+        return Math.floor(Math.random() * choices + lowerValue);
+      }
+      var colors = ["red","green","blue","yellow","black","purple","brown"];
+      var color = colors[selectFrom(0,colors.length-1)];
+      console.log(color); // 可能是数组中包含的任何一个字符串
+
+      在这个例子中，传递给selectFrom()的第二个参数是数组的长度减1，也就是数组中的最后一项的位置。
+    */
+  </script>
+</head>
+<body>
+  
+</body>
+</html>

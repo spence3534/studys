@@ -174,6 +174,196 @@
       这个例子将"world"和"!"拼接到了"hello"的末尾。虽然concat()是专门用来拼接字符串的方法，但实践中使
       用更多的还是加号操作符(+)。而且，使用加号操作符在大多数情况下都比使用concat()方法要简便易行（特别
       是在拼接多个字符串的情况下）。
+
+      ECMAScript还提供了三个基于字符串创建新字符串的方法：slice()、substr()、和substring()。这三个方法
+      都会返回被操作字符串的一个子字符串，而且也都接受一或两个参数。第一个参数指定子字符串的开始位置，第二
+      个参数（在指定的情况下）表示子字符串到哪里结束。具体来说，slice()和substring()的第二个参数指定的是
+      子字符串最后一个字符后面的位置。而substr()的第二个参数指定的则是返回的字符个数。如果没有给这些方法传
+      递第二个参数，则将字符串的末尾作为结束位置。与cancat()方法一样，slice()、substr()和substring()也不
+      会修改字符串本身的值---它们只是返回一个基本类型的字符串值，对原始字符串没有任何音响。请看下面的例子：
+      
+      var stringValue = "hello world";
+      console.log(stringValue.slice(3)); // lo world
+      console.log(stringValue.substring(3)); // lo world
+      console.log(stringValue.substr(3)); // lo world
+      console.log(stringValue.slice(3,7)); // lo w
+      console.log(stringValue.substring(3,7)); // lo w
+      console.log(stringValue.substr(3,7)); // lo worl
+
+      这个例子比较了以相同方式调用slice()、substr()和substring()得到的结果，而且多数情况下的结果是相同的。
+      在指定一个参数3的情况下，这三个方法都是返回"lo world"，因为"hello"中的第一个"l"处于位置3。而在指定两
+      个参数3和7的情况下，slice()和substring()返回"lo w"（"world"中的"o"处于位置7，因此结果中不包含"o"），
+      但substr()返回"lo worl"，因为它的第二个参数指定的是要返回的字符个数。
+
+      在传递给这些方法的参数是负值的情况下，它们的行为就不尽相同了。其中，slice()方法会将传入的负值与字符串的
+      长度相加，substr()方法将负的第一个参数加上字符串的长度，而将负的第二个参数转换为0。最后，substring()方
+      法会把所有负值参数都转换为0。下面来看例子。
+      var stringValue = "hello world";
+      console.log(stringValue.slice(-3)); // "rld"
+      console.log(stringValue.substring(-3)); // "hello world"
+      console.log(stringValue.substr(-3)); // "rld"
+      console.log(stringValue.slice(3, -4)); // "lo w"
+      console.log(stringValue.substring(3, -4)); // "hel"
+      console.log(stringValue.substr(3,-4)); // ""
+
+      这个例子清晰地展示了上述三个方法之间的不同行为。在给slice()和substr()传递一个负值参数时，它们的行为相同。
+      这是因为-3会被转换为8（字符串长度加参数11+(-3)=8），实际上相当于调用了slice(8)和substr(8)。但substring()
+      方法则返回了全部字符串，因为它将-3转换为0。
+      当第二个参数是负值是，这三个方法的行为各不相同。slice()方法会把第二个参数转换为7，这就相当于调用了
+      slice(3,7)，因此返回"lo w"。substring()方法会把第二个参数转换为0，使调用变成了substring(3,0)，而由于这个
+      方法会将较小的数作为开始位置，将较大的数作为结束位置，因此最终相当于调用了substring(0,3)。substr()也会将第
+      二个参数转换为0，这也就意味着返回包含零个字符串的字符串，也就是一个字符串。
+
+      字符串位置方法：
+      有两个可以从字符串中查找子字符串的方法：indexOf()和lastIndexOf()。这两个方法都是从一个字符串中搜索给定的字
+      符串，然后返子字符串的位置（如果没有找到该子字符串，则返回-1）。这两个方法的区别在于：indexOf()方法从字符串
+      的开头向后搜索子字符串，而lastIndexOf()方法是从字符串的末尾向前搜索子字符串。看一个例子：
+      var stringValue = "hello world";
+      console.log(stringValue.indexOf('o')); // 4
+      console.log(stringValue.lastIndexOf('o')); // 7
+
+      子字符串"o"第一次出现的位置是4，即"hello"中的"o"；最后一次出现的位置是7，即"world"中的"o"。在这个字符串中
+      仅出现了一次，那么indexOf()和lastIndexOf()会返回相同的位置值。
+      这两个方法都可以接收可选的第二个参数，表示从字符串中的哪个位置开始搜索。换句话说，indexOf()会从该参数指定的
+      位置向后搜索，忽略该位置之前的所有字符；而lastIndexOf()则会从指定的位置向前搜索，忽略该位置之后的所有字符，
+      下面的例子：
+
+      var stringValue = "hello world";
+      console.log(stringValue.indexOf("o",6)); // 7
+      console.log(stringValue.lastIndexOf("o",6)); // 4
+
+      在将第二个参数6传递给这两个方法之后，得到了与前面例子相反的结果。这一次，由于indexOf()是从位置6（字母"w"）
+      开始向后搜索，结果再位置7找到了"o"，因此它返回7。而lastIndexOf()是从位置6开始向前搜索。结果找到了"hello"
+      中的"o"，因此它返回4。在使用第二个参数的情况下，可以通过循环调用indexOf()或lastIndexOf()来找到所有匹配的
+      子字符串，如下面的例子所示：
+      var stringValue = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
+      var positions = new Array();
+      var pos = stringValue.indexOf("e");
+      while (pos > -1) {
+        positions.push(pos);
+        pos = stringValue.indexOf("e",pos + 1);
+        console.log(pos);
+      }
+      console.log(positions); // 3,24,32,35,52
+
+      这个例子通过不断增加indexOf()方法开始查找的位置，遍历了一个长字符串。在循环之外，首先找到了"e"在字符串中
+      的初始位置；而进入循环后，则每次都给indexOf()传递上一次的位置加1。这样，就确保了每次新搜索都从上一次找到
+      的子字符串的后面开始。每次搜索返回的位置依次被保存在数组position中，以便将来使用。
+
+      trim()方法
+      ECMAScript5为所有字符串定义了trim()方法。这个方法会创建一个字符串的副本，删除前置及后缀的所有空格，然后
+      返回结果。例如：
+      var stringValue = "     hello world     ";
+      var trimmeedStringValue = stringValue.trim();
+      console.log(stringValue); //      hello world
+      console.log(trimmeedStringValue); // hello world
+
+      由于trim()返回的是字符串的副本，所以原始字符串中的前置及后缀空格会保持不变。
+
+      字符串大小写转换方法
+      接下来我们要介绍的是一组与大小写转换有关的方法。ECMAScript中涉及字符串大小写转换的方法有4个：toLowerCase()、
+      toLocaleLowerCase()、toUpperCase()和toLocaleUpperCase()。其中，toLowerCase()和toUpperCase()是两个经典
+      的方法，借鉴自java.lang.string中的同名方法。而toLocaleLowCase()和toLocaleUpperCase()方法则是针对特定
+      地区的实现。对有些地区来说，针对地区的方法与其通用方法得到的结果相同，但少数语言会为Uncode大小写转换应用特殊
+      的规则，这时候就必须使用针对地区的方法来保证实现正确的转换。以下是几个例子：
+      var stringValue = "hello world";
+      console.log(stringValue.toLocaleUpperCase()); // HELLO WORLD
+      console.log(stringValue.toUpperCase()); // HELLO WORLD
+      console.log(stringValue.toLocaleLowerCase()); // hello world
+      console.log(stringValue.toLowerCase()); // hello world
+
+      以上代码调用的toLocaleUpperCase()和toUpperCase()都返回了"HELLO WORLD"，就像调用toLocaleLowerCase()和
+      toLowerCase()都返回"hello world"一样。一般来说，在不知道自己的代码将在哪种语言环境中运行的情况下，还是使
+      用针对地区的方法更稳妥一些。
+
+      字符串的模式匹配方法
+      String类型定义了几个用于在字符串中匹配模式的方法。第一个方法就是match()，在字符串上调用这个方法，本质上与
+      调用RegExp的exec()方法相同。match()方法只接受一个参数，要么是一个正则表达式，要么是一个RegExp对象。请看
+      下面的例子：
+
+        var text = "cat bat sat, fat";
+        var pattern = /.at/;
+        var matches = text.match(pattern);
+        console.log(matches.index); // 0
+        console.log(matches[0]); // cat
+        console.log(pattern.lastIndex); // 0
+        console.log(matches); // 自己可以打印数组看一下
+
+      本例中的match()方法返回了一个数组；如果是调用RegExp对象的exec()方法并传递本例中的字符串作为参数，那么也
+      会得到与此相同的数组：数组的第一项是与整个模式匹配的字符串，之后的每一项（如果有）保存着与正则表达式中的
+      捕获组匹配的字符串。
+      另一个用于查找模式的方法是search()。这个方法的唯一参数与match()方法的参数相同：由字符串或RegExp对象指
+      定的一个正则表达式。search()方法返回字符串中第一个匹配项的索引；如果没有找到匹配项，则返回-1。而且，
+      search()方法始终是从字符串开头向后查找模式。看下面的例子。
+
+        var text = "cat, bat, sat, fat";
+        var pos = text.search(/at/);
+        console.log(pos) // 1
+      这个例子中的search()方法返回1，即"at"在字符串中第一次出现的位置。
+
+      为了简化替换子字符串的操作，ECMAScript提供了replace()方法。这个方法接受两个参数：第一个参数可以是一个
+      RegExp对象或者一个字符串（这个字符串不会被转换成正则表达式），第二个参数可以是一个字符串或者一个函数。如
+      果第一个参数是字符串，那么只会替换第一个子字符串。要想替换所有子字符串，唯一的办法就是提供一个正则表达式，
+      而且要指定全局（g）标志，如下所示。
+        var text = "cat, bat, sat, fat";
+        var result = text.replace("at","ond");
+        console.log(result); // cond, bat, sat, fat
+
+        result = text.replace(/at/g, "ond");
+        console.log(result); // cond, bond, sond, fond
+      在这个例子中，首先传入replace()方法的是字符串"at"和替换用的字符串"ond"。替换的结果是把"cat"变成了"cond"，
+      但字符串中的其他字符并没有影响。然后，通过将第一个参数修改为带有全局标志的正则表达式，就将全部"at"替换成了
+      "ond"。如果第二个参数是字符串，还可以使用一些特殊的字符序列，将正则表达式操作得到的值插入到结果字符串中。
+
+      var text = "cat, bat, sat, fat";
+      result = text.replace(/(.at)/g, "word ($1)");
+      console.log(result); // word (cat), word (bat), word (sat), word (fat)
+
+      在此，每个以"at"结尾的单词都被替换了，替换结果是"word"后跟一对圆括号，而圆括号中使被字符序列$1所替换的单词。
+      replace()方法的第二个参数也可以是一个函数。在只有一个匹配项（即与模式匹配的字符串）的情况下，会向这个函数传
+      递3个参数：模式的匹配项、模式匹配项在字符串中的位置和原始字符串。在正则表达式中定义了多个捕获组的情况下，传
+      递给函数的参数依次是模式的匹配项、第一个捕获组的匹配项、第二个捕获组的匹配项.....，但最后两个参数仍然分别是
+      模式的匹配项在字符串中的位置和原始字符串。这个函数应该返回一个字符串，表示应该被替换的匹配项。使用函数作为
+      replace()方法的第二个参数可以实现更加精细的替换操作，请看下面这个例子。
+      function htmlEscape(text) {
+        return text.replace(/[<>"&]/g,function(match, pos, originalText){
+          switch(match) {
+            case "<":
+              return "&lt;";
+            case ">":
+              return "&gt";
+            case "&":
+              return "&amp;";
+            case "\"":
+              return "&guot;";
+          }
+        });
+      }
+      console.log(htmlEscape("<p class=\"greeting\">Hello world!</p>"));
+      // &lt;p class=&guot;greeting&guot;&gtHello world!&lt;/p&gt
+
+      这里，我们为插入HTML代码定义了函数htmlEscape()，这个函数能够转义4个字符：小于号、大于号、和号以及引号。
+      实现这种转义的最简单方式，就是使用正则表达式查找这几个字符，然后定义一个能够针对每个匹配的字符返回特定
+      HTML实体的函数。
+
+      最后一个与模式匹配有关的方法是split()，这个方法可以基于指定的分隔符将一个字符串分割成多个子字符串，并
+      将结果放到一个数组中。分隔符可以是字符串，也可以是一个RegExp对象（这个方法不会将字符串看成正则表达式）。
+      split()方法可以接受可选的第二个参数，用于指定数组的大小，以便确保返回的数组不会超过既定大小。请看下面
+      的例子：
+        var colorText = "red,blue,green,yellow";
+        var colors1 = colorText.split(",");
+        var colors2 = colorText.split(",",2);
+        var colors3 = colorText.split(/[^\,]+/);
+
+        console.log(colors1); // ["red", "blue", "green", "yellow"]
+        console.log(colors2); // ["red", "blue"]
+        console.log(colors3); // ["", ",", ",", ",", ""]
+      
+      在这个例子中，colorText是逗号分隔的颜色名字符串。基于该字符串调用split(",")会得到一个包含其中颜色的
+      数组，用于分割字符串的分隔符是逗号。为了将数组截短，让它只包含两项，可以为split()方法传递第二个参数2。
+      最后，通过使用正则表达式，还可以取得包含逗号字符的数组。需要注意的是，在最后一次调用split()返回的数组
+      中，第一项和最后一项是两个字符串。之所以会这样，是因为通过正则表达式指定的分隔符出现在了字符串的开头
+      （即子字符串"red"）和末尾（即子字符串"yellow"）。
     */
   </script>
 </head>
