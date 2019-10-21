@@ -67,7 +67,7 @@
       在前面例子的最后，person1和person2分别保存着Person的一个不同的实例。这两个对象都有一个constructor
       （构造函数）属性，该属性指向Person，如下所示。
 
-        function Person(name, age ,obj) {
+        function Person(name, age, obj) {
           this.name = name;
           this.age = age;
           this.obj = obj;
@@ -513,7 +513,261 @@
         enumerable: false,
         value: Person
       })
-    
+      由于在原型中查找值的过程是一次搜索，因此我们对原型对象所做的任何修改都能够立即从实例上
+      反映出来----即使是先创建了实例后修改原型也照样如此。请看下面的例子。
+
+        function Person() {};
+        Person.prototype = {
+          name: "xiaoli",
+          age: 18,
+          job: "Web Front End Engineer",
+          sayName: function() {
+            console.log(this.name);
+          }
+        };
+        
+        var frined = new Person();
+        Person.prototype.sayHi = function() {
+          console.log("hi");
+        };
+        frined.sayHi(); // hi
+      
+      以上代码先创建了Person的一个实例。并将其保存在friend中。然后，下一条语句在Person.prototype
+      中添加了一个方法sayHi()。即使friend实例是在添加新方法之前创建的，但它仍然可以通过访
+      问这个新方法。其原因可以归结为实例与原型之间的松散连接关系。当我们调用friend.sayHi()
+      时，首先会在实例中搜索名为sayHi的属性，在没有找到的情况下，会继续搜索原型。因为实例与
+      原型之间的连接只不过是一个指针，而非一个副本，因此就可以在原型中找到新的sayHi属性并返
+      回保存在那里的函数。
+
+      尽管可以随时为原型添加属性和方法，并且修改能够立即在所有对象实例中反映出来，但如果重写
+      整个对象，那么情况就不一样了。我们知道，调用构造函数时会为实例添加一个指向最初原型的
+      [[Prototype]]指针，而把原型修改为另一个对象就等于切断了构造函数与最初原型之间的联系。
+      请记住：实例中的指针仅指向原型，而不指向构造函数。请看下面的例子：
+
+        function Person() {};
+        var friend = new Person();
+
+        Person.prototype = {
+          constructor: Person,
+          name: "xiaoli",
+          age: 18,
+          job: "Web Front End Engineer",
+          sayName: function() {
+            console.log(this.name);
+          }
+        };
+
+        friend.sayName(); // error
+
+      原生对象的原型
+      原型模式的重要性不仅体现在创建自定义类型方面，就连所有原生的引用类型，都是采用这种模式
+      创建的。所有原生引用类型（Object、Array、String，等等）都在其构造函数的原型上定义了方
+      法。例如在Array.prototype中可以找到sort()方法，而在String.prototype中可以找到substring()
+      方法，如下所示。
+
+        console.log(typeof Array.prototype.sort); // function
+        console.log(typeof String.prototype.substring); // function
+
+      通过原生对象的原型，不仅可以取得所有默认方法的引用，而且也可以定义新方法。可以像修改自
+      定义对象的原型一样修改原生对象的原型，因此可以随时添加方法。下面的代码就给基本包装类型
+      String添加了一个名为startsWith的方法。
+
+        String.prototype.startsWith = function(text) {
+          return this.indexOf(text) == 0;
+        };
+        var msg = "Hello world";
+        console.log(msg.startsWith("Hello")); // true
+
+      这里新定义的startsWith()方法会在传入的文本位于一个字符串开始时返回true。既然方法被添
+      加给了String.prototype，那么当前环境中的所有字符串就都可以调用它。由于msg是字符串，
+      而且后台会调用String基本包装函数创建这个字符串，因此通过msg就可以调用startsWith()方法。
+
+      原型对象的问题
+      原型模式也不是没有缺点。首先，它省略了为构造函数传递初始化参数这一环节，结果所有实例在
+      默认情况下都将取得相同的属性值。虽然这会在某种程度上带来一些不方便，但还不是原型的最大
+      问题。原型模式的最大问题是由其共享的本性所导致的。
+      原型中所有属性时被很多实例共享的，这种共享对于函数非常合适。对于那些包含基本值的属性倒
+      也说得过去，毕竟（如前面的例子所示），通过在实例上添加一同名属性，可以隐藏原型中的对应
+      属性。然而，对于包含引用类型值的属性来说，问题就比较突出了。来看下面的例子。
+
+        function Person() {};
+        Person.prototype = {
+          constructor: Person,
+          name: "xiaoli",
+          age: 29,
+          job: "Web Front End Engineer",
+          friends: ["Shelby", "Court"],
+          sayName: function() {
+            console.log(this.name);
+          }
+        };
+
+        var person1 = new Person();
+        var person2 = new Person();
+
+        person1.friends.push("Van");
+
+        console.log(person1.friends); // "Shelby, Court, Van"
+        console.log(person2.friends); // "Shelby, Court, Van"
+        console.log(person1.friends == person1.friends); // true
+
+      在此，Person.prototype对象有一个名为friends的属性，该属性包含一个字符串数组。然后，创
+      建了Person的两个实例。接着，修改了person1.friends引用的数组，向数组中添加了一个字符串。
+      由于friends数组存在于Person.prototype而非person1中，所以刚刚提到的修改也会通过person2.
+      friends（与person1.friends指向同一个数组）反映出来。假如我们的初衷就是像这样在所有实例
+      中共享一个数组。可是，实例一般都是要有属于自己的全部属性。而这个问题正是我们很少看到有人
+      单独使用原型模式的原因所在。 
+
+      结合使用构造函数模式和原型模式
+      创建自定义类型的最常见方式，就是组合构造函数模式与原型模式。构造函数模式用于定义实例属性，
+      而原型模式用于定义方法和共享的属性。结果，每个实例都会有自己的一份实例属性的副本，但同时
+      又共享着对方法的引用，最大限度地节省了内存。另外，这种混成模式还支持向构造函数传递参数；
+      可谓是集两种模式之长。下面的代码重写了前面的例子。
+
+        function Person(name, age, job) {
+          this.name = name;
+          this.age = age;
+          this.job = job;
+          this.friends = ["Shelby", "Court"];
+        };
+        Person.prototype = {
+          constructor: Person,
+          sayName: function() {
+            console.log(this.name);
+          }
+        };
+
+        var person1 = new Person("xiaoli", 18, "Web Front End Engineer");
+        var person2 = new Person("xiaohong", 19, "Doctor");
+
+        person1.friends.push("Van");
+        console.log(person1.friends); // "Shelby, Court, Van"
+        console.log(person2.friends); // "Shelby, Court"
+        console.log(person1.friends == person2.friends); // false
+        console.log(person1.sayName == person2.sayName); // true
+
+      在这个例子中，实例属性都是在构造函数中定义的，而由所有实例共享的属性constructor和方法
+      sayName()则是原型中定义的。而修改了person1.friends（向其中添加一个新字符串），并不会
+      影响到person2.friends，因为它们分别引用了不同的数组。
+      这种构造函数与原型混成的模式，是目前在ECMAScript中使用最广泛、认同度最高的一个种创建自
+      定义类型的方法。可以说，这是用来定义引用类型的一种默认模式。
+
+      动态原型模式
+      有其他OO语言经验的开发人员在看到独立的构造函数和原型时，很可能会感到非常困惑。动态原型
+      模式正是解决这个问题的一个方案，它把所有信息都封装在了构造函数中，而通过在构造函数中初
+      始化原型（仅在必要的情况下），又保持了同时使用构造函数和原型的优点。换句话说，可以通过
+      检查某个应该存在的方法是否有效，来决定是否需要初始化原型。来看下一个例子。
+
+        function Person(name, age, job) {
+          // 属性
+          this.name = name;
+          this.age = age;
+          this.job = job;
+
+          // 方法
+          if (typeof this.sayName != "function") {
+            Person.prototype.sayName = function() {
+              console.log(this.name);
+            }
+          }
+        };
+
+        var friend = new Person("xiaoli", 18, "Web Front End Engineer");
+        console.log(friend);
+        friend.sayName(); // xiaoli
+      
+      这里只在sayName()方法不存在的情况下，才会将它添加到原型中。这段代码只会在初次调用构造
+      函数时才会执行。此后，原型已经完成初始化，不需要再做什么修改了。不过要记住，这里对原型
+      所做的修改，能够立即在所有实例中得到反映。因此，这种方法确实可以说非常完美。其中，if语
+      句检查的可以是初始化之后应该存在的任何属性或方法---不必用一大堆if语句检查每个属性和每个
+      方法；只要检查其中一个即可。对于采用这种模式创建的对象，还可以是用instanceof操作符确
+      定的类型。
+      ！切记 使用动态原型模式时，不能使用对象字面量重写原型。前面已经解释过了，如果在已经创建
+      了实例的情况下重写原型，那么就会切断现有实例于新原型之间的联系。
+
+      寄生构造函数模式
+      通常，在前述的几种模式都不适用的情况下，可以使用寄生构造函数模式。这种模式的基本思想是
+      创建一个函数，该函数的作用仅仅是封装创建对象的代码，然后再返回新创建的对象；但从表面上
+      看，这个函数又很像是典型的构造函数。下面是一个例子。
+
+        function Person(name, age, job) {
+          var o = new Object();
+          o.name = name;
+          o.age = age;
+          o.job = job;
+          o.sayName = function() {
+            console.log(this.name);
+          }
+          return o;
+        };
+        var friend = new Person("xiaoli", 18, "Web Front End Engineer");
+        friend.sayName();
+        console.log(friend);
+      
+      在这个例子中，Person函数创建了一个新对象，并以相应的属性和方法初始化对象，然后又返回
+      了这个对象。除了使用new操作符并把使用的包装函数叫做构造函数之外，这个模式跟工厂模式其
+      实是一模一样的。构造函数在不返回值的情况下，默认返回新对对象实例。而通过在构造函数的末
+      尾添加一个return语句，可以重写调用构造函数时返回的值。
+
+      这个模式可以在特殊的情况下用来为对象创建构造函数。假设我们想创建一个具有额外方法的特殊
+      数组。由于不能修改Array构造函数，因此可以使用这个模式。
+
+        function SpecialArray() {
+          // 创建数组
+          var values = new Array();
+
+          values.push.apply(values, arguments);
+
+          // 添加方法
+          values.toPipedString = function() {
+            return this.join("|");
+          }
+
+          // 返回数组
+          return values;
+        };
+
+        var colors = new SpecialArray("red", "blue", "green");
+        console.log(colors.toPipedString());
+      
+      在这个例子中，我们创建了一个名叫SpecialArray的构造函数。在这个函数内部，首先创建了一
+      个数组，然后push()方法（用构造函数接收到的所有参数）初始化了数组的值。随后，又给数组实
+      例添加一个toPipedString()方法，该方法返回以竖线分隔的数组值。最后，将数组以函数值的形
+      式返回。接着，我们调用了SpecialArray构造函数，向其中传入了用于初始化数组的值，此后又
+      调用了toPipedString()方法。
+      关于寄生构造函数模式，有一点需要说明：首先，返回的对象与构造函数或者与构造函数的原型属
+      性之间没有关系；也就是说，构造函数返回的对象与在构造函数外部创建的对象没有什么不同。为
+      此，不能依赖instanceOf操作符来确定对象类型。由于存在上述问题，我们建议在可以使用其他模
+      式的情况下，不要使用这种模式。
+
+      稳妥构造函数模式
+      所谓的稳妥对象。指的是没有公共属性，而且其方法也不引用this的对象。稳妥对象最适合在一些
+      安全环境中（这些环境中会禁止使用this和new），或者在防止数据被其他应用程序（如Mashup程序）
+      改动时使用。稳妥构造函数遵循与寄生构造函数类似的模式，但有两点不同：一是新创建对象的实例
+      方法不引用this；二是不使用new操作符调用构造函数。按照稳妥构造函数的要求，可以将前面的
+      Person构造函数重写如下。
+
+        function Person(name, age, job) {
+          // 创建需要返回的对象
+          var o = new Object();
+
+          // 可以在这里定义私有变量和函数
+
+          // 添加方法
+          o.sayName = function() {
+            console.log(name);
+          }
+
+          return o;
+        };
+
+        var friend = new Person("xiaoli", 18, "Web Front End Engineer");
+        friend.sayName();
+      
+      这样，变量friend中保存的是一个稳妥对象，而除了调用sayName()方法外，没有别的方式可以访
+      问其数据成员。即使有其他代码会给这个对象添加方法或数据成员，但也不能有别的办法访问传入
+      到构造函数中的原始数据。稳妥构造函数模式提供的这种安全性，使得它非常合适在某些安全执行
+      环境。
     */
   </script>
 </head>
