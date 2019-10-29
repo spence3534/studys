@@ -258,21 +258,6 @@
       的局部变量版，此后，我们又为app对象添加了能够访问私有变量的公有方法，最后一步是返回app对
       象，结果仍然是将它赋值给全局变量application。
     */
-    (function() {
-      var privateVariable = 10;
-      function privateFunction() {
-        return false;
-      };
-
-      MyObject = function() {
-      };
-
-      MyObject.prototype.publicMethod = function() {
-        privateVariable++;
-        return privateFunction();
-      }
-    })();
-    console.log(window.MyObject);
   </script>
 </head>
 <body>
