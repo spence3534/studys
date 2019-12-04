@@ -7,13 +7,31 @@
   <title>节点层次</title>
 </head>
 <body>
+  <div>Hello world</div>
   <p>Hello，world</p>
-  <div id="myDiv"></div>
-  <img src="" alt="" />
-  <img src="" alt="" />
-  <img src="" alt="" name="myImage" />
-  <img src="" alt="" />
-  <img src="" alt="" />
+  <fieldset>
+    <legend>Which color do you prefer？</legend>
+    <ul>
+      <li>
+        <input type="radio" value="red" name="color" id="colorRed">
+        <label for="colorRed">Red</label>
+      </li>
+      <li>
+        <input type="radio" value="green" name="color" id="colorGreen">
+        <label for="colorGreen">Green</label>
+      </li>
+      <li>
+        <input type="radio" value="blue" name="color" id="colorBlue">
+        <label for="colorBlue">Blue</label>
+      </li>
+    </ul>
+  </fieldset>
+  <div id="myDiv" class="bd" title="Body text" lang="en" dir="ltr" data-index="1"></div>
+  <ul id="myList">
+    <li>item 1</li>
+    <li>item 2</li>
+    <li>item 3</li>
+  </ul>
 </body>
 <script>
   /**
@@ -38,6 +56,23 @@
     每一段标记都可以通过树中的一个节点来表示：HTML元素通过元素节点表示，特性通过特性节
     点表示，文档类型通过文档类型节点表示，而注释则通过注释节点表示。总共有12中节点类型，
     这些类型都继承自一个基类型。
+
+    操作节点
+    appendChild()用于向childNodes列表的末尾添加一个节点。如果传入到appendChild()中
+    的节点已经是文档的一部分了，那结果就是将该节点从原来的位置转移到新位置。如果在调用
+    appendChild()时传入了父节点的第一个子节点，那么该节点就会成为父节点的最后一个子节点。
+
+    insertBefore()用于把节点放在某个特定的位置上。这个方法接受两个参数：要插入的节点
+    和作为参照的节点。插入节点后，被插入的节点会变成参照的节点的前一个同胞节点，同时被
+    方法返回。
+
+    replaceChild()方法接受的两个参数是：要插入的节点和要替换的节点。要替换的节点将由
+    这个方法返回并从文档树中移除，同时由要插入的节点占据其位置。
+
+    removeChild()方法，接受一个参数，既要移除的节点。
+
+    cloneNode()方法，接受一个布尔值参数，表示是否执行深复制，为true执行深复制，为
+    flase执行浅复制。
 
     Document类型
     JavaScript通过Document类型表示文档。在浏览器中，document对象是HTMLDocument（继承
@@ -182,6 +217,118 @@
 
     仅此一行代码返回的HTMLCollection中，就包含了整个页面中的所有元素----按照它们出现的先后顺
     序。换句话说，第一项是<html>元素，第二项是<head>元素，以此类推。
+
+    第三个方法，getElementByName()。这个方法返回带有给定name特性的所有元素。
+
+    Element类型
+    访问标签名可以使用tagName。看下面的例子：
+      <div id="myDiv"></div>
+
+      // 可以像下面这样取得这个元素及其标签名
+      var div = document.getElementById('myDiv');
+      console.log(div.tagName); // DIV
+
+    需要注意的是实际输出的是"DIV"而非"div"。在HTML中，标签名始终都以全部大写表示。
+
+    HTML元素
+    所有HTML元素都由HTMLElement类型表示，不是直接通过这个类型，也是通过它的子类型来表示。
+    HTMLElement类型直接继承自Element并添加一些属性。添加这些属性分别对应于每个HTML元素
+    中都存在的下列标准特性。
+      ·id，元素在文档中的唯一标识符。
+      ·title，有关元素的附加说明信息，一般通过工具提示条显示出来。
+      ·lang，元素内容的语言代码，很少使用。
+      ·dir，语言的方向，值为"ltr"（left-to-right，从左到右）或"rtl"（right-to-left，从右到左），也很少使用
+      ·className，即为元素指定的CSS类。
+    以上的值都可以用来取得或者修改。看下面的例子：
+
+      var div = document.getElementById("myDiv");
+      console.log(div.id); // myDiv
+      console.log(div.title); // Body text
+      console.log(div.lang); // en
+      console.log(div.dir); // ltr
+      console.log(div.className); // bd
+
+      div.id = "someOtherId";
+      div.className = "ft";
+      div.title = "Some other text";
+      div.lang = "fr";
+      div.dir = "rtl";
+    
+    取得特性（元素的属性）
+    操作特性的DOM方法主要有三个。分别是：getAttribute()、setAttribute()、removeAttribute()。
+
+    getAttribute()：获取元素的属性，也可以用来获取自定义的属性。
+      var div = document.getElementById("myDiv");
+      console.log(div.getAttribute("id")); // myDiv
+      console.log(div.getAttribute("class")); // bd
+      console.log(div.getAttribute("title")); // Body text
+      console.log(div.getAttribute("lang")); // en
+      console.log(div.getAttribute("dir"));// ltr
+      console.log(div.getAttribute("data-index")); // 1
+
+    有两类特殊的属性虽然有对应的属性名，但属性的值与通过getAttribute()返回的值
+    并不相同。第一类是style，第二类是onclick。这里不过多讲解。可以自己在控制台
+    看看。
+
+    设置特性
+    setAttribute()：设置元素属性，这个方法接受两个参数：要设置的特性名和值。
+    也可以操作自定义的属性。
+
+      var div = document.getElementById("myDiv");
+      div.setAttribute("id", "someOtherId");
+      div.setAttribute("class", "ft");
+      div.setAttribute("title", "Some other text");
+      div.setAttribute("lang", "fr");
+      div.setAttribute("dir", "rtl");
+
+    最后一个方法是removeAttribute()，这个方法用于彻底删除元素的特性。调用这个
+    方法不仅会清除特性的值，而且也会从元素中完全删除特性。
+
+      var div = document.getElementById("myDiv");
+      div.removeAttribute("class");
+
+    创建元素
+    可以使用document.createElement()方法可以创建新元素。
+
+      var div = document.createElement("div");
+
+    还可以为该元素添加属性。
+
+      var div = document.createElement("div");
+      div.id = "myNewDiv";
+      div.className = "box";
+
+    由于还没有添加到文档树中，可以使用appendChild()、insertBefore()或
+    replaceChild()方法。
+
+      document.body.appendChild(div);
+
+    元素的子节点
+    元素可以有任意数目的子节点和后代节点，因为元素可以是其他元素的子节点。元素的
+    childNodes属性中包含了它的所有子节点。所以我们可以通过childNodes来访问该元
+    素的所有子节点。这些子节点有可能是元素、文本节点、注释或处理命令。
+
+      <ul id="myList">
+        <li>item 1</li>
+        <li>item 2</li>
+        <li>item 3</li>
+      </ul>
+
+      var list = document.getElementById("myList");
+      console.log(list.childNodes); 
+      // NodeList(7) [text, li, text, li, text, li, text]
+
+    <ul>元素都会有7个元素，包括3个<li>元素和4个文本节点（表示<li>元素之间的空白符）。
+    如果把空白符删除了就会打印出三个li，像下面这样。
+
+    <ul id="myList"><li>item 1</li><li>item 2</li><li>item 3</li></ul>
+
+    如果想通过某个特定的标签名取得子节点或后代节点可以使用getElementByTagName()方法。
+
+      var list = document.getElementById("myList");
+      var items = list.getElementsByTagName("li");
+      console.log(items); // HTMLCollection(3) [li, li, li]
+
   */
 </script>
 </html>
