@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>变量</title>
+  <script>
+    /**
+      定义变量时要使用var操作符，后跟变量名，如下所示：
+
+        var message;
+      
+      也支持直接初始化变量，因此在定义变量的同时就可以设置变量的值，如下所示：
+
+        var message = "hi";
+
+      在此，变量message中保存了一个字符串值"hi"。像这样初始化变量并不会把它标
+      记为字符串类型；初始化的过程就是给变量赋一个值那么简单。因此可以在修改变
+      量值的同时修改值的类型，如下所示：
+
+        var message = "hi";
+        message = 10;
+        console.log(message); // 10
+
+      有一点必须注意，即用var操作符定义的变量将成为定义该变量的作用域中的局部变量。
+      也就是说，如果在函数中使用var定义一个变量，那么这个变量在函数退出后就会被销
+      毁，例如：
+
+        function test() {
+          var message = "hi";
+        }
+        test();
+        console.log(message); // ReferenceError: message is not defined
+
+      不过，可以像下面这样省略var操作符，从而创建一个全局变量：
+
+        function test() {
+          message = "hi";
+        }
+        test();
+        console.log(message); // hi
+
+      这个例子省略了var操作符，因而message就成了全局变量。这样，只要调用一次test()
+      函数，这个变量就有了定义，就可以在函数外部的任何地方被访问到。
+
+      可以使用一条语句定义多个变量，只要像下面这样把每个变量（初始化或不初始化均可）
+      用逗号分隔开即可：
+
+        var message = "hi",
+          found = false,
+          age = 29;
+
+      
+    **/
+  </script>
+</head>
+<body>
+  
+</body>
+</html>

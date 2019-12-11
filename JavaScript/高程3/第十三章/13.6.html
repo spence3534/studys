@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>模拟事件</title>
+</head>
+<body>
+  <div id="myDiv">Click Me</div>
+  <input type="text" value="" id="inputText">
+  <script>
+    /**
+      DOM中的事件模拟
+      可以在document对象上使用createEvent()方法创建event对象。这个方法接收一个参数，即
+      表示要创建的事件类型。在DOM2级中，所有这些字符串都使用英文复数形式，而在DOM3级中都
+      变成了单数。这个字符串可以是下列几个字符串之一。
+        UIEvents：一般化的UI事件。鼠标事件和键盘事件都继承自UI事件。DOM3级中时UIEvent。
+        MouseEvents：一般化的鼠标事件。DOM3级中是MouseEvent。
+        MutationEvents：一般化的DOM变动事件。DOM3级中是MutationEvent。
+        HTMLEvents：一般化的HTML事件。没有对应的DOM3级事件。
+
+      模拟鼠标事件
+      创建鼠标事件对象的方法是createEvent()传入字符串"MouseEvents"。返回的对象有一个名为
+      initMouseEvent()方法，用于指定与该鼠标事件有关的信息。这个方法接收15个参数，分别与
+      鼠标事件中每个典型的属性一一对应；这些参数的含义如下。
+        type：表示要触发的事件类型，例如"click"。
+        bubbles（布尔值）：布尔值，表示事件是否应该冒泡。为精确地模拟鼠标事件，应该把这个参数设置为true。
+        cancelable（布尔值）：表示事是否可以取消。为精确地模拟鼠标事件，应该把这个参数设置为true。
+        view：与事件关联的视图。这个参数几乎总是设置为document.defaultView。
+        detail（整数）：与事件有关的详细信息。这个值一般只有事件处理程序使用，但通常都设置为0。
+        screenX（整数）：事件相对于屏幕的X坐标。
+        screenY（整数）：事件相对于屏幕的Y坐标。
+        clientX（整数）：事件相对于视口的X坐标。
+        clientY（整数）：事件相对于视口的Y坐标。
+        ctrlKey（布尔值）：表示是否按下Ctrl键。默认值为false。
+        altKey（布尔值）：表示是否按下Alt键。默认值为false。
+        shiftKey（布尔值）：表示是否按下Shift键。默认值为false。
+        metaKey（布尔值）：表示是否按下Meta键。默认值为false。
+        button（整数）：表示按下了哪一个鼠标键。默认值为0。
+        relatedTarget（对象）：表示与事件相关的对象。这个参数只在模拟mouseover或mouseout时使用。
+
+      前4个参数对正确地激发事件至关重要，因为浏览器要用到这些参数；而剩下的所有参数只有在
+      事件中才会用到。当把event对象传给dispatchEvent()方法时，这个对象的target属性会自
+      动设置。看下面的例子：
+      
+        var btn = document.getElementById("myBtn");
+        var fn = function() {
+          console.log("button was clicked");
+        }
+        // click事件绑定事件处理程序
+        btn.addEventListener('click', fn);
+
+        // 创建事件对象
+        var event = document.createEvent("MouseEvents");
+
+        // 初始化事件对象
+        event.initMouseEvent("click", true, true, document.defaultView);
+
+        // 触发事件
+        btn.dispatchEvent(event);
+
+      通过上面的事件，我们就能触发btn元素的click事件，首先我们为元素绑定了click事件，这个
+      事件需要用户操作才能触发。通过createEvent创建了鼠标事件对象，通过initMouseEvent初
+      始化了事件对象。然后通过元素的dispatchEvent方法来触发事件。
+
+      模拟键盘事件
+      调用createEvent()并传入"KeyboardEvent"就可以创建一个键盘事件。返回的对象事件会包
+      含一个initKeyEvent()方法，这个方法接收下列参数：
+        type：表示要触发的事件类型，如"keydown"。
+        bubbles：表示事件是否应该冒泡。为精确模拟鼠标事件，应该设置为true。
+        cancelable：表示事件是否可以取消。为精确模拟鼠标事件，应该设置为true。
+        view：与事件关联的视图。这个参数几乎总是要设置为document.defaultView。
+        key（布尔值）：表示按下的键的键码。
+        location（整数）：表示按下了哪里的键。0表示默认的主键盘，1表示左，2表示右，3表示
+        数字键盘，4表示移动设备（即虚拟键盘），5表示手柄。
+        modifiers（字符串）：空格分隔的修改键列表，如"Shift"。
+        repeat（整数）：在一行中按了这个键多少次。
+
+        var txt = document.getElementById("inputText"), event;
+        event = document.createEvent("KeyboardEvent");
+
+        // 初始化事件对象
+        event.initKeyboardEvent("keydown", true, true, document.defaultView, "a", 0, "Shift", 0);
+
+        // 触发事件
+        txt.dispatchEvent(event);
+      
+      这个例子模拟的是按住Shift的同时又按下A键。
+
+      模拟其他事件
+      有时候同样需要模拟变动事件和HTML事件。要模拟变动事件，可以使用createEvent("MutationEvents")
+      创建一个包含initMutationEvent()方法的变动事件对象。这个方法接受的参数包括：type、bubbles、
+      cancelable、relatedNode、preValue、newValue、attrName和attrChange。看下面的例子。
+
+        var event = document.createEvent("MutationEvents");
+        event.initMutationEvent("DOMNodeInserted", true, false, someNode, "", "", "", 0);
+        target.dispatchEvent(event);
+
+      以上代码模拟了DOMNodeInserted事件。其他变动事件也都可以照这个样子模拟，只要改一改参数就可以了。
+
+      要模拟HTML事件，同样需要先创建一个event对象----通过createEvent("HTMLEvents")，然后再使用这
+      个对象的initEvent()方法来初始化它，看下面的例子：
+
+        var event = document.createEvent("HTMLEvents");
+        event.initEvent("focus", true, false);
+        target.dispatchEvent(event);
+
+      这个例子展示了如何在给定目标上模拟focus事件。模拟其他HTML事件的方法也是这样。
+
+      自定义DOM事件
+      要创建新的自定义事件，可以调用createEvent("CustomEvent")。返回的对象有一个名为
+      initCustomEvent()方法，接收如下4个参数：
+        type：触发的事件类型，例如"keydown"。
+        bubbles：表示事件是否应该冒泡。
+        cancelable：表示事件是否可以取消。
+        detail（对象）：任意值，保存在event对象的detail属性中。
+      可以像分派其他事件一样在DOM中分派创建的自定义事件对象。看下面的例子：
+
+        var div = document.getElementById("myDiv"),
+            event;
+        div.addEventListener("myevent",function(event){
+          console.log("DIV  " + event.detail);
+        })
+        event = document.createEvent("CustomEvent");
+        event.initCustomEvent("myevent", true, false, "Hello world！");
+        div.dispatchEvent(event);
+
+      这个例子创建了一个冒泡事件"myevent"。而event.detail的值被设置成了一个简单的字符串，
+      然后在<div>元素和document上侦听这个事件。因为initCustomEvent()方法已经指定这个事件
+      应该冒泡，所以浏览器会负责将事件向上冒泡到document。
+    **/
+  </script>
+</body>
+</html>
