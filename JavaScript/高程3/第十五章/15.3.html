@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>WebGL</title>
+</head>
+<body>
+  <canvas id="drawing" width="200" height="200"></canvas>
+  <script>
+    /**
+      # WebGL
+      WebGL是针对Canvas的3D上下文。
+
+      ## 类型化数组
+      类型化数组的核心就是一个名为 **ArrayBuffer** 的类型。每个 **ArrayBuffer** 对象表示的只是
+      内存中指定的字节数，但不会指定这些字节用于保存什么类型数据。通过 **ArrayBuffer** 所能做的，
+      就是为了将来使用而分配一定数量的字节。
+      ```js
+      var buffer = new ArrayBuffer(20); // 分配20B的内存
+      ```
+      **byteLength** 属性可以访问 **ArrayBuffer** 的字节数。
+      ```js
+      var bytes = buffer.byteLength;
+      console.log(bytes);
+      ```
+      #### 视图
+      使用 **ArrayBuffer** 来创建数组缓冲器视图。其中，最常见的视图是DataView，通过它可以选择
+      **ArrayBuffer** 中一小段字节。可以在创建DataView实例的时候传入一个 **ArrayBuffer** 、
+      一个可选的字节偏移量（从该字节开始选择）和一个可选的要选择的字节数。例如：
+      ```js
+      // 基于整个缓冲器创建一个新视图
+      var view = new DataView(buffer);
+
+      // 创建一个开始于字节9的新视图
+      var view = new DataView(buffer, 9);
+
+      // 创建一个从字节9开始到字节18的新视图
+      var view = new DataView(buffer, 9, 10);
+      ```
+      DataView对象会把字节偏移量以及字节长度信息分别保存在 **byteOffset** 和 **byteLength**属性中。
+      ```js
+      var view = new DataView(buffer);
+
+      console.log(view.byteOffset);
+      console.log(view.byteLength);
+      ```
+      另外，通过buffer属性也可以取得数组缓冲器。
+
+      读取和写入DataView的时候，要根据实际操作的数据类型，选择相应的getter和setter方法。下面列出了
+      DataView支持的数据类型以及相应的读写方法。
+      |数据类型|getter|setter|
+      |----|----|----|
+      |有符号8位整数|getInt8(byteOffset)|setInt8(byteOffset, value)|
+      |无符号8位整数|getUint8(byteOffset)|setUint8(byteOffset, value)|
+      |有符号16位整数|getInt16(byteOffset, littleEndian)|setInt8(byteOffset, value, littleEndian)|
+      |无符号16位整数|getUint16(byteOffset, littleEndian)|setUint16(byteOffset, value, littleEndian)|
+      |有符号32整数|getInt32(byteOffset, littleEndian)|setInt32(byteOffset, value, littleEndian)|
+      |无符号32位整数|getUint32(byteOffset, littleEndian)|setUint32(byteOffset, value, littleEndian)|
+      |32位浮点数|getFloat32(byteOffset, littleEndian)|setFloat32(byteOffset, value, littleEndian)|
+      |64位浮点数|getFloat64(byteOffset, littleEndian)|setFloat64(byteOffset, value, littleEndian)|
+      
+      #### 类型化视图
+      类型化视图也分几种，而且他们都继承了DataView。
+      * Int8Array：表示8位二补整数。
+      * Uint8Array：表示8位无符号整数。
+      * Int16Array：表示16位二补整数。
+      * Uint16Array：表示16位无符号整数。
+      * Int32Array：表示32位二补整数。
+      * Uint32Array：表示32位无无符号整数、
+      * Float32Array：表示32位IEEE浮点值。
+      * Float64Array：表示64位IEEE浮点值。
+      这些视图都是继承自DataView，因而可以使用相同的构造函数参数来实例化。第一个参数是要使用 **ArrayBuffer** 
+      对象，第二个参数是作为起点的字节偏移量（默认为0），第三个参数是要包含的字节。三个参数中只有第一个必需的
+      来看几个例子：
+      ```js
+      // 创建一个新数组，使用整个缓冲器
+      var int8s = new Int8Array(buffer);
+
+      // 只使用从字节9开始的缓冲器
+      var int16s = new Int16Array(buffer, 9);
+
+      // 只使用从字节9到字节18的缓冲器
+      var uint16s = new Uint16Array(buffer, 9, 10);
+      ```
+
+
+      ## WebGL上下文
+      WebGL的名字叫 **"experimental-wegl"** ，一般把WebGL上下文对象命名为gl。
+      ```js
+      var drawing = document.getElementById("drawing");
+
+      if (drawing.getContext) {
+        var gl = drawing.getContext("experimental-webgl");
+        if (gl) {
+          // 使用WebGl
+        }
+      }
+      ```
+
+      取得了WebGL上下文之后，就可以开始3D绘图了。通过给getContext()传递第二个参数，可以为WebGL上下文
+      设置一些选项。这个参数本身是一个对象，可以包含下列属性。
+      * alpha：值为true，表示为上下文创建一个Alpha通道缓冲区，默认值为true。
+      * depth：值为true，表示可以使用16位深缓冲区；默认值为true。
+      * stencil：值为true，表示可以使用8位模板缓冲区；默认值为false。
+      * antialias：值为true，表示将使用默认机制执行抗锯齿操作；默认值为true。
+      * premultipliedAlpha：值为true，表示绘图缓冲区有预乘Alpha值；默认值为true。
+      * perserveDrawingBuffer：值为true，表示在绘图完成后保留绘图缓冲区；默认值为false。
+
+      #### 常量
+      在WebGL中，保存在上下文对象中的这些常量都没有GL_前缀。比如说，GL_COLOR_BUFFER_BITCH常量在WebGL
+      上下文中就是gl.COLOR_BUFFER_BITCH。
+
+      #### 方法命名
+      方法名的后缀会包含四个参数（1到4）和接收的数据类型（f表示浮点数，i表示整数）。例如，gl.uniform4f()
+      意味着要接收4个浮点数，而gl.uniform3i()则表示接收3个整数。
+
+      #### 准备绘图
+      在实际操作WebGL上下文之前，一般都要使用某种实色清除`<canvas>`，为绘图做好准备。首先必须使用
+       **clearColor** 方法来指定要使用的颜色值，该方法接收4个参数：红、绿、蓝和透明度。每个参数必
+      须是一个0到1之间的数值，表示每种分量在最终颜色中的强度。来看个例子:
+      ```js
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BTT);
+      ```
+      **clerar()** 方法，传入的参数gl.COLOR_BUFFER_BTT告诉WebGL使用之前定义的颜色来填充相应去域。
+    **/
+    var drawing = document.getElementById("drawing");
+
+    if (drawing.getContext) {
+      var gl = drawing.getContext("experimental-webgl");
+      if (gl) {
+        // 使用WebGl
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BTT);
+      }
+    }
+  </script>
+</body>
+</html>

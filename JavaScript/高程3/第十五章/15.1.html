@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title></title>
+</head>
+<body>
+  <canvas id="drawing" width="200" height="200">A drawing of something</canvas>
+  <script>
+    /**
+    # 使用Canvas绘图
+
+    ## 基本用法
+    要使用`<canvas>`元素，必须先设置其width和height属性，指定可以绘图的区域大小。出现在
+    开始和结束标签中的内容是后备信息，如果浏览器不支持<canvas>元素，就会显示这些信息。来
+    看下面的例子：
+    ```html
+    <canvas id="drawing" width="200" height="200">A drawing of something</canvas>
+    ```
+    和其他元素一样，`<canvas>`元素对应的DOM元素对象也有width和height属性，随便修改。还
+    可以通过CSS为该元素添加样式，如果不添加样式或者不绘制图形，在页面中是看不到的。
+
+    要在这块画布上绘图，需要取得绘图上下文。取得绘图上下文对象的引用，需要调用getContext()
+    方法并传入上下文的名字。传入 "2d"，就可以取得2D上下文对象。
+    ```js
+    var drawing = document.getElementById("drawing");
+
+    // 确定浏览器支持<canvas>元素
+    if (drawing.getContext) {
+      var context = drawing.getContext("2d");
+    }
+    ```
+    在使用`<canvas>`元素之前，要检测getContext()方法是否存在，这一步非常重要。
+
+    使用toDataURL()方法，可以导出在`<canvas>`元素上绘制的图像。这个方法接受一个参数，
+    即图像的MIME类型格式，而且适合用于创建图像的任何上下文。看下面的例子：
+    ```js
+    var drawing = document.getElementById("drawing");
+
+    if (drawing.getContext) {
+      // 取得图像的数据URI
+      var imgURI = drawing.toDataURL("images/login.jpg");
+
+      // 显示图像
+      var image = document.createElement("img");
+      image.src = imgURI;
+      document.body.appendChild(image);
+    }
+    ```
+    **/
+    var drawing = document.getElementById("drawing");
+
+    if (drawing.getContext) {
+      // 取得图像的数据URI
+      var imgURI = drawing.toDataURL("./images/login.jpg");
+
+      // 显示图像
+      var image = document.createElement("img");
+      image.src = imgURI;
+      document.body.appendChild(image);
+    }
+  </script>
+</body>
+</html>
