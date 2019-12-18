@@ -125,17 +125,239 @@
       gl.clear(gl.COLOR_BUFFER_BTT);
       ```
       **clerar()** 方法，传入的参数gl.COLOR_BUFFER_BTT告诉WebGL使用之前定义的颜色来填充相应去域。
+
+      #### 视口与坐标
+      视口可以使用整个`<canvas>`区域。要改变视口大小，可以调用 **viewport()** 方法并传入4个参数：
+      （视口相对于`<canvas>`元素的）x坐标、y坐标、宽度和高度。例如，下面的调用就使用了`<canvas>`元素：
+      ```js
+      var drawing = document.getElementById("drawing");
+
+      if (drawing.getContext) {
+        var gl = drawing.getContext("experimental-webgl");
+        if (gl) {
+          gl.viewport(0, 0, drawing.width, drawing.height);
+        }
+      }
+      ```
+      视口坐标的原点（0, 0）在`<canvas>`元素的左下角，x轴和y轴的正方向分别是向右和向上。
+      ```js
+      // 视口是`<canvas>`左下角的四分之一区域
+      gl.viewport(0, 0, drawing.width/2, drawing.height/2);
+
+      // 视口是`<canvas>`左上角的四分之一区域
+      gl.viewport(0, drawing.height/2, drawing.width/2, drawing.height/2);
+
+      // 视口是`<canvas>`右下角的四分之一区域
+      gl.viewport(drawing.width/2, 0, drawing.width/2, drawing.height/2);
+      ```
+
+      #### 缓冲区
+      要创建缓冲区，可以调用 **gl.createBuffer()** ，然后使用 **gl.bindBuffer()** 绑定到WebGL上下文。
+      ```js
+      var buffer = gl.createBuffer();
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0.5, 1]), gl.STATIC_DRAW);
+      ```
+      **gl.bufferData()** 的最后一个参数用于指定使用缓冲区的方式，取值范围是如下几个变量。
+      * gl.STATIC_DRAW：数据只加载一次，在多次绘图中使用。
+      * gl.STREAM_DRAW：数据只加载一次，在几次绘图中使用。
+      * gl.DYNAMIC_DRWA：数据动态改变，在多次绘图中使用。
+      
+      在包含缓冲区的页面重载之前，缓冲区始终保留在内存中。如果不想要某个缓冲区了，可以直接调用
+       **gl.deleteBuffer()** 释放内存：
+      ```js
+      gl.deleteBuffer(buffer);
+      ```
+
+      #### 错误
+      WebGL操作一般不会抛出错误。为了知道是否有错误发生，必须在调用某个可能出错的方法后，手动调用
+       **gl.getError()** 方法。这个方法返回一个表示错误类型的常量。可能的错误常量如下：
+      * gl.NO_ERROR：上一次操作没有发生错误（值为0）。
+      * gl.INVALID_ENUM：应该给方法传入WebGL常量，但却传错了参数。
+      * gl.INVALID_OPERATION：在当前状态下不能完成操作。
+      * gl.OUT_OF_MEMORY：没有足够的内存完成操作。
+      * gl.CONTEXT_LOST_WEBGL：由于外部事件（如设备断电）干扰丢失了当前WebGL上下文。
+      
+      ```js
+      var errorCode = gl.getError();
+
+      while(errorCode) {
+        console.log("Error occurred： " + errorCode);
+        errorCode = gl.getError();
+      }
+      ```
+
+      #### 着色器
+      WebGL中有两种着色器：顶点着色器和片段（或像素）着色器。订单着色器用于将3D顶点转换为需要渲染
+      的2D点。片段着色器用于准确计算要绘制的每个像素的颜色。
+
+      #### 编写着色器 GLSL语言
+      每个着色器都有一个 **main()**方法，该方法会在绘图期间重复执行。为着色器传递数据的方式有两种：
+      **Attribute** 和 **Uniform**。通过Attribute可以向顶点着色器中传入顶点信息，通过 **Uniform** 
+      可以向任何着色器传入常量值。
+      ```js
+      // Attribute
+      attribute vec2 aVertexPosition;
+
+      void main() {
+        gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+      }
+      ```
+      ```js
+      uniform vec4 uColor;
+
+      void main() {
+        gl_FragColor = uColor;
+      }
+      ```
+
+      #### 编写着色器程序
+      通常把着色器包含在页面的`<script>`标签内，并为该标签指定一个自定义的type属性。
+      ```html
+      ！！！！代码在第二个<script>
+      ```
+      然后，可以通过text属性提取出`<script>`元素的内容：
+      ```js
+      var vertexGlsl = document.getElementById("vertexShader").text,
+          fragmentGlsl = document.getElementById("fragmentShader").text;
+      ```
+      取得了GLSL字符串之后，接下来就是创建着色器对象。要创建着色器对象，调用 **gl.createShader()** 
+      方法并传入要创建的着色器类型（gl.VERTEX_SHADER或gl.FRAGMENT_SHADER）。编译着色器使用
+      **gl.compileShader()**。来看个例子：
+      ```js
+      var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vertexShader, vertexGlsl);
+      gl.compileShader(vertexShader);
+
+      var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fragmentShader, fragmentGlsl);
+      gl.compileShader(fragmentShader);
+      ```
+      使用下列代码，可以把这两个对象链接到着色器程序中。
+      ```js
+      var program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      ```
+      链接完程序之后，就可以通过 **gl.useProgram()** 方法通知WebGL使用这个程序了。
+      ```js
+      gl.useProgram(program);
+      ```
+
+      #### 为着色器传入值
+      为了给着色器传入这个值，必须先找到要接收这个值的变量。对于Uniform变量，可以使用 **gl.getUniformLocation()** ，
+      这个方法返回一个对象，表示Uniform变量在内存中的位置。
+      ```js
+      var uColor = gl.getUniformLocation(program, "uColor");
+      gl.uniform4fv(uColor, [0, 0, 0, 1]);
+      ```
+      要找到Attribute变量在内存中的位置，可以调用 **gl.getAttribLocation()**。
+      ```js
+      var aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
+      gl.enableVertexAttribArray(aVertexPosition);
+      gl.vertexAttribPointer(aVertexPosition, itemSize, gl.FLOAT, false, 0, 0);
+      ```
+
+      #### 调试着色器和程序
+      如果想知道着色器或程序执行中是否发生了错误，必须亲自询问WebGL上下文。
+
+      对于着色器，可以在操作之后调用 **gl.getShaderParameter()**，取得着色器的编辑状态：
+      ```js
+      if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+        console.log(gl.getShaderInfoLog(vertexShader));
+      }
+      ```
+      如果着色器编译成功，会返回true。如果是false，说明编译期间发生了错误。
+
+      程序也可能会执行失败，因此也有类似的方法--**gl.getProgramParmenter()**，可以用来检测执行状态。
+      ```js
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.log(gl.getProgramInfoLog(program));
+      }
+      ```
+      与 **gl.getShaderParameter()** 类似，返回true链接成功，返回false表示链接失败。
+
+      #### 绘图
+      WebGL只能绘制三种形态：点、线和三角。其他所有形态都是由这三种基本形态合成之后，再绘制到三维空间
+      中的。执行绘图操作要调用 **gl.drawArrays()** 或 **gl.drawElements()** 方法，前者用于数组缓冲
+      区，后者用于元素数组缓冲区。
+
+      gl.drawArrays()或gl.drawElements()的第一个参数都是一个常量，表示要绘制的形状。可取值的常量范
+      围包括以下这些：
+      * **gl.POINTS**：将每个顶点当成一个点来绘制。
+      * **gl.LINES**：将数组当成一系列顶点，在这些顶点间画线。每个顶点即是起点也是终点，因此数组中必
+        须包含偶数个顶点才能完成绘制。
+      * **gl.LINE_LOOP**：将数组当成一系列顶点，在这些顶点间画线。线条从第一个顶点到第二个顶点，再从
+        第二个顶点到第三个顶点，依此类推，直至最后一个顶点。然后再从最后一个顶点到第一个顶点画一条线。
+        结果就是一个形状的轮廓。
+      * **gl.TRIANGLES**：将数组当成一系列顶点，在这些顶点间绘制三角形。除非明确指定，每个三角形都单
+        独绘制，不与其他三角形共享顶点。
+      * **gl.TRIANGLES_STRIP**：除了将前三个顶点之后的顶点当作第三个顶点与前两个顶点共同构成一个新三
+        角形外，其他都与gl.TRIANGLES相同。例如，如果数组中包括A、B、C、D四个顶点，则第一个三角形连接
+        ABC，而第二个三角形连接ABCD。
+      * **gl.TRIANGLES_FAN**：除了将前三个顶点之后的顶点当作第三个顶点与前一个顶点及第一个顶点共同构
+        成一个新三角形外，其他都与gl.TRIANGLES相同。例如，如果数组中包含A、B、C、D四个顶点，则第一个
+        三角形连接ABC，而第二个三角形连接ACD。
+
+      **gl.drawArrays()** 方法接收上面列出的常量中的一个作为第一个参数，接收数组缓冲区中的起始索引作
+      为第二个参数，接收数组缓冲区中包含的顶点数（点的集合数）作为第三个参数。
+
+      #### 纹理
+      要创建一个新纹理，可以调用 **gl.createTexture()**，然后再将一副图像绑定到该纹理。
+
+      #### 读取像素
+      读取像素值的方法 **readPixels()**，即最后一参数必须是类型化数组。
     **/
     var drawing = document.getElementById("drawing");
 
     if (drawing.getContext) {
       var gl = drawing.getContext("experimental-webgl");
       if (gl) {
-        // 使用WebGl
-        gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.COLOR_BUFFER_BTT);
+        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, vertexGlsl);
+        gl.compileShader(vertexShader);
+
+        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, fragmentGlsl);
+        gl.compileShader(fragmentShader);
+
+        var program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+
+        var uColor = gl.getUniformLocation(program, "uColor");
+        gl.uniform4fv(uColor, [0, 0, 0, 1]);
+
+        var aVertexPosition = gl.getAttribLocation(program, "aVertexPosition");
+        gl.enableVertexAttribArray(aVertexPosition);
+        gl.vertexAttribPointer(aVertexPosition, itemSize, gl.FLOAT, false, 0, 0);
+
+        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+          console.log(gl.getShaderInfoLog(vertexShader));
+        }
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          console.log(gl.getProgramInfoLog(program));
+        }
       }
     }
   </script>
+  <!-- <script type="x-webgl/x-vertex-shader" id="vertexShader">
+  attribute vec2 aVertexPosition;
+
+  void main() {
+    gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+    }
+  </script>
+  <script type="x-webgl/x-vertex-shader" id="fragmentShader">
+  uniform vec4 uColor;
+
+  void main() {
+    gl_FragColor = uColor;
+    }
+  </script> -->
 </body>
 </html>

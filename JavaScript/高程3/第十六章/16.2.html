@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title></title>
+  <style>
+    .redBox{
+      width: 200px;
+      height: 200px;
+      background: red;
+    }
+    #blueBox{
+      width: 200px;
+      height: 200px;
+      background: blue;
+    }
+  </style>
+</head>
+<body>
+  <div id="redBox" draggable="true" class="redBox"></div>
+  <div id="blueBox" draggable="true">Hello world</div>
+  <script>
+    /**
+      ## 原生拖放
+      通过拖放事件，可以控制拖放相关的各个方面。拖动某元素时，将依次触发下列事件：
+      1.dragstart
+      2.drag
+      3.dragend
+
+      按下鼠标键并开始移动鼠标时，会在拖放的元素上触发 **dragstart** 事件。此时光标变成"不能放"符号
+      （圆环中一条反斜线），表示不能把元素放到自己上面。
+
+      触发 dragstart 事件后，即会触发 **drag** 事件，而且在元素被拖动期间会持续触发该事件。当拖动停
+      止时，会触发 **dragend** 事件。
+
+      当某个元素被拖动到一个有效的放置目标上时，下列事件会一次发生：
+      1.dragenter
+      2.dragover
+      3.dragleave或drop
+
+      只要有元素被拖动到放置目标上，就会触发 **dragenter** 事件。紧随其后的是 **dragover** 事件，
+      而且在被拖动的元素还在放置目标的范围内移动时，就会持续触发该事件。如果元素被拖出了放置目标，
+       **dragover** 事件不再发生，但会触发 **dragleave** 事件。如果元素被放到了放置目标中，则会
+      触发drop事件。
+
+      ### 自定义放置目标
+      可以把任何元素变成有效的放置目标，方法是重写 **dragenter** 和 **dragover** 事件的默认行为。
+      ```html
+      <div id="box" draggable="true" class="box"></div>
+      ```
+      ```js
+      var box = document.getElementById("box");
+
+      box.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        console.log("dragover事件");
+      });
+
+      box.addEventListener("dragenter", function(event) {
+        console.log("dragenter事件");
+        event.preventDefault();
+      });
+
+      box.addEventListener("dragleave", function(event) {
+        console.log("dragleave事件");
+      });
+
+      box.addEventListener("drop", function(event) {
+        console.log("drop事件");
+      })
+      ```
+      释放鼠标也会触发drop事件。如果想把元素可以被拖动，在元素上设置 **draggable** 设置为true即可。
+      :::warning 提醒
+      为了让Firefox支持正常的拖放，还要取消drop事件的默认行为，在使用`<a>`拖放的过程中，阻止它打开URL。
+      :::
+
+      ### dataTransfer对象
+      **dataTransfer** 对象，它是事件对象的一个属性，用于从被拖动元素向放置目标传递字符串格式的数据。
+      因为它是事件对象的属性，所以只能在拖放事件中访问 **dataTransfer** 对象。
+
+      **dataTransfer** 对象有两个主要方法：**getData()** 和 **setData()**。
+      * **setData()**：接收两个参数，第一个参数是"text"和"URL"。第二个参数是设置的对应的文本和url。
+      * **getData()**：接收一个参数，就是 **setData()** 的第一个参数"text"和"URL"。
+      
+      请看下面的例子：
+      ```js
+      var redBox = document.getElementById("redBox");
+      var blueBox = document.getElementById("blueBox");
+
+      // 红色盒子
+      redBox.addEventListener("dragenter", function(event) {
+        event.preventDefault();
+        console.log("dragenter事件");
+      });
+
+      redBox.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        console.log("dragover事件");
+      });
+
+      redBox.addEventListener("dragleave", function() {
+        console.log("dragleave事件");
+      });
+
+      redBox.addEventListener("drop", function(event) {
+        console.log("drop事件");
+        var text = event.dataTransfer.getData("text");
+        redBox.innerText = text;
+        console.log(redBox.innerText);
+      });
+
+      // 蓝色盒子
+      blueBox.addEventListener("dragstart", function(event) {
+        console.log("dragstart事件");
+        event.dataTransfer.setData("text", "Hello world");
+      });
+
+      blueBox.addEventListener("drag", function(event) {
+        console.log("drag事件");
+      });
+
+      blueBox.addEventListener("dragend", function(event) {
+        console.log("dragend");
+      });
+      ```
+      保存在dataTransfer对象中的数据只能在drop事件中读取。如果ondrop事件中没有读到数据，那就是
+      dataTransfer对象已经被销毁，数据也丢失了。
+
+      ### dropEffect与effectAllowed
+      利用dataTransfer对象，可不光是能够传输数据，还能通过它来确定被拖动的元素以及作为放置目标的
+      元素能够接收什么操作。为此，需要访问dataTransfer对象的两个属性：**dropEffect** 和 **effectAllowed**。
+
+      其中，通过dropEffect属性可以知道被拖动的元素能够执行哪种放置行为。这个属性有下列4个可能的值。
+      * "none"：不能把拖动的元素放在这里。这是除文本框之外所有元素的默认值。
+      * "move"：应该把拖动的元素移动到放置目标。
+      * "copy"：应该把拖动的元素复制到放置目标。
+      * "link"：表示放置目标会打开拖动的元素（但拖动的元素必须是一个链接，有URL）。
+      
+      在把元素拖动到放置目标上时，以上每一个值都会导致光标显示为不同的符号。如果你不介入，没有什么
+      会自动地移动、复制，也不会打开链接。总之，浏览器只能帮你改变光标的样式，而其他的都要靠你自己
+      来实现。要使用 **dropEffect** 属性，必须在 **ondragenter** 事件处理程序中针对放置目标来设置它。
+
+      **dropEffect** 属性只有搭配 **effectAllowed** 属性才有用。effectAllowed属性表示允许拖动元
+      素的哪种dropEffect，effectAllowed属性可能的值如下：
+      * "uninitialized"：没有给被拖动的元素设置任何放置行为。
+      * "none"：被拖动的元素不能有任何行为。
+      * "copy"：只允许值为"copy"的dropEffect。
+      * "link"：只允许值为"link"的dropEffect。
+      * "move"：只允许值为"move"的dropEffect。
+      * "copyLink"：允许值为"copy"和"link"的dropEffect。
+      * "copyMove"：允许值为"copy"和"move"的dropEffect。
+      * "linkMove"：允许值为"link"和"move"的dropEffect。
+      * "all"：允许任意dropEffect。
+      
+      必须在ondragstart事件中设置effectAllowed属性。
+
+      假设你想允许用户把文本框中的文本拖放到一个`<div>`元素中。必须将dropEffect和effectAllowed设
+      置为"move"，由于`<div>`元素的放置事件的默认行为是什么也不做，所以文本不能自动移动。重写这个
+      默认行为，就能从文本框中移走文本。然后你就可以自己编写代码将文本插入到`<div>`中。如果你将
+      dropEffect和effectAllowed的值设置为"copy"，那就不会自动移走文本框中的文本。
+
+      ### 其他成员
+      dataTransfer对象还应该包含下列方法和属性。
+      * addElement：为拖动操作添加一个元素。添加这个元素只影响数据（即增加作为拖动源而响应回调对象），
+        不会影响拖动操作时页面元素的外观。
+      * clearData：清除以特定格式保存的数据。
+      * setDragImage：指定一幅图像，当拖动发生时，显示在光标下方。这个方法接收的三个参数分别是要显
+        示的HTML元素和光标在图像中的x、y坐标。其中，HTML元素可以是一幅图像，也可以是其他元素。是图
+        像则显示图像，是其他元素则显示渲染后的元素。
+      * types：当前保存的数据类型。这是一个类似数组的集合，以"text"这样的字符串形式保存着数据类型。
+    **/
+
+  </script>
+
+</body>
+</html>
