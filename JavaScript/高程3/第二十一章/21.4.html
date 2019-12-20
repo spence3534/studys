@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title></title>
+</head>
+<body>
+  <script>
+    /**
+      ## 跨域源资源共享 CORS
+      CORS背后的基本思想，就是使用自定义的HTTP头部让浏览器与服务器进行沟通，从而决定请求或响
+      应是应该成功，还是应该失败。
+
+      在发送该请求时，需要给它附加一个额外的Origin头部，其中包含请求页面的源信息（协议，域名和端口），
+      以便服务器根据这个头部信息来决定是否给予响应。下面是Origin头部的一个示例：
+      ```js
+      Origin: http://www.baidu.com
+      ```
+      如果服务器认为这个请求可以接受，就在Access-Control-Allow-Origin头部中回发相同的源信息（如果
+      是公共资源，可以回发"*"）。例如：
+      ```js
+      Access-Control-Allow-Origin: http://www.baidu.com
+      ```
+      如果没有这个头部，或者有这个头部但源信息不匹配，浏览器就会驳回请求。正常情况下，浏览器会处理请
+      求。注意，请求和响应都不包含cookie信息。
+
+      ### 主流浏览器对CORS的实现
+      在尝试打开不同来源的资源时，无需额外编写代码就可以触发这个行为。要请求位于另一个域中的资源，使
+      用标准的XHR对象并在open()方法中传入绝对URL即可，例如：
+      ```js
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+          if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
+            console.log(xhr.responseText);
+          } else {
+            console.log(xhr.status);
+          }
+        }
+      };
+
+      xhr.open("get", "http://www.somewhere-else.com/page/", true);
+      xhr.send(null);
+      ```
+      跨域XHR对象也有一个些限制，但为了安全这些限制是必需的。以下就是这些限制。
+      * 不能使用setRequestHeader()设置自定义头部。
+      * 不能发送和接收cookie。
+      * 调用getAllResponseHeaders()方法总会返回空字符串。
+
+      由于无论同源请求还是跨源请求都使用相同的接口，因此对于本地资源，最好使用相对URL，在访问远程资
+      源时再使用绝对URL。避免出现限制访问头部或本地cookie信息等问题。
+
+      ### Preflighted Reqeusts
+      CORS通过一种叫做Preflighted Reqeusts的透明服务器验证机制支持开发人员使用自定义的头部、GET或POST
+      之外的方法，以及不同类型的主体内容。在使用下列高级选项来发送请求是，就会向服务器发送一个Preflighted
+      请求。这种请求使用OPTIONS方法，发送下列头部。
+      * Origin：与简单的请求相同。
+      * Access-Control-Request-Method：请求自身使用的方法。
+      * Access-Control-Request-Headers：（可选）自定义的头部信息，多个头部以逗号分隔。
+      
+      以下是一个带有自定义头部NCZ的使用POST方法发送的请求。
+      ```js
+      Origin: http://www.baidu.com
+      Access-Control-Request-Method:POST
+      Access-Control-Request-Headers:NCZ
+      ```
+      发送这个请求后，服务器可以决定是否允许这种类型的请求。服务器通过在响应中发送如下头部与浏览器进行沟通。
+      * Access-Control-Allow-Origin：与简单的请求相同。
+      * Access-Control-Allow-Methods：允许的方法，多个方法以逗号分隔。
+      * Access-Control-Allow-Headers：允许的头部，多个头部以逗号分隔。
+      * Access-Control-Max-Age：应该将这个Preflight请求缓存多长时间（以秒表示）。
+
+      例如：
+      ```js
+      Access-Control-Allow-Origin:http://www.baidu.com
+      Access-Control-Allow-Methods:POST, GET
+      Access-Control-Allow-Headers:NCZ
+      Access-Control-Max-Age: 1728000
+      ```
+      Preflight请求结束后，结果将按照响应中指定的时间缓存起来。而为此付出的代价只是第一次发送这种请求时
+      会多一次HTTP请求。
+
+      ### 带凭据的请求
+      默认情况下，跨源请求不提供凭据。通过将 **withCredentials** 属性设置为true，可以指定某个请求应该
+      发送凭据。如果服务器接受带凭据的请求，会用下面的HTTP头部来响应：
+      ```js
+      Access-Control-Allow-Credentials: true
+      ```
+      如果发送的是带凭据的请求，但服务器的响应中没有包含这个头部，那么浏览器就不会把响应交给JavaScript
+      （于是，responseText中将是空字符串，status的值为0，而且会调用onerror()事件）。另外，服务器还可
+      以在Preflight响应中发送这个HTTP头部，表示允许源发送带凭据的请求。
+
+      ### 跨浏览器的CORS
+      检测XHR是否支持CORS的最简单方式，就是检查是否存在withCredentials属性。再结合检测XDomainRequest
+      对象是否存在，就可以兼顾所有浏览器了。
+      ```js
+      function createCORSRequest(method, url) {
+        var xhr = new XMLHttpRequest();
+        if ("withCredentials" in xhr) {
+          xhr.open(method, url, true);
+        } else if (typeof XDomainRequest != "undefined") {
+          // 这是IE中的XDomainRequest;
+          xhr = new XDomainRequest();
+          xhr.open(method, url);
+        } else {
+          xhr = null;
+        }
+        return xhr;
+      }
+
+      var reqeust = createCORSRequest("get", "http://www.baidu.com/page/");
+      if (reqeust) {
+        reqeust.onload = function() {
+          // 对request.responseText进行处理
+        };
+        request.send();
+      }
+      ```
+    **/
+  </script>
+</body>
+</html>
