@@ -4,11 +4,202 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>对象的解构赋值</title>
+  <title></title>
   <script>
     /**
+      ## 对象的解构赋值
+
+      解构赋值不仅用于数组，还可以对对象进行解构赋值
+
+      ```js
+      let { foo, bar } = { foo: "xiaoli", bar: "xiaohong" };
+
+      console.log(foo); // xiaoli
+      console.log(bar); // xiaohong
+      ```
+
+      对象的解构和数组的解构有所不同。数组的元素是要按次序排列的，变量的取值是由它的位置决定，但是
+      对象的话，属性没有次序，变量必须和属性同名才能取到正确的值。
+      ```js
+      let { bar, foo } = { foo: "aaa", bar: "bbb" };
+
+      console.log(bar); // bbb
+      console.log(foo); // aaa
+      ```
       
+      上面已经说了，对象解构时，变量必须和属性同名才能够取到正确的值。来看个例子：
+      ```js
+      let { baz } = { bar: "bbb" };
+      console.log(baz); // undefined
+      ```
+      在这个例子中，变量没有对应的同名属性，导致取不到值，最后打印出了undefined。
+
+      如果变量名与属性名不一致，必须写成下面这样。
+      ```js
+      let { foo: baz } = { foo: 'aaa', bar: 'bbb' };
+
+      console.log(baz);
+
+      let obj = { first: "hello", last: "world" };
+      let { first: f, last: l } = obj;
+
+      console.log(f, l);
+      ```
+      实际上说明，对象的解构赋值是下面形式的简写。
+      ```js
+      let { foo: foo, bar: bar } = { foo: "aaa", bar: "bbb" };
+      ```
+      对象的解构赋值的机制是先找到同名属性，然后再赋值给对应的变量。真正被赋值的是后者，而不是前者。
+      所以大家平时在开发过程中需要注意。
+      ```js
+      let { foo: baz } = { foo: "aaa", bar: "bbb" };
+
+      console.log(baz); // aaa
+      console.log(foo); // Uncaught ReferenceError: foo is not defined
+      ```
+      上面的代码中，foo是匹配的模式，baz才是变量。真正被赋值的是变量baz，而不是模式foo。
+
+      与数组一样的，解构可以用于嵌套结构的对象。
+      ```js
+      let obj = {
+        p: [
+          'Hello',
+          { y: "world" }
+        ]
+      };
+
+      let { p: [x, { y }] } = obj;
+
+      console.log(x, y); // Hello world
+      ```
+      需要注意的是，这时p是模式，不是变量，因此不会被赋值，如果p也要作为变量赋值，可以写成
+      下面这样。
+      ```js
+      let obj = {
+        p: [
+          'Hello',
+          { y: "world" }
+        ]
+      };
+
+      let { p, p: [x, { y }] } = obj;
+
+      console.log(p); // ["Hello", { y: "world" }]
+      console.log(x, y); // Hello world
+      ```
+
+      看另一个例子。
+
+      ```js
+      let node = {
+        loc: {
+          start: {
+            line: 1,
+            column: 5
+          }
+        }
+      };
+
+      let { loc, loc: { start }, loc: { start: { line } } } = node;
+      console.log(line); // 1
+      console.log(loc); // {start: {line: 1, column: 5}}
+      console.log(start); // { line: 1, column: 5 }
+      ```
+      上面的例子进行了三次解构赋值，对loc、start、line三个属性的解构赋值。需要注意的是，最
+      后一次对line属性的解构赋值之中，只有line是变量，loc和start都是模式，不是变量。
+
+      来看下面的嵌套赋值的例子。
+      ```js
+      let obj = {};
+      let arr = [];
+
+      ({ foo: obj.prop, bar: arr[0] } = { foo: 123, bar: true });
+
+      console.log(obj); // {prop: 123}
+      console.log(arr); // true
+      ```
+      对象的解构也可以指定默认值。
+      ```js
+      let { x = 3 } = {};
+      console.log(x); // 3
+
+      let { b, y = 5 } = { b: 1 };
+      console.log(b); // 1
+      console.log(y); // 5
+
+      let { x: y = 3 } = {};
+      console.log(y); // 3
+
+      let { message: msg = 'Something went wrong' } = { };
+      console.log(msg); // Something went wrong
+      ```
+      默认值生效的条件是，对象属性值严格等于undefined。
+      ```js
+      let { x = 3 } = { x: undefined };
+      console.log(x); // 3
+
+      let { y = 3 } = { y : null};
+      console.log(y); // null
+      ```
+      上面的代码中，如果x属性等于null的话，就不严格相等于undefined，所以会导致默认值不会生效。
+
+      如果解构失败的话，变量的值就等于undefined。
+      ```js
+      let { foo } = { bar: 'bar' };
+      console.log(foo); // undefined
+      ```
+      如果解构模式是嵌套的对象的话，而且子对象所在的父属性不存在，也会报错。
+      ```js
+      // Uncaught TypeError: Cannot read property 'bar' of undefined
+      let { foo: { bar } } = { baz: "baz" };
+      ```
+      上面的代码里，等号左边对象的foo属性对应一个子对象。该子对象的bar属性在解构时会报错，是因为
+      foo这时等于undefined，再取子属性就会报错，来看下面的代码。
+      ```js
+      let _tmp = { baz: 'baz' };
+      console.log(_tmp.foo.baz); // Uncaught TypeError: Cannot read property 'baz' of undefined
+      ```
+      如果要将一个已经声明的变量用于解构赋值，必须要多加小心。
+      ```js
+      // Uncaught SyntaxError
+      let x;
+      { x } = { x: 1 };
+      ```
+      上面的代码写法会报错，是因为JavaScript引擎会将{x}理解成一个代码块，从而发生语法错误，只有不将大括
+      号写在行首，避免JavaScript将其解释为代码块，才能够解决这个问题。像下面这样的写法就不会报错了。整个
+      解构赋值语句放在一个圆括号里面就可以了。关于圆括号的问题，后面会讲到。
+      ```js
+      let x;
+      ( { x } = { x: 1 } );
+      console.log(x); // 1
+      ```
+
+      解构赋值允许等号左边的模式之中不放置任何变量名，因此，可以写出一些古怪的赋值表达式。
+      ```js
+      ({} = [true, false]);
+      ({} = 'abc');
+      ({} = []);
+      ```
+      像上面的表达式是毫无意义的，但是语法是完全合法的，也不会出现出错。
+
+      对象的解构赋值可以很方便地将现有对象的方法赋值到某个变量。
+      ```js
+      let { log, sin, cos } = Math;
+      ```
+      上面的代码将Math对象的对数、正弦、余弦三个方法赋值到对应的变量上，使用起来就会方便很多。
+
+      由于数组本质就是特殊的对象，因此可以对数组进行对象属性的解构。
+      ```js
+      let arr = [1, 2, 3];
+      let { 0: first, [arr.length - 1] : last } = arr;
+      console.log(first); // 1
+      console.log(last); // 3
+      ```
+      上面的代码对数组进行对象解构。数组arr的0键对应的值是1，[arr.length - 1]就是2键，对应的值是3。
+      方括号这种写法属于 “属性名表达式”。后面会讲到。
+
     */
+    
   </script>
 </head>
 <body>

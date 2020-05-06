@@ -53,7 +53,7 @@ function searchXiaoJieJie() {
     for (var i = 0; i < xuqiu.length; i++) {
         yy = yy + xuqiu[i];
         if (i < xuqiu.length) {
-            yy = yy + "、";
+          yy = yy + "、";
         }
     }
     yy = yy + "的小姐姐";
