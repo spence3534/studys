@@ -9,6 +9,16 @@
   <script>
     /**
       ## 字符串的解构赋值
+      字符串也可以进行解构赋值，就是字符串被转换成一个类似数组的对象。
+      ```js
+      const [a, b, c, d, e] = 'hello';
+      console.log(a, b, c, d, e); // h e l l o
+      ```
+      类似数组的对象都有一个length属性，因此还可以对这个属性进行解构赋值。
+      ```js
+      let {length: len} = "hello";
+      console.log(len); // 5
+      ```
     */
   </script>
   </body>

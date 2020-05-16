@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /**
+      ## 用途
+
+      变量的解构赋值用途很多
+
+      #### 交换变量的值
+      ```js
+      let x = 1;
+      let y = 2;
+
+      [x, y] = [y, x];
+      console.log(`x的值是${x}`, `y的值是${y}`); // x的值是2 y的值是1
+      ```
+      上面的代码交换变量x和y的值，这种写法不仅简洁，而且易读，语义非常清晰。
+
+      #### 从函数返回多个值
+      函数只能返回一个值，如果要返回多个值，只能将它们放在数组或对象里面当作返回值，然后使用解构赋值，
+      这样取出这些值就很方便了。
+      ```js
+      function example() {
+        // 返回一个数组
+        return [1, 2, 3];
+      }
+
+      let [a, b, c] = example();
+      console.log(a, b, c); // 1 2 3
+
+      function returnObj() {
+        // 返回一个对象
+        return {
+          foo: 1,
+          bar: 2
+        };
+      }
+
+      let { foo, bar } = returnObj();
+      console.log(foo, bar); // 1 2
+      ```
+
+      #### 函数参数的定义
+      解构赋值可以方便地将一组参数与变量名对应起来。
+      ```js
+      function f([x, y, z]) {
+        console.log("x的值", x); // x的值 1
+        console.log("y的值", y); // y的值 2
+        console.log("z的值", z); // z的值 3
+      }
+
+      // 参数是一组有次序的值
+      f([1, 2, 3]);
+
+      function b({x, y, z}) {
+        console.log("x的值", x); // x的值 1
+        console.log("y的值", y); // y的值 2
+        console.log("z的值", z); // z的值 3
+      }
+
+      // 参数是一组无次序的值
+      b({z: 3, y: 2, x: 1});
+      ```
+      #### 提取JSON数据
+      解构赋值用来提取JSON对象中的数据是非常有用的。我们在日常开发中，对后端同学返回给我们的数据用解构
+      赋值做处理，方便很多了。
+      ```js
+      let jsonData = {
+        id: 42,
+        status: "OK",
+        data: [867, 5309]
+      };
+
+      const { id, status, data } = jsonData;
+      console.log(id); // 42
+      console.log(status); // OK
+      console.log(data); // [867, 5309]
+      ```
+      上面就是使用解构赋值快速提取JSON数据的值。只要属性正确就可以提取，不用考虑顺序。
+
+      遍历Map结构
+      任何部署了Iterator接口的对象都可以用for...of循环遍历。Map结构原生支持Iterator接口，配合变量的解构赋
+      值获取键名和键值就非常方便。
+      ```js
+      var map = new Map();
+      map.set('first', 'hello');
+      map.set('second', 'world');
+
+      for(let [key, value] of map) {
+        console.log(key + " is " + value);
+        // first is hello 
+        // second is world
+      }
+      ```
+      如果只想获取键名，或者只想获取键值，也可以写成下面这样。
+      ```js
+      var map = new Map();
+      map.set('first', 'hello');
+      map.set('second', 'world');
+
+      for (let [key] of map) {
+        // 获取键名
+        console.log(`key is ${key}`);
+        // key is first
+        // key is second
+      }
+
+      for(let [, value] of map) {
+        // 获取键值
+        console.log(`value is ${value}`);
+        // value is hello
+        // value is world
+      }
+      ```
+
+      #### 输入模块的指定方法
+      加载模块时，往往需要指定输入的方法。解构赋值使得输入语句非常清晰。
+      ```js
+      const { SourceMapConsumer, SourceNode } = require("source-map");
+      ```
+    **/
+  </script>
+</body>
+</html>
