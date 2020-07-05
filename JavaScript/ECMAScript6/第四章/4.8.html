@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /**
+      ## repeat()
+      repeat方法返回一个新的字符串，表示将原来的字符串重复n次。
+      ```js
+      console.log('hello'.repeat(3)); // hellohellohello
+      console.log('l'.repeat(5)); // lllll
+      console.log('ni'.repeat(4)); // nininini
+      ```
+      如果参数是个小数的话，会被转换为整数。
+      ```js
+      console.log('hello'.repeat(3.5)); // hellohellohello
+      console.log('l'.repeat(5.8)); // lllll
+      console.log('ni'.repeat(4.2)); // nininini
+      ```
+      如果repeat的参数是负数或者Infinity，就会抛出错误。
+      ```js
+      'na'.repeat(Infinity); // Uncaught RangeError: Invalid count value
+      'ni'.repeat(-1); // Uncaught RangeError: Invalid count value
+      ```
+      但如果参数是0到-1之间的小数，则等同于0，这是因为会先进行取整运算。0到-1之间的小数取整以后等于-0，
+      repeat视同为0。参数如果是NaN的话也等同于0。
+      ```js
+      console.log('na'.repeat(-0.9)); // ""
+      console.log('na'.repeat(NaN)); // ""
+      ```
+      如果repeat的参数是字符串，则会先转换成数字。
+      ```js
+      console.log('na'.repeat('na')); // ""
+      console.log('na'.repeat('3')); // "nanana"
+      ```
+    **/
+  </script>
+</body>
+</html>
