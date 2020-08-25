@@ -172,8 +172,124 @@
       foo(undefined, null); // 5 null
       ```
       以上的代码中，x参数对应undefined，结果触发了默认值，y参数等于null，没有触发默认值。
+
+      ### 函数的length属性
+      指定了默认值以后，函数的length属性将返回没有指定默认值的参数个数。也就是说，指定默认值后，length属性将失真。
+      ```js
+      console.log((function (a) {}).length); // 1
+      console.log((function (a = 5){}).length); // 0
+      console.log((function (a, b, c = 5) {}).length); // 2
+      ```
+      上面的代码中，length属性的返回值等于函数的参数个数减去指定了默认值的参数个数。比如，上面的最后一个函数定义
+      了3个参数，其中有一个参数c指定了默认值，因此length属性等于3减去1，即为2。
+
+      这是因为length属性的含义是该函数预期传入的参数个数。某个参数指定默认值以后，预期传入的参数个数就不包括这个
+      参数了。同样的，rest参数也不会计入length属性。
+      ```js
+      console.log((function(...args) {}).length); // 0
+      ```
+      如果设置了默认值的参数不是尾数，那么length属性也不再计入后面的参数。
+      ```js
+      console.log((function (a = 0, b, c) {}).length); // 0
+      console.log((function (a, b = 1, c) {}).length); // 1
+      ```
+
+      ### 作用域
+      一旦设置了参数的默认值，函数进行声明初始化时，参数会形成一个单独的作用域。等到初始化结束，这个作用域就消
+      失。这种语法行为在不设置参数默认值时是不会出现的。
+      ```js
+      var x = 1;
+      function f(x, y = x) {
+        console.log(y);
+      }
+      f(2); // 2
+      ```
+      以上的代码中，参数y的默认值等于变量x。调用函数f时，参数形成一个单独的作用域。在这个作用域里面，默认值变
+      量x指向第一个参数x，而不是全局变量x，所以打印的是2。
+      
+      再来看看下面的例子。
+      ```js
+      let x = 1;
+      function f(y = x) {
+        let x = 2;
+        console.log(y);
+      }
+      f(); // 1
+      ```
+      以上的代码中，函数f调用时，参数y = x形成一个单独的作用域。在这个作用域里面，变量x本身没定义，所以指向外层
+      的全局变量x。函数调用时，函数体内部的局部变量x并没有影响到默认值变量x。注意的是，如果全局变量x不存在，就会报错。
+
+      如果参数的默认值是一个函数，该函数的作用域也遵守这个规则。看下面的例子。
+      ```js
+      let foo = "outer";
+
+      function bar(func = x => foo) {
+        let foo = 'inner';
+        console.log(func());
+      }
+
+      bar(); // outer
+      ```
+      上面代码中，函数bar的参数func的默认值是一个匿名函数，返回值为变量foo。函数参数形成的单独作用域里面并没有定义
+      变量foo，所以foo指向外层的全局变量foo，因此控制台打印出outer。如果foo没有被声明也是会直接抛出错误的。
+      ```js
+      let foo = "outer";
+
+      function bar(func = x => foo) {
+        let foo = 'inner';
+        console.log(func());
+      }
+
+      bar(); // outer
+      ```
+
+      来看一个更复杂的例子。
+      ```js
+      var x = 1;
+      function foo(x, y = function() { x = 2; }) {
+        var x = 3;
+        y();
+        console.log(x);
+      }
+
+      foo(); // 3
+      console.log(x); // 1
+      ```
+      上面的代码中，函数foo的参数形成一个单独作用域。这个作用域中首先声明了变量x，然后声明了变量y。y的默认值是
+      一个匿名函数，这个匿名函数内部的变量x指向同一个作用域的第一个参数x。函数foo内部又声明了一个内部变量x，该
+      变量与第一个参数x由于不是同一个作用域，所以不是同一个变量，因此执行y后，内部变量x和外部全局变量x的值都没变。
+
+      如果将var x = 3的var去除，函数foo的内部变量x就指向第一个参数x，与匿名函数内部的x是一致的，所以最后输出的就
+      是2，而外层的全局变量x依然不受影响。
+      ```js
+      var x = 1;
+      function foo(x, y = function() { x = 2; }) {
+        x = 3;
+        y();
+        console.log(x);
+      }
+      foo(); // 2
+      console.log(x); // 1
+      ```
+
+      ### 应用
+      利用参数默认值可以指定某一个参数不得省略，如果省略就抛出一个错误。
+      ```js
+      function throwIfMissing() {
+        throw new Error ('Missing parameter');
+      }
+
+      function foo(mustBeProvided = throwIfMissing()) {
+        return mustBeProvided;
+      }
+
+      foo(); // Error: Missing parameter
+      ```
+      如果调用的时候没有参数，以上代码中的foo函数就会调用默认值throwIfMissing函数，从而抛出一个错误。
+
+      在以上的代码来看，参数mustBeProvided的默认值等于throwIfMissing函数的运行结果，这表明参数的默认值
+      不是定义时执行的，而是在运行时执行。如果参数已经赋值，默认值中的函数就不会运行。
     **/
-    
   </script>
 </body>
 </html>

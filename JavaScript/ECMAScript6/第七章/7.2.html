@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /**
+      ## rest参数
+      使用rest参数的形式为（...变量名），用于获取函数的多余参数，这样就不需要使用arguments对象了。rest参数
+      搭配的变量是一个数组，该变量将多余的参数放入其中。
+      ```js
+      function fun(...values) {
+        let sum = 0;
+
+        for (let val of values) {
+          sum += val;
+        }
+        return sum;
+      }
+
+      console.log(fun(1, 2, 3, 4)); // 10
+      ```
+      上面的代码中的fun函数是一个求和函数，利用rest参数可以向该函数传入任意数目的参数。下面是一个rest
+      参数代替arguments变量的例子。
+      ```js
+      // arguments变量的写法
+      function sortNumbers() {
+        return Array.prototype.slice.call(arguments).sort();
+      }
+
+      // rest参数的写法
+      const sortNumbers = (...numbers) => numbers.sort();
+      ```
+      比较上面的两种写法可以发现，rest参数的写法更加简洁。
+
+      rest参数中的变量代表一个数组，所以数组特有的方法都可以用到这个变量上。
+      ```js
+      function push(array, ...items) {
+        items.forEach(item => {
+          array.push(item);
+          console.log(item);
+        });
+      }
+
+      let a = [];
+      push(a, 1, 2, 3);
+      ```
+      :::warning
+      rest参数之后就不能再有其他参数，rest只能是最后一个参数，否则会报错。还有函数的length属性不包括rest参数。
+      :::
+    **/
+    
+  </script>
+</body>
+</html>
