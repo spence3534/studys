@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /* 
+      # 数组扩展
+
+      ## 扩展运算符
+      扩展运算符是用三个点(...)来标识，就跟rest参数的逆运算一样，将一个数组转为用逗号分隔的参数序列。
+      ```js
+      console.log(...[1, 2, 3]); // 1 2 3
+      console.log(1, ...[2, 3, 4], 5); // 1 2 3 4 5
+      ```
+      一般都是用在函数调用。
+      ```js
+      function push(array, ...items) {
+        array.push(...items);
+      }
+
+      function add(x, y) {
+        return x + y;
+      }
+
+      const numbers = [4, 38];
+      console.log(add(...numbers)); // 42
+      ```
+      以上代码中，array.push(...items)和add(...numbers)这两行，都是属于函数的调用，并且都使用了扩展运算符。
+      该运算符将一个数组，变为参数序列。
+
+      扩展运算符还可以和正常的函数参数结合使用。
+      ```js
+      function f(v, w, x, y, z) { 
+        console.log(v, w, x, y, z); // -1 0 1 2 3
+      }
+      const args = [0, 1];
+      f(-1, ...args, 2, ...[3]);
+      ```
+      扩展运算符后面还可以使用表达式。
+      ```js
+      const x = 1;
+      const arr = [
+        ...(x > 0 ? ['a'] : []),
+        'b',
+      ];
+      console.log(arr);
+      ```
+      如果扩展运算符后面是一个空数组的话，不会产生任何效果。
+      ```js
+      let arr = [...[], 1];
+      console.log(arr); // [1]
+      ```
+
+      ### 代替函数的apply()方法
+      由于扩展运算符可以用于展开数组，所以不再需要apply方法，将数组转为函数的参数了。
+      ```js
+      // 以前的写法
+      function f(x, y, z) {
+        console.log(x, y, z); // 0 1 2
+      }
+
+      var args = [0, 1, 2];
+      f.apply(null, args); 
+
+      // ES6的写法
+      function f(x, y, z) {
+        console.log(x, y, z); // 0 1 2
+      }
+      let args = [0, 1, 2];
+      f(...args);
+      ```
+      扩展运算符取代apply方法的一个实际的例子，用到Math.max方法上，简化求出一个数组最大元素的写法。
+      ```js
+      // ES5的写法
+      console.log(Math.max.apply(null, [14, 3, 77])); // 77
+
+      // ES6的写法
+      console.log(Math.max(...[14, 3, 77])); // 77
+
+      // 等价于
+      console.log(Math.max(14, 3, 77)); // 77
+      ```
+    */
+    
+  </script>
+</body>
+</html>

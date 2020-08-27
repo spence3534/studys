@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <button id="throttle">点击按钮</button>
+  <script>
+
+    // 函数节流第一版
+    /* function throttle(fn, interval) {
+      var self = fn; // 首先用一个变量self保存要延迟执行的函数
+      var timer = undefined; // 然后用一个变量保存定时器，初始化为undefined
+      var firstTime = true; // 用一个变量做为是否是第一次调用的标识，初始化为true;
+
+      return function() {
+        var args = arguments; // 这里的arguments其实就是event事件
+        var that = this; // 这里的this直接指向button
+
+        // 这里if检查是否是第一次调用，如果是那么就不需要延迟执行
+        if (!firstTime) {
+          self.apply(that, args);
+          return firstTime = false;
+        }
+
+        
+        // 这里的if是为了检查是否有值，如果不是undefined，那就证明上一次还没有执行完，所以直接return回去。不往下执行了。 
+        // 也就是说timer初始化为undefined，如果不是undefined，那就说明定时器存在。
+        if (timer) {
+          return false;
+        }
+
+        // 这里是定时器赋值，延迟一段时间去执行该函数。
+        timer = setTimeout(() => {
+          clearTimeout(timer);
+          timer = null;
+          self.apply(that, args);
+        }, interval || 500);
+      }
+    } */
+
+    // 结合时间戳的版本
+    /* function throttle(fn, wait, time) {
+      let previous = null; // 用于记录上一次设置的时间
+      let timer = null; // 设置定时器的返回值
+
+      return function() {
+        // 获取当前的时间戳
+        let now = + new Date();
+
+        // 首先用previous变量来做是否是第一次的标识。如果是就把当前时间戳赋给previous变量。
+        if (!previous) {
+          previous = now;
+        }
+
+        // 然后用当前时间戳减去上次时间戳大于设置的执行时间间隔的话，那么就执行一次。
+        if (now - previous > time) {
+          clearTimeout(timer);
+          fn.apply(this, arguments);
+          previous = now;
+        } else {
+          // 否则就用设定时间间隔执行该函数，wait传500毫秒就500毫秒才执行。
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            fn.apply(this, arguments);
+          }, wait);
+        }
+      }
+    } */
+
+    // 函数防抖
+    /* window.onload = function() {
+      var btn = document.getElementById("throttle");
+      btn.addEventListener("click", debounce(myDebounce));
+    }
+
+    function debounce(fn) {
+      let timer = null;
+
+      return function() {
+        clearTimeout(timer);
+
+        timer = setTimeout(() => {
+          console.log(this, arguments);
+          fn.call(this, arguments);
+        }, 500);
+      }
+    }
+
+    function myDebounce() {
+      console.log("this is debounce");
+    } */
+  </script>
+</body>
+</html>

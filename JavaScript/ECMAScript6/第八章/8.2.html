@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*  
+      ## 扩展运算符应用
+      
+      ### 复制数组
+      数组是复合的数据类型，如果直接复制的话，只是复制了指向原数组的指针而已。而不是克隆一个全新的数组，
+      引用类型都有这样的行为。看下面的例子：
+      ```js
+      const a1 = [1, 2];
+      const a2 = a1;
+      a2[0] = 2;
+      console.log(a1); // [2, 2]
+      ```
+      上面的例子中，a2并不是克隆a1，而是指向同一个数组的另一个指针而已，修改了a2，同时会影响到a1的变化。
+
+      在ES5中只能用变通方法来复制数组。
+      ```js
+      const a1 = [1, 2];
+      const a2 = a1.concat();
+      a2[0] = 3;
+      console.log(a1); // [1, 2]
+      console.log(a2); // [3, 2]
+      ```
+      上面的代码中，a2变量中通过concat()方法把a1的数组克隆了一份，a2修改数组的值时，a1并不会受到影响。
+      不知道concat()用法的同学，可以去补补基础先。
+
+      如果使用扩展运算符的话，也是可以复制数组的，只不过比前面的例子更加简便了。
+      ```js
+      const a1 = [1, 2];
+      const a2 = [...a1];
+      a2[0] = 4;
+      console.log(a1); // [1, 2]
+      console.log(a2); // [4, 2]
+      ```
+
+      ### 合并数组
+      扩展运算符提供了数组合并的全新写法，在ES5可以使用concat()方法实现数组合并。
+      ```js
+      const arr1 = ['a', 'b'];
+      const arr2 = ['c'];
+      const arr3 = ['d', 'e'];
+
+      // ES5的合并数组
+      console.log(arr1.concat(arr2, arr3)); // ["a", "b", "c", "d", "e"]
+
+      // ES6的合并数组
+      console.log([...arr1, ...arr2, ...arr3]); // ["a", "b", "c", "d", "e"]
+      ```
+
+      ### 与解构赋值结合
+      扩展运算符可以与解构赋值一起使用，用来生成数组。
+      ```js
+      // ES5的写法
+      const list = [1, 2, 3, 4, 5];
+      const a = list[0]; 
+      const rest = list.slice(1);
+      console.log(a); // 1
+      console.log(rest); // [2, 3, 4, 5]
+
+      // ES6的写法
+      const list = [1, 2, 3, 4, 5];
+      const [a, ...rest] = list;
+      console.log(a); // 1
+      console.log(rest); // [2, 3, 4, 5]
+      ```
+      看另外一个例子。
+      ```js
+      const [first, ...rest] = [1, 2, 3, 4, 5];
+      console.log(first); // 1
+      console.log(rest); // [2, 3, 4, 5]
+
+      const [a, ...b] = [];
+      console.log(a); // undefined
+      console.log(b); // []
+
+      const [c, ...d] = ["foo"];
+      console.log(c); // foo
+      console.log(d); // []
+      ```
+
+      如果将扩展运算符用于数组赋值，只能放在参数的最后一位，否则报错。
+      ```js
+      const [...first, rest] = [1, 2, 3, 4, 5];
+      // Uncaught SyntaxError: Rest element must be last element
+
+      const [a, ...b, c] = [1, 2, 3, 4, 5];
+      // Uncaught SyntaxError: Rest element must be last element
+      ```
+    */
+    
+  </script>
+</body>
+</html>
