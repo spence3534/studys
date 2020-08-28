@@ -8,91 +8,112 @@
 <body>
   <script>
     /*  
-      ## 扩展运算符应用
-      
-      ### 复制数组
-      数组是复合的数据类型，如果直接复制的话，只是复制了指向原数组的指针而已。而不是克隆一个全新的数组，
-      引用类型都有这样的行为。看下面的例子：
+      ## Array.from()
+
+      `Array.from`方法用于将两类对象转为真正的数组：类数组的对象和可遍历的对象（包括ES6新增的数据结构Set和Map）。
+
+      下面是一个类数组的对象，使用`Array.from`将它转为真正的数组。
       ```js
-      const a1 = [1, 2];
-      const a2 = a1;
-      a2[0] = 2;
-      console.log(a1); // [2, 2]
-      ```
-      上面的例子中，a2并不是克隆a1，而是指向同一个数组的另一个指针而已，修改了a2，同时会影响到a1的变化。
+      let arrayLike = {
+        '0': 'a',
+        '1': 'b',
+        '2': 'c',
+        length: 3
+      };
 
-      在ES5中只能用变通方法来复制数组。
-      ```js
-      const a1 = [1, 2];
-      const a2 = a1.concat();
-      a2[0] = 3;
-      console.log(a1); // [1, 2]
-      console.log(a2); // [3, 2]
-      ```
-      上面的代码中，a2变量中通过concat()方法把a1的数组克隆了一份，a2修改数组的值时，a1并不会受到影响。
-      不知道concat()用法的同学，可以去补补基础先。
-
-      如果使用扩展运算符的话，也是可以复制数组的，只不过比前面的例子更加简便了。
-      ```js
-      const a1 = [1, 2];
-      const a2 = [...a1];
-      a2[0] = 4;
-      console.log(a1); // [1, 2]
-      console.log(a2); // [4, 2]
-      ```
-
-      ### 合并数组
-      扩展运算符提供了数组合并的全新写法，在ES5可以使用concat()方法实现数组合并。
-      ```js
-      const arr1 = ['a', 'b'];
-      const arr2 = ['c'];
-      const arr3 = ['d', 'e'];
-
-      // ES5的合并数组
-      console.log(arr1.concat(arr2, arr3)); // ["a", "b", "c", "d", "e"]
-
-      // ES6的合并数组
-      console.log([...arr1, ...arr2, ...arr3]); // ["a", "b", "c", "d", "e"]
-      ```
-
-      ### 与解构赋值结合
-      扩展运算符可以与解构赋值一起使用，用来生成数组。
-      ```js
       // ES5的写法
-      const list = [1, 2, 3, 4, 5];
-      const a = list[0]; 
-      const rest = list.slice(1);
-      console.log(a); // 1
-      console.log(rest); // [2, 3, 4, 5]
+      var arr1 = [].slice.call(arrayLike);
 
       // ES6的写法
-      const list = [1, 2, 3, 4, 5];
-      const [a, ...rest] = list;
-      console.log(a); // 1
-      console.log(rest); // [2, 3, 4, 5]
+      var arr2 = Array.from(arrayLike);
+
+      console.log(arr1); // ["a", "b", "c"]
+      console.log(arr2); // ["a", "b", "c"]
       ```
-      看另外一个例子。
+      实际应用中，常见的类数组的对象有`DOM`操作返回的`NodeList`集合，以及函数内部的`arguments`对象。都可以用`Array.form`将其转为真正的数组。
       ```js
-      const [first, ...rest] = [1, 2, 3, 4, 5];
-      console.log(first); // 1
-      console.log(rest); // [2, 3, 4, 5]
+      let div = document.querySelectorAll('div');
+      console.log(Array.from(div)); // []
 
-      const [a, ...b] = [];
-      console.log(a); // undefined
-      console.log(b); // []
+      function fun() {
+        let args = Array.from(arguments);
+        console.log(args); // []
+      }
+      fun();
+      ```
+      上面的代码中，`querySelectAll`方法返回的是一个类数组的对象，使用`Array.from`可以将这个对象转为真正的数组。函数内部的`arguments`也是如此。
 
-      const [c, ...d] = ["foo"];
-      console.log(c); // foo
-      console.log(d); // []
+      只要是部署了 `Iterator` 接口的数据结构，`Array.from`都能将其转为数组。
+      ```js
+      console.log(Array.from('hello'));
+
+      let namesSet = new Set(['a', 'b']); // ["h", "e", "l", "l", "o"]
+      console.log(Array.from(namesSet)); // ["a", "b"]
+      ```
+      上面的代码中，字符串和Set结构都具有 `Iterator` 接口，因此可以被 `Array.from` 转为真正的数组。
+
+      如果参数是一个真正的数组，Array.from会返回一个一摸一样的新数组。
+      ```js
+      console.log(Array.from([1, 2, 3])); // [1, 2, 3]
+      ```
+      扩展运算符 **(...)** 也可以将某些数据结构转为数组。
+      ```js
+      function fun() {
+        let args = [...arguments];
+        return args;
+      }
+      console.log(fun()); // []
+
+      let div = document.querySelectorAll('div');
+      console.log([...div]); // []
+      ```
+      扩展运算符背后调用的其实就是遍历器接口`(Symbol.iterator)`，如果一个对象没有部署这个接口，就无法转换。`Array.from`方法还支持类数组的对象。
+      所谓类数组的对象，本质特征只有一点，必须有`length`属性。因此，任何有`length`属性的对象，都可以使用`Array.from`方法转为数组，而此时扩展运
+      算符就无法转换。
+      ```js
+      console.log(Array.from({ length: 3 })); // [undefined, undefined, undefined]
+      ```
+      上面的代码中，`Array.from`返回了一个具有三个成员的数组，每一个位置的值都是`undefined`。扩展运算符转换不了这个对象。
+
+      对于那些没有部署该方法的浏览器，可以使用`Array.prototype.slice`方法来代替。
+      ```js
+      const toArray = (() => 
+        Array.from ? Array.from : obj => [].slice.call(obj)
+      )();
+
+      console.log(toArray([1, 2, 3])); // [1, 2, 3]
+      console.log(toArray({ length: 3 })); // [undefined, undefined, undefined]
       ```
 
-      如果将扩展运算符用于数组赋值，只能放在参数的最后一位，否则报错。
+      `Array.from`还可以接受第二个参数，作用类似数组的`map`方法，用来对每个元素进行处理，将处理后的值放入返回的数组。
       ```js
-      const [...first, rest] = [1, 2, 3, 4, 5];
-      // Uncaught SyntaxError: Rest element must be last element
+      console.log(Array.from([1, 2, 3], x => x * x)); // [1, 4, 9]
+      ```
+      看下面的例子，将数组中布尔值为`flase`的成员转为`0`。
+      ```js
+      console.log(Array.from([1, , 2, , 3,], n => n || 0)); // [1, 0, 2, 0, 3]
+      ```
+      另一个例子是返回各种数据的类型。
+      ```js
+      function typesOf() {
+        return Array.from(arguments, value => typeof value);
+      }
 
-      const [a, ...b, c] = [1, 2, 3, 4, 5];
-      // Uncaught SyntaxError: Rest element must be last element
+      console.log(typesOf(null, [], NaN)); // ["object", "object", "number"]
+      ```
+      如果`map`函数里面用到了`this`关键字，那么`Array.from`还可以传入第三个参数，用来绑定`this`。
+
+      `Array.from()`可以将各种值转为数组，并且提供了`map`功能。这意味着，只要有一个原始的数据结构，你就可以对它的值进行处理，然后
+      转成规范的数据结构，就可以使用很多的数组方法。
+      ```js
+      console.log(Array.from({ length: 2 }, () => 'jack')); // ["jack", "jack"]
+      ```
+      上面的代码中，`Array.from`的第一个参数指定了第二个参数运行的次数，这种特性可以让该方法的用法变得非常的灵活。
+
+      `Array.from()`的另一个应用是将字符串转为数组，然后返回字符串的长度。
+      ```js
+      console.log(Array.from('hello')); //  ["h", "e", "l", "l", "o"]
+      console.log(Array.from('hello').length); // 5
       ```
     */
     
