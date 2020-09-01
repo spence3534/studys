@@ -8,7 +8,41 @@
 <body>
   <script>
     /*  
-    
+      数组的entries(), keys()和values()。
+      ES6提供了三个新方法--`entries()`、`keys()`、`values()`--用来遍历数组。三个方法都返回一个遍历对象（`Inerator`），
+      也可以用`for...of`循环进行遍历，它们的区别在于`keys()`是对键名的遍历，`values()`是对键值的遍历，`entries()`是
+      对键值对的遍历。
+      ```js
+      let arr = ['xiaohong', 'xiaoming', 'xiaohuang'];
+      for (let idx of arr.keys() ) {
+        console.log(idx);
+        // 0
+        // 1
+        // 2
+      }
+
+      for (let elem of arr.values()) {
+        console.log(elem);
+        // xiaohong
+        // xiaoming
+        // xiaohuang
+      }
+
+      for (let [idx, elem] of arr.entries()) {
+        console.log(idx, elem);
+        // 0 "xiaohong"
+        // 1 "xiaoming"
+        // 2 "xiaohuang"
+      }
+      ```
+      如果不使用`for...of`的话，可以手动使用遍历器对象的`next()`方法进行遍历。但是我觉得这种方法其实挺少用的。看下面的例子：
+      ```js
+      let arr = ['xiaohong', 'xiaoming', 'xiaohuang'];
+      let entries = arr.entries();
+      console.log(entries.next().value); // [0, "xiaohong"]
+      console.log(entries.next().value); // [1, "xiaoming"]
+      console.log(entries.next().value); // [2, "xiaohuang"]
+      ```
     */
   </script>
 </body>
