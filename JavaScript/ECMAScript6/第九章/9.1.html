@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      # 对象扩展
+
+      ## 属性简洁表达法
+
+      在ES6里加入了允许在大括号里面直接写入变量或者函数，作为对象的属性和方法。这样看起来就更加简洁了。
+      ```js
+      const foo = 'bar';
+      const say = function() {
+        return this.foo;
+      }
+      const obj = { foo, say};
+      console.log(obj);
+      console.log(obj.say());
+      ```
+      上面的例子中，变量`foo`和`say`都是直接写在大括号里去，然而，属性名就是变量名，值就就是变量的值。
+
+      看另外一个例子：
+      ```js
+      function fun(x, y) {
+        return {x, y};
+      }
+
+      console.log(fun('a', 'b')); // {x: "a", y: "b"}
+      ```
+      除了属性简写之外，方法也可以简写。
+      ```js
+      const obj = {
+        say() {
+          return 'hello';
+        }
+      }
+
+      console.log(obj.say()); // hello
+      ```
+      再来看一个例子：
+      ```js
+      let birth = "2020/9/2";
+      const person = {
+        name: '王三',
+        birth,
+        hello() {
+          return `大家好，我叫${this.name}`
+        }
+      }
+
+      console.log(person); // {name: "王三", birth: "2020/9/2", hello: ƒ}
+      console.log(person.hello()); // 大家好，我叫王三
+      ```
+
+      这种写法用在函数的返回值时，是非常方便的一种写法。
+      ```js
+      function getPoint() {
+        const x = 1;
+        const y = 10;
+
+        return {x, y};
+      }
+
+      console.log(getPoint()); // {x: 1, y: 10}
+      ```
+      需要注意的是，简写的对象方法是不能当作构造函数的，看下面的例子。
+      ```js
+      let obj = {
+        fun() {
+          this.foo = 'bar';
+        }
+      };
+      let o = new obj.fun(); 
+      // obj.fun is not a constructor
+      ```
+      上面的例子中，`fun`是一个简写的对象方法，所以`obj.fun`不能当作构造函数使用。
+    */
+    
+  </script>
+</body>
+</html>
