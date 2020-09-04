@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## Object.values()
+      `Object.values()`方法返回一个数组。成员是参数对象自身的所有可遍历属性的键值，但是不包含继承属性。
+      ```js
+      const obj = { foo: 'bar', baz: 42 };
+      console.log(Object.values(obj)); // ["bar", 42]
+      ```
+      如果属性名为数值的属性，是按照数值大小、从小到大遍历的。
+      ```js
+      const obj = { 100: 'a', 2: 'b', 7: 'c' };
+      console.log(Object.values(obj)); // ["b", "c", "a"]
+      ```
+      `Object.values`只返回对象自身的可遍历属性。
+      ```js
+      const obj = Object.create({}, {p: {value: 42}});
+      console.log(Object.values(obj)); // []
+      ```
+      上面代码中，`Object.create`方法的第二个参数添加的对象属性，也就是属性`p`，如果不显式声明，默认是不可遍历的，
+      因为`p`的属性描述对象的`enumerable`默认是`false`，`Object.values`不会返回这个属性。只能把`enumerable`改成`true`，
+      `Object.values`才会返回属性`p`的值。
+      ```js
+      const obj = Object.create({}, { p: {
+          value: 42,
+          enumerable: true,
+        }
+      });
+
+      console.log(Object.values(obj)); // [42]
+      ```
+      `Object.values`会过滤属性名为`Symbol`值的属性。
+      ```js
+      console.log(Object.values({ [Symbol()]: 123, foo: 'abc' })); // ["abc"]
+      ```
+      如果`Object.values()`方法的参数是一个字符串，返回的是各个字符串的一个数组。
+      ```js
+      console.log(Object.values('foo')); // ["f", "o", "o"]
+      ```
+      上面代码中，字符串会先转成一个类似数组的对象，字符串的每个字符，就是这个对象的属性，因此，`Object.values`返回每个属性的键值，
+      就是各个字符组成的一个数组。
+
+      如果参数不是对象，`Object.values`会将其转为对象。由于数值和布尔值的包装对象，都不会为实例添加非继承属性，所以，`Object.values`
+      会返回空数组。
+      ```js
+      console.log(Object.values(42)); // []
+      console.log(Object.values(true)); // []
+      ```
+
+      ## Object.entries() 
+
+      `Object.entries()`方法返回一个数组。成员是参数对象自身的所有可遍历属性的键值对儿数组，当然也不包含继承的属性。
+      ```js
+      const obj = { foo: 'bar', baz: 42 };
+      console.log(Object.entries(obj)); // [["foo", "bar"], ["baz", 42]]
+      ```
+      这个方法除了返回值不一样，行为和`Object.values`基本一致。也会过滤掉属性名为Symbol值的属性。
+
+      `Object.entries`的基本是用来遍历对象的属性。
+      ```js
+      let obj = { x: 1, y: 2 };
+
+      for (let [key, value] of Object.entries(obj)) {
+        console.log(key, value);
+        // x 1
+        // y 2
+      }
+      ```
+      `Object.entries`方法的另一个用处是，把对象转成真正的`Map`结构。
+      ```js
+      const obj = { foo: 'bar', baz: 42 };
+      const map = new Map(Object.entries(obj));
+      console.log(map); // {"foo" => "bar", "baz" => 42}
+      ```
+      实现一个`Object.entries`方法。
+      ```js
+      function entries(obj) {
+        let arr = [];
+        for (let key of Object.keys(obj)) {
+          arr.push([key, obj[key]]);
+        }
+        return arr;
+      }
+      ```
+
+      ## Object.fromEntries()
+
+      `Object.fromEntries()`方法是`Object.entries()`的逆向操作，用于将一个键值对数组转为对象。
+      ```js
+      console.log(Object.fromEntries([
+        ['foo', 'bar'],
+        ['baz', 42]
+      ]));
+      // {foo: "bar", baz: 42}
+      ```
+      这个方法的主要目的是为了将键值对的数据结构还原为对象，这种行为适合将Map结构转为对象。
+      ```js
+      const entries = new Map([
+        ['foo', 'bar'],
+        ['baz', 42]
+      ]);
+
+      console.log(Object.fromEntries(entries)); // {foo: "bar", baz: 42}
+
+      const map = new Map().set('foo', true).set('bar', false);
+      console.log(Object.fromEntries(map)); // {foo: true, bar: false}
+      ```
+      配合`URLSearchParams`对象，将查询字符串转为对象。
+      ```js
+      const params = new URLSearchParams('foo=bar&baz=qux');
+      console.log(Object.fromEntries(params));
+      ```
+    */
+    
+  </script>
+</body>
+</html>
