@@ -7,23 +7,87 @@
 </head>
 <body>
   <script>
-    /* 
-      # 对象的新增方法
-
-      ## Object.is()
-      `Object.is()`方法是为了弥补`==`和`===`这两个运算符的缺陷。`==`相等运算符会自动转换类型，`===`严格等于运算符`NaN`不等于自身，
-      以及`+0`等于`-0`。`Object.is()`方法用来比较两个值是否严格等于，和严格等于`===`运算符的效果一样。
+    /*
+      # Symbol
+      
+      ES6加入了`Symbol`数据类型，表示独一无二的值，它是`JS`的第七种数据类型。`Symbol`值通过`Symbol`函数生成。也就是说，
+      对象的属性名现在可以是两种类型，一种是原来就有的字符串，第二种就是新增的`Symbol`类型。只要属性名属于`Symbol`类型，
+      就是属于独一无二的，可以保证不会和其他属性名冲突。
       ```js
-      console.log(Object.is('foo', 'foo'));
-      console.log(Object.is({}, {}));
+      let sym = Symbol();
+    
+      console.log(typeof sym); // symbol
       ```
-      唯一的不同之处就在于`+0`不等于`-0`，二是`NaN`等于自身。
-      ```js
-      console.log(+0 === -0); // true
-      console.log(NaN === NaN); // false
+      上面的代码中，`sym`变量是一个独一无二的值。`typeof`运算符的结果表明变量`s`是`Symbol`数据类型，而不是字符串之类
+      的其他类型。
 
-      console.log(Object.is(+0, -0)); // false
-      console.log(Object.is(NaN, NaN)); // true
+      :::warning
+      `Symbol`函数前不能使用`new`操作符，否则会报错，因为`Symbol`是一个原始类型的值，不是对象。也不能添加属性。它是一种
+      类似字符串的数据类型。
+      :::
+
+      `Symbol`函数可以接受一个字符串作为参数，表示对`Symbol`实例的描述，是为了在控制台中显示，或者转字符串时比较容易区分。
+      ```js
+      let sym1 = Symbol('foo');
+      let sym2 = Symbol('bar');
+
+      console.log(sym1); // Symbol(foo)
+      console.log(sym2); // Symbol(bar)
+      ```
+      上面的代码中，`s1`和`s2`是两个`Symbol`值，如果不加参数，在控制台输出都是`Symbol()`，不利于区分。有了参数之后，就等于
+      给它们加上了描述，输出时也能够区分出是哪个值。
+
+      如果`Symbol`的参数是一个对象的话，就会调用这个对象的`toString`方法，转成字符串，然后生成一个`Symbol`值。
+      ```js
+      const obj = {
+        toString() {
+          return 'abc';
+        }
+      };
+
+      const sym = Symbol(obj);
+      console.log(sym); // Symbol(abc)
+      ```
+
+      :::warning
+      `Symbol`函数的参数只表示对当前`Symbol`值的描述，如果相同参数的`Symbol`函数的返回值是不相等的。
+      :::
+
+      ```js
+      // 没有参数的情况
+      let s1 = Symbol();
+      let s2 = Symbol();
+      console.log(s1 === s2); // false
+
+      // 有参数的情况
+      let s3 = Symbol('foo');
+      let s4 = Symbol('foo');
+      console.log(s3 === s4); // false
+      ```
+      上面的代码中，都是`Symbol`函数的返回值，参数也相同，但是它们都不相等的。
+
+      `Symbol`值不能跟其他类型的值运算，否则会报错。
+      ```js
+      let sym = Symbol('symbol');
+      // Cannot convert a Symbol value to a string
+      console.log('abc' + sym);
+      ```
+      `Symbol`值可以显式转为字符串。
+      ```js
+      let sym = Symbol('foo');
+
+      console.log(String(sym)); // Symbol(foo)
+      console.log(sym.toString()); // Symbol(foo)
+      ```
+      `Symbol`值还可以转为布尔值，但是不能转为数值。
+      ```js
+      let sym = Symbol();
+
+      console.log(Boolean(sym)); // true
+      console.log(!sym); // false
+
+      console.log(Number(sym));
+      // Cannot convert a Symbol value to a number
       ```
     */
     

@@ -7,116 +7,45 @@
 </head>
 <body>
   <script>
-    /*
-      ## Object.values()
-      `Object.values()`方法返回一个数组。成员是参数对象自身的所有可遍历属性的键值，但是不包含继承属性。
-      ```js
-      const obj = { foo: 'bar', baz: 42 };
-      console.log(Object.values(obj)); // ["bar", 42]
-      ```
-      如果属性名为数值的属性，是按照数值大小、从小到大遍历的。
-      ```js
-      const obj = { 100: 'a', 2: 'b', 7: 'c' };
-      console.log(Object.values(obj)); // ["b", "c", "a"]
-      ```
-      `Object.values`只返回对象自身的可遍历属性。
-      ```js
-      const obj = Object.create({}, {p: {value: 42}});
-      console.log(Object.values(obj)); // []
-      ```
-      上面代码中，`Object.create`方法的第二个参数添加的对象属性，也就是属性`p`，如果不显式声明，默认是不可遍历的，
-      因为`p`的属性描述对象的`enumerable`默认是`false`，`Object.values`不会返回这个属性。只能把`enumerable`改成`true`，
-      `Object.values`才会返回属性`p`的值。
-      ```js
-      const obj = Object.create({}, { p: {
-          value: 42,
-          enumerable: true,
-        }
-      });
+    /*  
+      ## Symbol.for()、Symbol.keyFor()
 
-      console.log(Object.values(obj)); // [42]
-      ```
-      `Object.values`会过滤属性名为`Symbol`值的属性。
+      有时候，希望重新使用同一个`Symbol`值，可以使用`Symbol.for`方法。它接受一个字符串作为参数，然后搜索有没有该参数作为名称
+      的`Symbol`值。如果有，就返回这个`Symbol`值，否则就创建并返回一个以该字符串为名称的`Symbol`值。
       ```js
-      console.log(Object.values({ [Symbol()]: 123, foo: 'abc' })); // ["abc"]
-      ```
-      如果`Object.values()`方法的参数是一个字符串，返回的是各个字符串的一个数组。
-      ```js
-      console.log(Object.values('foo')); // ["f", "o", "o"]
-      ```
-      上面代码中，字符串会先转成一个类似数组的对象，字符串的每个字符，就是这个对象的属性，因此，`Object.values`返回每个属性的键值，
-      就是各个字符组成的一个数组。
+      let sym1 = Symbol.for('foo');
+      let sym2 = Symbol.for('foo');
 
-      如果参数不是对象，`Object.values`会将其转为对象。由于数值和布尔值的包装对象，都不会为实例添加非继承属性，所以，`Object.values`
-      会返回空数组。
-      ```js
-      console.log(Object.values(42)); // []
-      console.log(Object.values(true)); // []
+      console.log(sym1 === sym2); // true
       ```
+      上面的代码中，`sym1`和`sym2`都是`Symbol`值，但它们都是同样的参数的`Symbol.for`方法生成的，实际上都是同一个值。
 
-      ## Object.entries() 
-
-      `Object.entries()`方法返回一个数组。成员是参数对象自身的所有可遍历属性的键值对儿数组，当然也不包含继承的属性。
+      `Symbol.for()`与`Symbol()`这两种写法都会生成新的`Symbol`。区别就在与，`Symbol.for()`会被登记在全局环境中供搜索，而`Symbol()`
+      并不会。`Symbol.for()`不会在每次调用时返回一个新的`Symbol`类型的值，而是会先检查给定的`key`是否已经存在，如果不存在才会新建
+      一个值。比如，如果调用`Symbol.for("cat")`30次，每次都会返回同一个`Symbol`值，但是调用`Symbol("cat")`30次则会返回30个不同的
+      `Symbol`值。
       ```js
-      const obj = { foo: 'bar', baz: 42 };
-      console.log(Object.entries(obj)); // [["foo", "bar"], ["baz", 42]]
-      ```
-      这个方法除了返回值不一样，行为和`Object.values`基本一致。也会过滤掉属性名为Symbol值的属性。
+      console.log(Symbol.for("bar") === Symbol.for("bar"));
+      // true
 
-      `Object.entries`的基本是用来遍历对象的属性。
-      ```js
-      let obj = { x: 1, y: 2 };
+      console.log(Symbol("bar") === Symbol("bar"));
+      // false
+      ```
+      上面的代码中，由于`Symbol()`写法没有登记机制，所以每次调用都会返回一个不同的值。
 
-      for (let [key, value] of Object.entries(obj)) {
-        console.log(key, value);
-        // x 1
-        // y 2
-      }
-      ```
-      `Object.entries`方法的另一个用处是，把对象转成真正的`Map`结构。
+      `Symbol.keyFor`方法返回一个已登记的`Symbol`值的`key`。
       ```js
-      const obj = { foo: 'bar', baz: 42 };
-      const map = new Map(Object.entries(obj));
-      console.log(map); // {"foo" => "bar", "baz" => 42}
-      ```
-      实现一个`Object.entries`方法。
-      ```js
-      function entries(obj) {
-        let arr = [];
-        for (let key of Object.keys(obj)) {
-          arr.push([key, obj[key]]);
-        }
-        return arr;
-      }
-      ```
+      let sym1 = Symbol.for("foo");
+      console.log(Symbol.keyFor(sym1)); // foo
 
-      ## Object.fromEntries()
-
-      `Object.fromEntries()`方法是`Object.entries()`的逆向操作，用于将一个键值对数组转为对象。
-      ```js
-      console.log(Object.fromEntries([
-        ['foo', 'bar'],
-        ['baz', 42]
-      ]));
-      // {foo: "bar", baz: 42}
+      let sym2 = Symbol("foo");
+      console.log(Symbol.keyFor(sym2)); // undefined
       ```
-      这个方法的主要目的是为了将键值对的数据结构还原为对象，这种行为适合将Map结构转为对象。
-      ```js
-      const entries = new Map([
-        ['foo', 'bar'],
-        ['baz', 42]
-      ]);
+      上面的代码中，变量`s2`属于未登记的`Symbol`值，然后返回`undefined`。
 
-      console.log(Object.fromEntries(entries)); // {foo: "bar", baz: 42}
-
-      const map = new Map().set('foo', true).set('bar', false);
-      console.log(Object.fromEntries(map)); // {foo: true, bar: false}
-      ```
-      配合`URLSearchParams`对象，将查询字符串转为对象。
-      ```js
-      const params = new URLSearchParams('foo=bar&baz=qux');
-      console.log(Object.fromEntries(params));
-      ```
+      :::warning
+      `Symbol.for`为`Symbol`值登记的名字是全局环境的，可以在不同的`iframe`或者`service.worker`中取得到同一个值。
+      :::
     */
     
   </script>

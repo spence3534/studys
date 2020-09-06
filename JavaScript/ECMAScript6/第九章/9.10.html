@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*  
+      ## Object.assign()
+      `Object.assign()`方法用于合并对象，将源对象（source）的所有可枚举属性，复制到目标（target）对象上。
+      ```js
+      const target = { a: 1 };
+
+      const source1 = { b: 2 };
+      const source2 = { c: 3 };
+
+      Object.assign(target, source1, source2);
+      console.log(target); // {a: 1, b: 2, c: 3}
+      ```
+      `Object.assign()`方法的第一个参数是目标对象，其余的参数都是源对象。
+
+      但是，如果目标对象于源对象有同名的属性或者多个源对象有同名属性的话，后面的属性会覆盖前面的属性。
+      ```js
+      const target = { a: 1, b: 1 };
+
+      const source1 = { b: 2, c: 2 };
+      const source2 = { c: 3 };
+
+      Object.assign(target, source1, source2);
+      console.log(target);
+      ```
+      如果只有一个参数时，会直接返回这个参数。
+      ```js
+      const obj = { a: 1 };
+      console.log(Object.assign(obj) === obj); // true
+      ```
+      如果这个参数不是对象，会优先转成对象，然后返回，要注意的是，传入的参数为`undefined`或者`null`时，会直接报错。
+      ```js
+      console.log(typeof Object.assign(2)); // object
+
+      console.log(Object.assign(undefined)); // Cannot convert undefined or null to object
+      ```
+      如果非对象参数出现在源对象（不是第一个参数）时，处理的规则就不一样了，会先把这些参数转成对象，如果无法转成对象，就跳过。那么
+      `undefined`和`null`不在第一个参数时，就不会报错了。
+      ```js
+      const obj = { x: 1 };
+      console.log(Object.assign(obj, undefined) === obj); // true
+      console.log(Object.assign(obj, null) === obj); // true
+      ```
+      其他类型值不在第一个参数时，也不会报错。除了字符串会以数组形式，拷贝到目标对象，其他值都不会产生效果。
+      ```js
+      const str = 'abcd';
+      const bool = true;
+      const num = 10;
+
+      const obj = Object.assign({}, str, bool, num);
+      console.log(obj); // {0: "a", 1: "b", 2: "c", 3: "d"}
+      ```
+      上面的例子中，`str`、`bool`、`num`分别是字符串、布尔值、数值，结果只有字符串被合入目标对象，其余的类型值都被忽略了。
+      是因为字符串的包装对象，会产生可枚举属性。
+
+      `Object.assign()`拷贝的属性也是有限制的，只拷贝对象自身的属性并不会拷贝继承属性，也不会拷贝不可枚举的属性`enumberble: false`。
+      ```js
+      const obj = Object.assign({b: 'c'}, 
+        Object.defineProperty({}, 'invisible', {
+          enumerable: false,
+          value: 'hello'
+        })
+      )
+      console.log(obj); // {b: "c"}
+      ```
+      上面的例子中，`Object.assign()`要拷贝的对象只有一个不可枚举属性`invisible`，而这个属性没有被拷贝进去。
+
+      属性名为`Symbol`值的属性，也会被`Object.assign()`拷贝。
+
+      ### 注意事项
+
+      #### 浅拷贝
+      `Object.assign()`方法只是浅拷贝而已，并不是深拷贝。也就是说，如果源对象某个属性的值是对象，那么目标对象拷贝得到
+      的是这个对象的引用而已。
+      ```js
+      const obj1 = { a: { b: 1 } };
+      const obj2 = Object.assign({}, obj1);
+
+      obj1.a.b = 2;
+      console.log(obj2.a.b); // 2
+      ```
+      上面的代码中，源对象`obj1`的`a`属性的值是一个对象，`Object.assign()`拷贝得到的是这个对象的引用。这个对象的引用。这个对象
+      的任何变化，都会影响到目标对象中。
+
+      #### 同名属性替换
+      对于嵌套的对象来说，如果遇到同名属性时，`Object.assign()`只是替换而已，并不是添加。
+      ```js
+      const obj1 = { a: { b: 'c', d: 'e' } };
+      const obj2 = { a: { b: 'hello' } };
+      const obj3 = Object.assign(obj1, obj2);
+
+      console.log(obj3); // {a: {b: 'hello'}}
+      ```
+      上面的例子中，`obj1`对象的`a`的属性被`obj2`对象的`a`属性整个替换掉了，而不会得到`{ a: { b: 'hello', d: 'e' } }`的结果。
+      所以大家使用的时候要特别小心。
+
+      #### 数组的处理
+      `Object.assign()`可以用来处理数组，但是会把数组当作对象。
+      ```js
+      const arr = [1, 2, 3];
+      console.log(Object.assign(arr, [4, 5])); // [4, 5, 3]
+      ```
+      上面的代码中，`Object.assign()`会把数组当作属性名为0、1、2的对象，因此源数组的0号属性`4`覆盖了目标数组的0号属性`1`。
+
+      #### 取值函数的处理
+      `Object.assign()`只能进行值的复制，如果要复制的值是一个取值函数，那么将求值后再复制。
+      ```js
+      const obj1 = {
+        get foo() {
+          return 1
+        }
+      };
+      const obj2 = {};
+
+      console.log(Object.assign(obj1, obj2)); // { foo: 1 }
+      ```
+      上面代码中，`obj1`对象的`foo`属性是一个取值函数，`Object.assign()`不会复制这个函数，只会拿到值以后，将这个值复制过去。
+
+      ### 常见用途
+      
+      #### 为对象添加属性
+      ```js
+      class Point {
+        constructor(x, y) {
+          Object.assign(this, {x, y});
+        }
+      }
+
+      const obj = new Point(1, 2);
+      console.log(obj); // {x: 1, y: 2}
+      ```
+      上面的方法通过`Object.assign()`方法，将`x`属性和`y`属性添加到`Point`类的对象实例。
+
+      #### 为对象添加方法
+      ```js
+      class Person {
+        constructor() {
+          this.name = 'tutu';
+          this.age = 18;
+        }
+      }
+
+      Object.assign(Person.prototype, {
+        getName() {
+          console.log(this.name);
+        },
+
+        getAge() {
+          console.log(this.age);
+        }
+      });
+
+      const person1 = new Person();
+      console.log(person1.getName()); // tutu
+      console.log(person1.getAge()); // 18
+      ```
+      上面的代码使用了对象属性简洁表达法，直接将两个函数放在大括号中，再使用`assign()`方法添加到`Person.prototype`之中。
+
+      #### 克隆对象
+      ```js
+      function clone(origin) {
+        return Object.assign({}, origin);
+      }
+      ```
+      上面的代码将原始对象拷贝到一个空对象，就得到了原始对象的克隆。
+
+      不过，采用这种方法克隆，只能克隆原始对象的自身的值，并不能克隆它继承的值。如果想要保持继承链，可以采用下面的代码。
+      ```js
+      function clone(origin) {
+        let originProto = Object.getPrototypeOf(origin);
+        return Object.assign(Object.create(originProto), origin)
+      }
+      ```
+
+      #### 合并多个对象
+      将多个对象合并到某个对象。
+      ```js
+      const merge = (target, ...sources) => Object.assign(target, ...sources);
+      console.log(merge({}, { a: 1 }, { b: 2 }, { c: 3 })); // {a: 1, b: 2, c: 3}
+      ```
+
+      #### 为属性指定默认值
+      ```js
+      const DEFAULTS = {
+        logLevel: 0,
+        outputFormat: 'html'
+      };
+
+      function processContent(options) {
+        options = Object.assign({}, DEFAULTS, options);
+        console.log(options);
+      }
+
+      processContent({ a: 1 }); // {logLevel: 0, outputFormat: "html", a: 1}
+      ```
+      上面的代码中，`DEFAULTS`对象是默认值，`options`对象是传进来的参数。`Object.assign()`方法把`DEFAULTS`和`options`合并成一个新对象，
+      如果这两个对象都有同名属性，则`options`的属性值会覆盖`DEFAULTS`的属性值。
+
+      但是要注意的是，存在浅拷贝的问题，`DEFAULTS`和`options`对象的所有属性的值，最好不要设置为另一个对象，否则，`DEFAULTS`对象的该属性
+      很可能不会起作用。
+      ```js
+      const DEFAULTS = {
+        url: {
+          host: 'baidu.com',
+          port: 3000
+        },
+      };
+
+      function processContent(options) {
+        options = Object.assign({}, DEFAULTS, options);
+        console.log(options);
+      }
+
+      processContent({ url: { port: 8000 } });
+      ```
+      上面的例子中，是想把`url.port`改成8000，`url.host`不变，结果却把`options.url`覆盖掉了`DEFAULTS.url`，所以`url.host`就不存在了。
+    */
+    
+  </script>
+</body>
+</html>

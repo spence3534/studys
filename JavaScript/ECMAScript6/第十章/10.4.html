@@ -7,113 +7,74 @@
 </head>
 <body>
   <script>
-    /* 
+    /*  
+      ## 属性名遍历
 
-      ## __proto__属性
-      `__proto__`，用来读取或者设置当前对象的原型对象，实际上跟`prototype`一样的。所有浏览器都支持这个属性，包括IE11。
-      这个属性只有浏览器有，在其他环境不一定有。从兼容性来看，都不要使用这个属性。
+      `Symbol`作为属性名，该属性就不会出现在`for...in`、`for...of`循环中，也不会被`Object.keys()`、`Object.getOwnPropertyNames()`
+      返回。但它也不是私有的属性，有一个`Object.getOwnPropertySymbols`方法获取指定对象中的所有`Symbol`属性名。
 
-      `__proto__`调用的是`Object.prototype.__proto__`，具体实现的代码如下：
+      `Object.getOwnPropertySymbols`方法用于遍历当前对象中所有属性为`Symbol`的值。返回的是一个数组，成员是当前对象的所有属性名
+      为`Symbol`值。
       ```js
-      Object.defineProperty(Object.prototype, '__proto__', {
-        get() {
-          let _thisObj = Object(this);
-          return Object.getPrototypeOf(_thisObj);
-        },
+      let obj = { };
+      let a = Symbol('a');
+      let b = Symbol('b');
 
-        set(proto) {
-          if (this === undefined || this === null) {
-            throw new TypeError();
-          }
+      obj[a] = 'Hello';
+      obj[b] = 'World';
 
-          if (!isObject(this)) {
-            return undefined;
-          }
-
-          if (!isObject(proto)) {
-            return undefined;
-          }
-
-          let status = Reflect.setPrototypeOf(this, proto);
-
-          if (!status) {
-            throw new TypeError();
-          }
-        },
-      });
-
-      function isObject(value) {
-        return Object(value) === value;
-      }
+      let objectSymbols = Object.getOwnPropertySymbols(obj);
+      console.log(objectSymbols); // [Symbol(a), Symbol(b)]
       ```
-      如果一个对象本身部署了`__proto__`属性，该属性的值就是对象的原型。
+      如果要得到对象里作为`Symbol`值的键名，可以使用`Object.getOwnPropertySymbols`方法。
+
+      还有一个方法新的API----`Reflect.ownKeys`方法可以返回所有类型的键名，包括常规的键名和`Symbol`键名。
       ```js
-      console.log(Object.getPrototypeOf({__proto__: null})); // null
+      let sym = Symbol('sym_key');
+      let obj = {
+        [sym]: 1,
+        enum: 2,
+        nonEnum: 3
+      };
+
+      console.log(Reflect.ownKeys(obj)); 
+      // ["enum", "nonEnum", Symbol(sym_key)]
       ```
-
-      ## Object.setPrototypeOf()
-      `Object.setPrototypeOf`方法的用处和`__proto__`是一样的，用于设置一个对象的原型对象，返回参数对象本身。
+      以`Symbol`值作为名称的属性不会被常规方法遍历得到。可以用这个特性为对象定义一些非私有但又希望只用于内部的方法。
       ```js
-      let proto = {};
+      let size = Symbol('size');
 
-      let obj2 = { x: 10 };
+      class Collection {
+        constructor() {
+          this[size] = 0;
+        }
 
-      otherProto.y = 20;
-      otherProto.z = 40;
+        add(item) {
+          console.log(item); // foo
+          console.log(this[size]); // 0
+          this[this[size]] = item;
+          this[size]++;
+        }
 
-      Object.setPrototypeOf(obj2, otherProto);
-      console.log(obj2.y); // 20
-      console.log(obj2.z); // 40
-      ```
-      上面的代码将`Proto`对象设为`obj2`对象的原型，所以从`obj2`对象中可以读取`Proto`对象的属性。
-
-      如果第一个参数不是对象的话，会自动转成对象，但是返回的还是第一个参数，这个操作并不会产生任何的效果。
-      ```js
-      console.log(Object.setPrototypeOf(1, {})); // 1
-      console.log(Object.setPrototypeOf('foo', {})); // foo
-      console.log(Object.setPrototypeOf(true, {})); // true
-
-      console.log(Object.setPrototypeOf(1, {}) === 1); // true
-      console.log(Object.setPrototypeOf('foo', {}) === 'foo'); // true
-      console.log(Object.setPrototypeOf(true, {}) === true); // true
-      ```
-      由于`undefined`和`null`无法转成对象，如果第一个参数是`undefined`或`null`的话，会直接报错。
-      ```js
-      console.log(Object.setPrototypeOf(undefined, {}));
-      // Object.setPrototypeOf called on null or undefined
-      console.log(Object.setPrototypeOf(null, {}));
-      // Object.setPrototypeOf called on null or undefined
-      ```
-
-      ## Object.getPrototypeOf()
-      
-      `Object.getPrototypeOf()`方法是用来读取一个对象的原型对象。
-      ```js
-      Object.getPrototypeOf(obj);
-      ```
-      看下面的例子：
-      ```js
-      function Person() {
-
+        static sizeOf(instance) {
+          return instance[size];
+        }
       }
 
-      let obj = new Person();
+      let x = new Collection();
 
-      console.log(Object.getPrototypeOf(obj) === Person.prototype); // true
+      console.log(Collection.sizeOf(x)); // 0
 
-      Object.setPrototypeOf(obj, Object.prototype);
-      console.log(Object.getPrototypeOf(obj) === Person.prototype); // false
+      x.add('foo');
+      console.log(Collection.sizeOf(x)); // 1
+
+      console.log(Object.keys(x)); // ["0"]
+      console.log(Object.getOwnPropertyNames(x)); // ["0"]
+      console.log(Object.getOwnPropertySymbols(x)); // [Symbol(size)]
+      console.log(x); // Collection {0: "foo", Symbol(size): 1}
       ```
-      如果参数不是对象，也会被自动转成对象。
-      ```js
-      console.log(Object.getPrototypeOf(1)); // Number {0, constructor: ƒ, toExponential: ƒ, toFixed: ƒ, toPrecision: ƒ,}
-      console.log(Object.getPrototypeOf('foo')); // String {"", constructor: ƒ, anchor: ƒ, big: ƒ, blink: ƒ,}
-      console.log(Object.getPrototypeOf(true)); // Boolean {false, constructor: ƒ, toString: ƒ, valueOf: ƒ}
-
-      console.log(Object.getPrototypeOf(1) === Number.prototype); // true
-      console.log(Object.getPrototypeOf('foo') === String.prototype); // true
-      console.log(Object.getPrototypeOf(true) === Boolean.prototype); // true
-      ```
+      上面的代码中，对象`x`的size属性是一个`Symbol`值，因此`Object.keys(x)`、`Object.getOwnPropertyNames(x)`都无法获取它。
+      这样就造成非私有的内部方法的效果。
     */
     
   </script>
