@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*  
+      ## Proxy实例的方法
+
+      `Proxy`一共有13种拦截方法操作如下：
+      `get(target, propKey, receiver)`：拦截对象属性的读取，比如`p.foo`和`proxy['foo']`。
+      `set(target, propKey, vlaue)`：拦截对象属性的设置，比如`p.foo = v`或`p['foo'] = v`，返回一个布尔值。
+      `has(target, propKey)`：拦截`propKey in p`的操作，返回一个布尔值。
+      `deleteProperty(target, propKey)`：拦截`delete p[propKey]`的操作，返回一个布尔值。
+      `ownKeys(target)`：拦截`Object.getOwnPropertyNames(p)`、`Object.getOwnPropertySymbols(p)`、
+        `Object.keys(p)`、`for...in`循环，返回一个数组。该方法返回目标对象所有自身的属性的属性名，而`Object.keys()`的
+        返回结果仅包括目标对象自身的可遍历属性。
+      `getOwnPropertyDescriptor(target, propKey)`：拦截`Object.getOwnPropertyDescriptor(p, propKey)`，返回属性的描述对象。
+      `defineProperty(target, propKey, propDesc)`：拦截`Object.defineProperty(p, propKey, propDesc)`、`Object.defineProperties(proxy, propDescs)`，返回一个布尔值。
+      `preventExtensions(target)`：拦截`Object.preventExtensions(p)`，返回一个布尔值。
+      `getPrototypeOf(target)`：拦截`Object.getPrototypeOf(p)`，返回一个对象。
+      `isExtensible(target)`：拦截`Object.isExtensible(p)`，返回一个布尔值。
+      `setPrototypeOf(target, proto)`：拦截`Object.setPrototypeOf(p, proto)`，返回一个布尔值。如果目标对象是函数的话，还有两种额外操作可以拦截。
+      `apply(target, object, args)`：拦截`Proxy`实例作为函数调用的操作，比如`p(...args)`、`p.call(object, ...args)`、`p.apply(...)`。
+      `construct(target, args)`：拦截`Proxy`实例作为构造函数调用的操作，比如`new p(...args)`。
+    */
+  </script>
+</body>
+</html>
