@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*  
+      ## this问题
+      虽然`Proxy`可以代理针对目标对象的访问，但它不是目标对象的透明代理，即不做任何拦截的情况下也无法保证
+      与目标对象的行为一致。主要原因是在`Proxy`代理的情况下，目标对象内部的`this`关键字会指向`Proxy`代理。
+      ```js
+      const target = {
+        m() {
+          console.log(this === proxy);
+        }
+      };
+
+      const handler = {};
+
+      const proxy = new Proxy(target, handler);
+
+      target.m(); // false
+      proxy.m(); // true
+      ```
+      上面的代码中，一旦`proxy`代理`target.m`，后者内部的`this`就指向`proxy`，而不是`target`。
+
+      来看下面的例子，由于`this`指向的变化导致`Proxy`无法代理目标对象。
+      ```js
+      const _name = new WeakMap();
+
+      class Person {
+        constructor(name) {
+          _name.set(this, name)
+        }
+
+        get name() {
+          return _name.get(this);
+        }
+      }
+
+      const jane = new Person('Jane');
+      console.log(jane.name); // Jane
+
+      const proxy = new Proxy(jane, {});
+
+      console.log(proxy.name); // undefined
+      ```
+      上面的代码中，目标对象`jane`的`name`属性实际保存在外部`WeakMap`对象_name上面，通过`this`键区分。
+      由于通过`proxy.name`访问时，`this`指向了`proxy`，导致取不到值，所以返回`undefined`。
+
+      另外，有些原生对象的内部属性只有通过正确的`this`才能获取，所以`Proxy`也无法代理这些原生对象的属性。
+      ```js
+      const target = new Date();
+      const handler = {};
+      const proxy = new Proxy(target, handler);
+
+      console.log(proxy.getDate());
+      // TypeError: this is not a Date object.
+      ```
+      上面的代码中，`getData`方法只能在`Date`对象实例上获取，如果说`this`不是`Date`对象实例就会报错。通过`this`
+      绑定原始对象就可以解决这个问题。
+      ```js
+      const target = new Date('2020-09-13');
+      const handler = {
+        get(target, prop) {
+          if (prop === 'getDate') {
+            return target.getDate.bind(target);
+          }
+
+          return Reflect.get(target, prop);
+        }
+      };
+
+      const proxy = new Proxy(target, handler);
+
+      console.log(proxy.getDate()); // 13
+      ```
+    */
+    
+  </script>
+</body>
+</html>

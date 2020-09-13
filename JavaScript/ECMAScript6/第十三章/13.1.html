@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      # Reflect
+
+      ## 概述
+      `Reflect`对象跟`Proxy`对象一样，也是ES6提供的新API。`Reflect`对象的设计目的有以下几个。
+
+      1.将`Object`对象的一些明显属于语言内部的方法（比如`Object.defineProperty`）放在`Reflect`对象上。可以从
+        `Reflect`对象上拿到`Object`对象的内部方法。
+
+      2.修改某些`Object`方法的返回结果，能够变得更加合理。例如，`Object.defineProperty(obj, name, desc)`在无法
+        定义属性时会抛出一个错误，而`Reflect.defineProperty(obj, name, desc)`方法会返回`false`。
+      ```js
+      // 旧写法
+      try {
+        Object.defineProperty(target, property, attributes);
+        // 成功
+      } catch(e) {
+        // 失败
+      }
+
+      // 新写法
+      if (Reflect.defineProperty(target, property, attributes)) {
+        // 成功
+      } else {
+        // 失败
+      }
+      ```
+
+      3.让`Object`操作变成函数行为。某些`Object`操作是命令式，例如：`name in ob`和`delete obj[name]`，而`Reflect.has(obj, name)`
+        和`Reflect.deleteProperty(obj, name)`变成了函数行为。
+      ```js
+      // 旧写法
+      console.log('assign' in Object); // true
+      console.log('name' in Object); // true
+      console.log('defineProperty' in Object); // true
+
+      // 新写法
+      console.log(Reflect.has(Object, 'assign'));
+      console.log(Reflect.has(Object, 'name'));
+      ```
+      4.`Reflect`对象的方法和`Proxy`对象的方法是一一对应的，只要`Proxy`对象上有的方法，在`Reflect`对象上就一定有。无论`Proxy`
+      怎么修改默认行为，都可以在`Reflect`上获取默认行为。
+      ```js
+      var target = {};
+      var handler = {
+        set(target, name, value, receiver) {
+          var success = Reflect.set(target, name, value, receiver);
+
+          if (success) {
+            console.log("成功");
+          }
+          return success;
+        }
+      }
+
+      var proxy = new Proxy(target, handler);
+      ```
+      上面的代码中，`Proxy`方法拦截`target`对象的属性赋值行为。采用`Reflect.set`方法将值赋给对象的属性，确保完成原有的行为，然后
+      再部署额外的功能。再来看另外一个例子：
+      ```js
+      const person = {
+        name: 'tutu',
+        age: 18 
+      };
+      var loggedObj = new Proxy(person, {
+        get(target, name) {
+          console.log('get', target, name);
+          return Reflect.get(target, name);
+        },
+
+        deleteProperty(target, name) {
+          console.log('delete ' + name);
+          return Reflect.deleteProperty(target, name);
+        },
+
+        has(target, name) {
+          console.log('has ' + name);
+          return Reflect.has(target, name);
+        }
+      });
+      
+      console.log(loggedObj.name);
+      // get {name: "tutu", age: 18} name
+      // tutu
+
+      console.log('age' in loggedObj);
+      // has age
+      // true
+
+      delete loggedObj.age;
+      console.log(loggedObj.age);
+      // get {name: "tutu"} age
+      // undefined
+      ```
+      上面的代码中，每一个`Proxy`对象的拦截操作（`get、delete、has`）内部调用对应的`Reflect方法`，保证原生行为
+      能够正常执行。添加的工作就是将每一个操作输出一行日志。
+    */
+    
+  </script>
+</body>
+</html>

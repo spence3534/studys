@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      # 静态方法
+      `Reflect`对象一共有13个静态方法，如下：
+      * `Reflect.apply(target, thisArg, args)`
+      * `Reflect.construct(target, args)`
+      * `Reflect.get(target, name, receiver)`
+      * `Reflect.set(target, name, value, receiver)`
+      * `Reflect.defintProperty(target, name, desc)`
+      * `Reflect.deleteProperty(target, name)`
+      * `Reflect.has(target, name)`
+      * `Reflect.ownKeys(target)`
+      * `Reflect.isExtensible(target)`
+      * `Reflect.preventExtensions(target)`
+      * `Reflect.getOwnPropertyDescriptor(target, name)`
+      * `Reflect.getPrototypeOf(target)`
+      * `Reflect.setPrototypeOf(target, prototype)`
+      以上的这些方法的作用大部分跟`Object`对象的同名方法的作用是一样的，而且跟`Proxy`对象的方法也是一一对象的。
+
+      ### Reflect.get(target, name, receiver)
+      `Reflect.get`方法是查找并返回`target`对象的`name`属性，如果没有这个属性，会返回`undefined`。
+      ```js
+      var obj = {
+        foo: 1,
+        bar: 2,
+        get baz() {
+          return this.foo + this.bar;
+        },
+      }
+
+      console.log(Reflect.get(obj, 'foo')); // 1
+      console.log(Reflect.get(obj, 'bar')); // 2
+      console.log(Reflect.get(obj, 'baz')); // 3
+      ```
+      如果`name`属性部署了读取函数（getter），则读取函数的`this`绑定`receiver`。
+      ```js
+      var person = {
+        name: 'tutu',
+        age: 18,
+        get getInfo() {
+          return this.name + this.age;
+        }
+      };
+
+      var receiver = {
+        name: 'honghong',
+        age: 16
+      };
+
+      console.log(Reflect.get(person, 'getInfo', receiver));
+      // honghong16
+      ```
+      要注意的是，如果第一个参数不是对象，`Reflect.get`方法会报错。
+
+      ### Reflect.set(target, name, value, receiver)
+      `Reflect.set`方法设置`target`对象的`name`属性等于`value`。
+      ```js
+      const person = {
+        name: 'tutu',
+        age: 18,
+        set setAge(value) {
+          return this.age = value;
+        }
+      }
+
+      console.log(person.age); // 18
+
+      Reflect.set(person, 'age', 20);
+      console.log(person.age); // 20
+      ```
+      一样的，如果`name`属性设置了赋值函数，那么赋值函数的`this`绑定`receiver`。
+      ```js
+      const person = {
+        name: 'xiaoli',
+        age: 22,
+        set setAge(value) {
+          return this.age = value;
+        }
+      };
+
+      const myReceiver = {
+        age: 18
+      };
+
+      Reflect.set(person, 'setAge', 16, myReceiver);
+      console.log(person.age); // 22
+      console.log(myReceiver.age); // 16
+      ```
+      如果第一个参数不是对象，`Reflect.set`方法也会报错。
+
+      要注意的是，`Reflect.set`会触发`Proxy.defineProperty`拦截。
+      ```js
+      const obj = {
+        a: 'a'
+      };
+
+      const handler = {
+        set(target, key, value, receiver) {
+          console.log('set');
+          return Reflect.set(target, key, value, receiver);
+        },
+
+        defineProperty(target, key, attribute) {
+          console.log('defineProperty');
+          Reflect.defineProperty(target, key, attribute);
+        }
+      };
+
+      let proxy = new Proxy(obj, handler);
+
+      proxy.a = 'A';
+      // set
+      // defineProperty
+      ```
+      上面的代码中，`Proxy.set`拦截使用了`Reflect.set`，会导致触发了`Proxy.defineProperty`拦截。
+    */
+    
+  </script>
+</body>
+</html>
