@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## Promise.reject()
+      `Promise.reject(reason)`方法也是会返回一个新的Promise实例，这个实例的状态为`rejected`。
+      ```js
+      const p = Promise.reject('出错了');
+
+      // 等于
+      const p = new Promise((resolve, reject) => reject('出错了'));
+
+      p.then(null, (s) => {
+        console.log(s);
+      });
+      // 出错了
+      ```
+      上面的代码中，有一个Promise对象的实例`p`，状态为`rejected`，回调函数会立即执行。
+
+      `Promise.reject()`方法的参数，会原封不动地作为`reject`的理由，变成后续方法的参数。
+      ```js
+      Promise.reject('出错了')
+      .catch(e => {
+        console.log(e);
+        console.log(e === '出错了');
+      });
+      // 出错了
+      // true
+      ```
+      上面的代码中，`Promise.reject()`方法的参数是一个字符串，后面`catch()`方法的参数`e`就是这个字符串。
+    */
+    
+  </script>
+</body>
+</html>

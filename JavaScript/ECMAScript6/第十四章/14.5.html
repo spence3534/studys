@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## Promise.prototype.finally()
+      `finally()`方法用于指定不管Promise对象最后的状态是什么，都会执行的操作。这样就可以在`Promise`是否成功完成后都需要
+      执行的代码提供了一种方式。
+      ```js
+      const promise = new Promise((resolve, reject) => {
+        resolve(a + 2);
+      });
+
+      promise
+        .then(res => {
+          console.log(res);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+        .finally(() => {
+          console.log('hello world');
+        })
+        // ReferenceError: a is not defined
+        // hello world
+      ```
+      上面的代码中，不管`promise`最后的状态是什么，在执行完`then`或者`catch`方法后，都会执行`finally`方法。再来看下面的例子：
+      ```js
+      let isLoading = true;
+
+      const promise = function() {
+        return new Promise((resolve, reject) => {
+          // 下面一行会报错，因为a没有声明
+          resolve(a + 2);
+        });
+      };
+
+      promise()
+        .then(res => {
+          console.log("调用成功", res);
+        })
+        .catch(err => {
+          console.log("调用出错", err);
+        })
+        .finally(() => {
+          isLoading = false;
+          console.log(isLoading);
+        });
+
+        // 调用出错 ReferenceError: a is not defined
+        // false
+      ```
+      `finally`方法的回调函数不接受任何参数，因此没有办法知道，前面的Promise状态到底是成功还是拒绝。这就意味着，`finally`方法里面的
+      操作，应该是跟状态无关的，不依赖`Promise`的执行结果。
+
+      `finally`本质上是`then`方法的特例。
+      ```js
+      const promise = new Promise((reslove, reject) => {
+        reslove(a + 1);
+      });
+
+      promise.finally(() => {
+        // 做某些操作
+      });
+
+      // 等于
+      promise.then(
+        res => {
+          console.log('调用成功');
+        },
+        err => {
+          throw new Error('test')
+        }
+      );
+      ```
+      上面代码中，如果不使用`finally`方法，同样的语句需要为成功和失败两种情况各写一次，有了`finally`方法之后，只需要写一次。
+
+      如果你想在Promise执行完毕后无论结果怎么样都去做一些操作或者处理，`finally`方法就有用。
+    */
+  </script>
+</body>
+</html>

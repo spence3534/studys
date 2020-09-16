@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## Promise.catch()
+
+      `Promise.catch()`方法用于发生错误时的回调函数。
+      ```js
+      const promise = function(bool) {
+        return new Promise((resolve, reject) => {
+          if (bool) {
+            resolve("调用成功");
+          } else {
+            reject("调用出错");
+          }
+        });
+      };
+
+      promise(false)
+        .then(res => {
+          console.log("成功", res);
+        })
+        .catch(err => {
+          // 处理`promise()`方法和前一个回调函数运行时发生的错误
+          console.log("异常", err);
+          // 异常 调用出错
+        });
+      ```
+      上面的代码中，`promise()`方法返回一个Promise对象，如果该对象状态变为`resolved`，就会调用`then()`方法；如果异步操作抛出错
+      误，状态就会变成`rejected`，就会调用`catch()`方法，处理这个错误。还有，如果`then()`方法运行中抛出错误，也会被`catch()`方
+      法捕获。
+
+      看下面的例子：
+      ```js
+      const promise = new Promise((resolve, reject) => {
+        throw new Error("test");
+      });
+      
+      promise
+        .then(res => {
+          console.log("调用成功", res);
+        })
+        .catch(err => {
+          console.log("调用出错", err);
+          // 调用出错 Error: test
+        })
+      ```
+      上面的代码中，`promise`抛出一个错误，就被`catch()`方法捕获。
+
+      如果Promise状态已变成`resolved`，再抛出错误也是无效的，看下面的例子。
+      ```js
+      const promise = new Promise((resolve, reject) => {
+        resolve('成功');
+        throw new Error('test');
+      });
+
+      promise
+        .then((res) => {
+          console.log(res); // 成功
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+      ```
+      上面的例子中，Promise的`resolve`语句后面，抛出的错误，都不会被捕获，就等于没抛出。因为`Promise`的状态一旦改变，就会永远
+      保持这个状态，不会再变。
+
+      Promise对象的错误具有“冒泡”性质，会一直向后传递，直到被捕获为止。也就是说，错误总会被下一个`catch`语句捕获。
+      ```js
+      const promise = function(bool) {
+        return new Promise((resolve, reject) => {
+          if (bool) {
+            resolve('调用成功');
+          } else {
+            reject('调用出错');
+          }
+        });
+      };
+
+      promise(true)
+        .then(res => {
+          return res
+        })
+        .then(msg => {
+          throw new Error("调用出错");
+        })
+        .catch(err => {
+          console.log(err);
+          // Error: 调用出错
+        });
+      ```
+      上面的代码中，一共有三个Promise对象：一个是`promise()`产生的，两个由`then()`产生。它们之中任何一个抛出错误，都会被最后
+      一个`catch()`捕获。
+
+      如果没有使用`catch()`方法，Promise对象抛出的错误不会传递到外出代码，也就是不会有任何的反应。
+      ```js
+      const promise = function() {
+        return new Promise((resolve, reject) => {
+          resolve(x + 2);
+        });
+      }
+
+      promise().then((res) => {
+        console.log("成功");
+      });
+
+      setTimeout(() => { console.log(123) }, 2000);
+      // Uncaught (in promise) ReferenceError: x is not defined
+      // 123
+      ```
+      上面的代码中，`promise`函数产生的Promise对象，内部出现了语法错误，浏览器运行到这一行，就打印出错误提示`ReferenceError: x is not defined`，
+      但是不会退出进程、终止脚本执行，2秒后还会输出`123`。这就证明了，Promise内部的错误不会影响到Promise外部的代码。简单的说“Promise会吃掉错误”。
+
+      一般建议，Promise对象后面要跟`catch()`方法，这样就可以处理Promise内部发生的错误。`catch()`方法返回的还是一个Promise对象，所以还可以在后面
+      接着调用`then()`方法。
+      ```js
+      const promise = function() {
+        return new Promise((resolve, reject) => {
+          // 下面一行会报错，因为a没有声明
+          resolve(a + 2);
+        });
+      };
+
+      promise()
+        .catch(err => {
+          console.log('调用出错', err);
+        })
+        .then(res => {
+          console.log("继续调用");
+        });
+        // 调用出错 ReferenceError: a is not defined
+        // 继续调用
+      ```
+      上面的代码中，运行完`catch()`方法后，接着运行后面的`then()`方法。如果没有报错，会直接跳过`catch`方法。
+      ```js
+      Promise.resolve()
+        .catch(err => {
+          console.log('失败');
+        })
+        .then(res => {
+          console.log("继续");
+        })
+        // 继续
+      ```
+      上面的代码没有报错，因此跳过了`catch()`方法，直接执行后面的`then()`方法。这时，要是`then()`方法里面报错，就跟前面的`catch()`无关了。
+
+      `catch()`方法中还能再抛出错误。
+      ```js
+      const promise = function() {
+        return new Promise((resolve, reject) => {
+          // 下面一行会报错，因为a没有声明
+          resolve(a + 2);
+        });
+      };
+
+      promise().then((res) => {
+        return promise();
+      })
+      .catch((err) => {
+        console.log('调用出错', err);
+        // 下面一行会报错，因为b没有声明
+        b + 2;
+      })
+      .then(() => {
+        console.log('继续');
+      });
+      // 调用出错 ReferenceError: a is not defined
+      // Uncaught (in promise) ReferenceError: b is not defined
+      ```
+      上面的代码中，`catch`方法抛出一个错误，因为后面没有`catch()`方法了，所以导致这个错误无法捕获，也不会传递到外层。再来看下面的例子：
+      ```js
+      const promise = function() {
+        return new Promise((resolve, reject) => {
+          resolve(a * 2);
+        });
+      };
+
+      promise().then(res => {
+        return promise();
+      })
+      .catch(err => {
+        console.log("调用出错", err);
+        y * 2
+      })
+      .catch(err => {
+        console.log('继续', err);
+      });
+      // 调用出错 ReferenceError: a is not defined
+      // 继续 ReferenceError: y is not defined
+      ```
+      上面的代码中，第二个`catch()`方法用来捕获前一个`catch`方法抛出的错误。
+    */
+    
+  </script>
+</body>
+</html>

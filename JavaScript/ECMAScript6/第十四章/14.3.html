@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## Promise.then()
+      `then`方法是定义在原型对象`Promise.prototype`上的。
+
+      `then`方法返回一个新的`Promise`实例，并不是原来的那个`Promise`实例。这样就可以采用链式写法，`then`方法后面再去调用另一个`then`方法。
+      ```js
+      const promise = new Promise((resolve, reject) => {
+        setTimeout(() => resolve("调用成功"), 500);
+      });
+
+      promise.then(msg => {
+        return msg;
+      }).then(res => {
+        console.log(res);
+        // 调用成功
+      });
+      ```
+      上面的代码使用`then`方法，依次指定了两个回调函数，第一个回调函数完成之后，把返回结果作为参数传进第二个回调函数。
+
+      ```js
+      const promise = function(bool) {
+        return new Promise((resolve, reject) => {
+          if (bool) {
+            resolve("调用成功");
+          } else {
+            reject("调用失败");
+          }
+        });
+      }
+
+      promise(true).then(msg => {
+        return promise(false);
+      }).then((res) => {
+        console.log(res);
+      }, (err) => {
+        console.log(err);
+        // 调用失败
+      });
+      ```
+      上面的代码中，第一个`then`方法指定的回调函数（参数为`msg`的回调函数），返回另一个`Promise`对象。这时，第二个`then`方法指定的回调函数
+      （参数为`res`的回调函数），就等待这个新的`Promise`对象（`return promise(false)`）状态发生变化。如果是`resolved`，就调用第一个回调函数，
+      如果是`rejected`，就调用第二个回调函数（参数为`err`）的回调函数。
+    */
+    
+  </script>
+</body>
+</html>

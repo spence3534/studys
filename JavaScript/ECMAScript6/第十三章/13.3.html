@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*  
+      ## 实例：使用Proxy实现观察者模式
+      观察这模式指的是函数自动观察数据对象，一旦对象有变化，函数就会自动执行。
+      ```js
+      const queueObservers = new Set();
+
+      const observe = (fn) => queueObservers.add(fn);
+
+      const observable = obj => new Proxy(obj, {
+        set(target, key, value, receiver) {
+          const result = Reflect.set(target, key, value, receiver);
+          queueObservers.forEach(observer => observer());
+          return result;
+        }
+      });
+
+      const person = observable({
+        name: 'tutu',
+        age: 18
+      });
+
+      function print() {
+        console.log(`${person.name}, ${person.age}`);
+      }
+
+      observe(print);
+
+      person.name = '小明';
+      person.age = 20;
+      // 小明, 18
+      // 小明, 20
+      ```
+      上面的代码中，数据对象`person`是观察目标，函数`print`是观察者，一旦数据对象发生变化，`print`就会自动执行。使用`Proxy`
+      写一个观察模式最简单的实现，就是上面的`observeable`和`observe`这两个函数。思路是`observeable`函数返回一个原始对象的`Proxy`代理，
+      拦截赋值操作，触发充当观察者的各个函数。先定义一个`set`集合，所有观察者函数都放在这个集合里，然后，`observable`函数返回原始对象
+      的代理，拦截赋值操作。拦截函数`set`之中，会自动执行所有观察者。
+    */
+    
+  </script>
+</body>
+</html>
