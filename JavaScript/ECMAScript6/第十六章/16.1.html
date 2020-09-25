@@ -56,10 +56,10 @@
       ```
       上面代码调用了四次`next`方法。
 
-      每调用一次，Generator函数开始执行，直到遇到`yield`表达式为止。`next`方法返回的是一个对象，对象包含`value`和`done`属性。
-      `value`属性就是当前`yield`表达式的值`tutu`、`xiaohong`、`xiaoming`，`done`属性的值`false`，表示遍历没有结束。如果`done`
-      的值`为true`，表示遍历已结束。再次调用`next`方法会返回对象的`value`属性为`undefined`，`done`属性为`true`，之后再调用
-      `next`方法，依旧都会返回这个值。
+      每调用一次，Generator函数开始执行，直到遇到`yield`表达式为止（或者`return`语句）。`next`方法返回的是一个对象，对象包含
+      `value`和`done`属性。`value`属性就是当前`yield`表达式的值`tutu`、`xiaohong`、`xiaoming`，`done`属性的值`false`，表示遍
+      历没有结束。如果`done`的值`为true`，表示遍历已结束。再次调用`next`方法会返回对象的`value`属性为`undefined`，`done`属性
+      为`true`，之后再调用`next`方法，依旧都会返回这个值。
 
       调用Generator函数，返回一个遍历器对象，代表Generator函数的内部指针。之后，每次调用遍历器对象的`next`方法，都会返回一个具有
       `value`和`done`两个属性的对象。`value`属性表示当前的内部状态的值，是`yield`表达式后面的那个表达式的值；`done`属性是一个布尔
@@ -97,6 +97,138 @@
       console.log(num.next()); // {value: 2, done: false}
       ```
       上面的代码中，`yield`后面的表达式`1 + 1`，不会立即求值，只会在`next`方法将指针移到这一句时，才会求值。
+
+      `yield`表达式和`return`语句既有相似之处，也有区别。相似之处在于，都能返回紧跟在语句后面的那个表达式的值。区别在于每次遇到`yield`，
+      函数暂停执行，下次再从该位置继续往后执行，而`return`语句不具备位置记忆的功能。一个函数里面，只能执行一次（或者说一个）`return`语句，
+      但是可以执行多次（或者说多个）`yield`表达式。正常函数只能返回一个值，因为只能执行一次`return`；Generator函数可以返回一系列的值，因为
+      可以由多个`yield`。从另一个角度看，也可以说Generator生成一系列的值，这就是它的名称的由来。
+
+      Generator函数可以不用`yield`表达式，这样就变成了一个单纯的暂缓执行函数。
+      ```js
+      function* func() {
+        console.log('hello');
+      }
+
+      let generator = func();
+
+      setTimeout(() => generator.next(), 2000);
+      ```
+      上面的代码中，如果函数`func`是一个普通函数，在给变量`generator`赋值的时候就会执行。但是，函数`func`是一个Generator函数，所以变成了
+      只有调用`next`方法时，才会执行函数`func`。
+
+      要注意的时，`yield`表达式只能在Generator函数里面使用。在其他地方使用`yield`都会报错。
+
+      看另外一个例子。
+      ```js
+      let arr = [1, [2, 3], [5, 6], 7, [8, 9]];
+
+      let flat = function* (a) {
+        a.forEach(function (item) {
+          if (typeof item !== 'number') {
+            yield* flat(item);
+          } else {
+            yield item;
+          }
+        });
+      }
+
+      for (let item of flat(arr)) {
+        console.log(item);
+      }
+
+      // Uncaught SyntaxError: Unexpected identifier
+      ```
+      上面的代码会产生语法错误，是因为`forEach`方法的参数是一个普通函数，但是里面使用了`yield`表达式。可以改用`for`循环。
+      ```js
+      let arr = [1, [2, 3], [4, 5], 6, [7, 8]];
+
+      let flat = function* (a) {
+        let length = a.length;
+        for (let i = 0; i < length; i++) {
+          let item = a[i]
+          if (typeof item !== 'number') {
+            yield* flat(item);
+          } else {
+            yield item;
+          }
+        }
+      }
+      
+      for (let item of flat(arr)) {
+        console.log(item);
+      }
+      // 1
+      // 2
+      // 3
+      // 4
+      // 5
+      // 6
+      // 7
+      // 8
+      ```
+
+      另外，`yield`表达式如果用在另一个表达式里面，必须放在圆括号里面。
+      ```js
+      function* demo() {
+        // 这种错误的写法，在vscode编辑器中会直接提示异常。
+        // console.log('hello' + yield);
+        // console.log('hello' + yield 123);
+
+        console.log('hello' + (yield));
+        console.log('hello' + (yield 123));
+      }
+      ```
+      `yield`表达式用作函数参数或放在赋值表达式的右边，可以不加括号。
+      ```js
+      function foo() {
+        console.log(arguments);
+      }
+      function* demo() {
+        foo(yield 'a', yield 'b');
+
+        let input = yield;
+      }
+
+      const test = demo();
+
+      console.log(test.next()); // {value: "a", done: false}
+      console.log(test.next()); // {value: "b", done: false}
+      ```
+
+      ### 与Iterator接口的关系
+
+      任意一个对象的`Symbol.iterator`方法，等于该对象的遍历器生成函数，调用该函数会返回该对象的一个遍历器对象。
+
+      由于Generator函数就是遍历器生成函数，因此可以把Generator赋值给对象的`Symbol.iterator`属性，这样就可以让该对象
+      具有Iterator接口。
+      ```js
+      let myIterable = {};
+
+      myIterable[Symbol.iterator] = function* () {
+        yield 1;
+        yield 2;
+        yield 3;
+      }
+
+      console.log([...myIterable]); // [1, 2, 3]
+      ```
+      上面的代码中，Generator函数赋值给`Symbol.iterator`属性，这样`myIterator`对象就具备了Iterator接口，可以被`...`运算符遍历。
+
+      Generator函数执行后，返回一个遍历器对象。该对象本身也具有`Symbol.iterator`属性，执行后返回自身。
+      ```js
+      function* func () { 
+        yield 1;
+        yield 2;
+        yield 3;
+      }
+
+      const test = func();
+      console.log(test);
+
+      console.log(test[Symbol.iterator]() === test); // true
+      ```
+      上面代码中，`func`是一个Generator函数，调用它生成一个遍历器对象`test`。它的`Symbol.iterator`属性，也是一个遍历器对象生成函数，
+      执行后返回它自己。
     */
     
   </script>

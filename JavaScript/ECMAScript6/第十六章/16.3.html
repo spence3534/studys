@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## for...of循环
+      `for...of`循环可以自动遍历Generator函数运行时生成的`Iterator`对象，所以就不需要调用`next`方法。
+      ```js
+      function* foo() {
+        yield 1;
+        yield 2;
+        yield 3;
+        yield 4;
+        yield 5;
+        return 6;
+      };
+
+      for (let item of foo()) {
+        console.log(item);
+      }
+      // 1
+      // 2
+      // 3
+      // 4
+      // 5
+      ```
+      上面的代码中，使用`for...of`循环，列出了5个`yield`表达式的值，需要注意的是，凡是`next`方法的返回对象的`done`属性为`true`，
+      `for...of`循环就中止了，也不包含该返回对象，所以上面代码里的`return`语句返回的`6`。不包括在`for...of`循环之中。
+
+      使用Generator函数和`for...of`循环，实现一个斐波那契数列的例子。
+      ```js
+      function* fibonacci() {
+        let [prev, curr] = [0, 1];
+
+        for (;;) {
+          yield curr;
+          [prev, curr] = [curr, prev + curr];
+        }
+      }
+
+      for (let n of fibonacci()) {
+        if (n > 100) break;
+        console.log(n);
+      }
+      ```
+      从上面的代码上看，使用`for...of`循环就不需要用`next`方法了。
+
+      利用`for...of`循环，可以写出遍历任何对象的方法。原生的js对象没有遍历接口，无法使用`for...of`循环，通过Generator函数给它加上这个
+      接口，就可以用了。
+      ```js
+      function* objectEntries(obj) {
+        let propKeys = Reflect.ownKeys(obj);
+
+        for (let propKey of propKeys) {
+          yield [propKey, obj[propKey]];
+        }
+      };
+
+      let jane = { first: 'Jane', last: 'Doe' };
+
+      for (let [key, value] of objectEntries(jane)) {
+        console.log(`${key}, ${value}`);
+      }
+      // first, Jane
+      // last, Doe
+      ```
+      上面代码中，对象`jane`原生不具有Iterator接口，就无法使用`for...of`遍历。通过Generator函数`objectEntries`给它加上遍历器接口，就可以用
+      `for...of`进行遍历了。还有另外一种方法，就是将Generator函数加到对象的`Symbol.iterator`属性上面。
+      ```js
+      function* objectEntries() {
+        const propKeys = Object.keys(this);
+
+        for (let propKey of propKeys) {
+          yield [propKey, [this[propKey]]];
+        }
+      };
+
+      const obj = { first: 'Jane', last: 'Doe' };
+
+      obj[Symbol.iterator] = objectEntries;
+
+      for (let [key, value] of obj) {
+        console.log(`${key}, ${value}`);
+      }
+      // first, Jane
+      // last, Doe
+      ```
+      除了`for...of`循环之外，扩展运算符（`...`）、解构赋值和`Array.from`方法内部调用的，都是遍历器接口，那就意味着，它们都可以将Generator函数
+      返回的Iterator对象作为参数。
+      ```js
+      function* numbers() {
+        yield 1;
+        yield 2;
+        yield 3;
+        yield 4;
+        return 5;
+        yield 6;
+      };
+
+      console.log(...numbers()); // 1 2 3 4
+
+      console.log(Array.from(numbers()));
+      // [1, 2, 3, 4]
+
+      const [a, b] = numbers();
+      console.log(a, b);
+      // 1 2
+
+      for(let item of numbers()) {
+        console.log(item);
+      }
+      // 1
+      // 2
+      // 3
+      // 4
+      ```
+    */
+    
+  </script>
+</body>
+</html>
