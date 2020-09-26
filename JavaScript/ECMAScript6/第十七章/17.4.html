@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## Thunk函数
+      Thunk函数是自动执行Generator函数的一种方法。
+
+      ### Thunk函数的含义
+      编译器的“传名调用”的实现往往是将参数放到一个临时函数里，再将这个临时函数传入函数体。这个临时函数就称为Thunk函数。
+      ```js
+      let x = 3
+      function f(m) {
+        return m * 2;
+      }
+
+      f(x + 5);
+
+      // 等同于
+
+      let thunk = function() {
+        return x + 5;
+      }
+
+      function f(thunk) {
+        return thunk() * 2;
+      }
+
+      console.log(f(thunk)); // 16
+      ```
+      上面的代码中，函数`f`的参数`x + 5`被一个函数替换了。凡是用到原参数的地方，对Thunk函数求值即可。
+
+      这就是Thunk函数的定义，它是“传名调用”的一种实现策略，可以用来替换某个表达式。
+
+      ### JavaScript语言的Thunk函数
+      JavaScript语言是传值调用，它的Thunk函数含义有所不同。在JavaScript语言中，Thunk函数替换的不是表达式，而是多参数函数，将
+      其替换成一个只接受回调函数作为参数的单参数函数。
+      ```js
+      // 正常版本的readFile（多参数版本）
+      fs.readFile(fileName, callback);
+
+      // Thunk版本的readFile（单参数版本）
+      let Thunk = function(fileName) {
+        return function(callback) {
+          return fs.readFile(fileName, callback);
+        }
+      }
+
+      let readFileThunk = Thunk(fileName);
+      readFileThunk(callback);
+      ```
+      上面的代码中，`fs`模块的`readFile`方法是一个多参数函数，两个参数分别为文件名和回调函数。经过转换器处理，它变成了一个单参数
+      函数，只接受回调函数作为参数。这个单参数版本就叫作Thunk函数。
+
+      任何函数，只要参数有回调函数，都可以写成Thunk函数的形式。下面是一个简单的Thunk函数转换器的例子。
+      ```js
+      // ES5版本
+      let Thunk = function(fn) {
+        return function() {
+          let args = Array.prototype.slice.call(arguments);
+          return function(callback) {
+            args.push(callback);
+            return fn.apply(this, args);
+          };
+        };
+      };
+
+      // ES6版本
+      const Thunk = function(fn) {
+        return function(...args) {
+          return function (callback) {
+            return fn.call(this, ...args, callback);
+          };
+        };
+      };
+      ```
+      使用上面的转换器，生成`fs.readFile`的Thunk函数。
+      ```js
+      let readFileThunk = Thunk(fs.readFile);
+      readFileThunk(fileA)(callback);
+      ```
+      下面是另一个完整的例子。
+      ```js
+      function f(a, cb) {
+        cb(a);
+      }
+      const ft = Thunk(f);
+      ft(1)(console.log);
+      ```
+    */
+  </script>
+</body>
+</html>
