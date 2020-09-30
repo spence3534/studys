@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ### 实例：按顺序完成异步操作
+      在实际开发中，经常遇到一组异步操作，需要按照顺序完成。比如，依次远程读取一组URL，然后按照读取的顺序输出结果。
+
+      下面是Promise的写法。
+      ```js
+      function logInOrder(urls) {
+        // 远程读取所有URL
+        const textPromises = urls.map(url => {
+          return fetch(url).then(res => res.text());
+        });
+
+        // 按次序输出
+        textPromises.reduce((chain, textPromise) => {
+          return chain.then(() => textPromise)
+            .then(text => console.log(text));
+        }, Promise.resolve());
+      }
+      const urls = [
+        'https://www.easy-mock.com/mock/5c3202882188f1589db6ae9d/example/mock', 
+        'https://www.easy-mock.com/mock/5c3202882188f1589db6ae9d/example/query'
+      ];
+      logInOrder(urls);
+      ```
+      上面代码中使用`fetch`方法，同时远程读取一组URL。每个`fetch`操作都返回一个Promise对象，放进`textPromise`数组里。然后，
+      `reduce`依次处理每个Promise对象，然后使用`then`，把所有Promise对象连起来，因此就可以依次输出结果。
+
+      但是这种写法不太直观，可读性比较差，使用async函数改造一下。
+      ```js
+      async function logInOrder(urls) {
+        for (const url of urls) {
+          const response = await fetch(url);
+          console.log(await response.text());
+        }
+      }
+
+      const urls = [
+        'https://www.easy-mock.com/mock/5c3202882188f1589db6ae9d/example/mock', 
+        'https://www.easy-mock.com/mock/5c3202882188f1589db6ae9d/example/query'
+      ];
+      logInOrder(urls);
+      ```
+      上面代码大大简化了，但是所有远程操作都是继发的，只有前一个URL返回结果了，才会去读取下一个URL，这样效率就会很低，浪费时间。
+      而我们需要的是并发发出请求。
+      ```js
+      async function logInOrder(urls) {
+        // 并发读取远程URL
+        const textPromises = urls.map(async (url) => {
+          const response = await fetch(url);
+          return response.text();
+        });
+
+        for (let textPromise of textPromises) {
+          console.log(await textPromise);
+        }
+      }
+
+      const urls = [
+        'https://www.easy-mock.com/mock/5c3202882188f1589db6ae9d/example/mock', 
+        'https://www.easy-mock.com/mock/5c3202882188f1589db6ae9d/example/query'
+      ];
+      
+      logInOrder(urls);
+      ```
+      上面的代码中，虽然`map`方法的参数是`async`函数，但它是并发执行的，因为只有`async`函数内部是继发执行，外部不受影响。后面的
+      `for...of`循环内部使用了`await`，因此实现了按顺序输出。
+    */
+  
+    
+  </script>
+</body>
+</html>

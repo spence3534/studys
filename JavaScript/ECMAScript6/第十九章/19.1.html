@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      # Class的基本语法
+
+      ## 简介
+
+      ### 类的由来
+      在JavaScript语言中，生成实例对象的传统方法是通过构造函数。看下面的例子。
+      ```js
+      function Point(x, y) {
+        this.x = x;
+        this.y = y;
+      }
+
+      Point.prototype.toString = function() {
+        return `(${this.x}, ${this.y})`;
+      }
+
+      let p = new Point(1, 2);
+
+      console.log(p.toString());
+      // (1, 2)
+      ```
+      上面的这种写法跟传统的面向对象语言来说差异很大，容易使得新学习这门语言的人感到困惑。
+
+      ES6提供了更接近传统语言的写法，引入了Class（类）这个概念，作为对象的模板。通过`class`关键字，可以定义类。
+
+      ES6的`class`可以看作只是一个语法糖，它的绝大部分功能，ES5都可以做到，新的`class`写法只是让对象原型的写法
+      更加清晰、更像面向对象的语法而已。上面的代码用ES6的`class`改写，就是下面这样。
+      ```js
+      class Point {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+        }
+
+        toString() {
+          return `(${this.x}, ${this.y})`;
+        }
+      }
+
+      const p = new Point(3, 4);
+
+      console.log(p.toString()); // (3, 4)
+      ```
+    */
+    
+  </script>
+</body>
+</html>
