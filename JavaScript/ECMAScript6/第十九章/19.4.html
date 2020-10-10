@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## 静态属性
+      静态属性指的是Class本身的属性，即`Class.propName`，而不是定义在实例对象（`this`）上的属性。
+      ```js
+      class Foo {
+      }
+
+      Foo.prop = 1;
+      console.log(Foo.prop); // 1
+      ```
+      上面的写法为`Foo`类定义了一个静态属性`prop`。因为ES6明确规定，Class内部只有静态方法，没有静态属性。
+
+      
+      ES7有一个静态属性的提案，这个提案对实例属性和静态属性都规定了新的写法。在实例属性前面加上`static`关键
+      字，这就表示该属性是静态属性。
+      ```js
+      class MyClass {
+        static myStaticProp = 42;
+
+        constructor() {
+          console.log(MyClass.myStaticProp); // 42
+        }
+      }
+
+      var myclass = new MyClass();
+      ```
+      这个新写法大大方便了静态属性的表达。
+      ```js
+      // 老写法
+      class Foo {
+      }
+
+      Foo.prop = 1;
+
+      // 新写法
+      class Foo {
+        static prop = 1;
+      }
+      ```
+      上面代码中，老写法的静态属性定义在类的外部。整个类生成以后，再生成静态属性。这样让人很容易忽略这个静态属性，
+      也不符合相关代码应该放在一起的代码组织原则。另外，新写法是显式声明，而不是赋值处理，语义更好。
+    */
+    
+  </script>
+</body>
+</html>
