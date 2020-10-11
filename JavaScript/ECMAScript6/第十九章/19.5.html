@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## 私有方法和私有属性
+      私有方法和私有属性，是只能在类的内部访问的方法和属性，外部不能访问。这是常见的需求，有利于
+      代码的封装，但ES6没有提供，只能通过变通方法模拟实现。
+
+      一种做法就是在命名上区别。
+      ```js
+      class Widget {
+        // 公有方法
+        foo() {
+          this._bar(baz);
+        }
+
+        // 私有方法
+        _bar(baz) {
+          return this.snaf = baz;
+        }
+
+        // ...
+      }
+      ```
+      上面代码中，`_bar`方法前面的下划线，表示这是一个只用于内部的私有方法。但是，这种命名并不保险，在
+      类的外部，还是可以调用这个方法的。
+
+      另一种方法就是索性将私有方法移出模块，因为模块内部的所有方法都是对外可见的。
+      ```js
+      class Widget {
+        foo (baz) {
+          bar.call(this, baz);
+        }
+      }
+
+      function bar(baz) {
+        return this.snaf = baz;
+      }
+      ```
+      上面代码中，`foo`是公开方法，内部调用了`bar.call(this, baz)`。这使得`bar`实际上成为了当前模块的私有方法。
+
+      还有一种方法是利用`Symbol`值的唯一性，将私有方法的名字命名为一个`Symbol`值。
+      ```js
+      const bar = Symbol('bar');
+      const snaf = Symbol('snaf');
+
+      class MyClass {
+
+        // 公有方法
+        foo(baz) {
+          this[bar](baz);
+        }
+
+        // 私有方法
+        [bar](baz) {
+          return this[snaf] = baz;
+        }
+
+        //...
+      };
+      ```
+      上面代码中，`bar`和`snaf`都是`Symbol`值，一般情况下无法获取到它们，因此达到了私有方法和私有属性的效果。但是
+      也不是绝对不行，`Reflect.ownKeys()`可以拿到它们。
+      ```js
+      const bar = Symbol('bar');
+      const snaf = Symbol('snaf');
+
+      class MyClass {
+
+        // 公有方法
+        foo(baz) {
+          this[bar](baz);
+        }
+
+        // 私有方法
+        [bar](baz) {
+          return this[snaf] = baz;
+        }
+
+        //...
+      };
+
+      const inst = new MyClass();
+
+      console.log(Reflect.ownKeys(MyClass.prototype));
+      // ["constructor", "foo", Symbol(bar)]
+      ```
+      上面代码中，Symbol值的属性名依然可以从类的外部拿到。
+
+      ### 私有属性的提案
+      目前，有一个提案，为`class`加上私有属性。方法是在属性名之前，使用`#`表示。
+      ```js
+      class IncreasingCounter {
+        #count = 0;
+
+        get value() {
+          console.log('getting the current value!');
+          return this.#count;
+        }
+
+        increment() {
+          this.#count++;
+        }
+      }
+
+      const counter = new IncreasingCounter();
+
+      console.log(counter.#count);
+      // Uncaught SyntaxError: Private field '#count' must be declared in an enclosing class
+      counter.#count = 42;
+      ```
+      上面的代码中，`#count`就是一个私有属性，只能在类的内部使用（`this.#count`）。如果在类的外部使用，就会报错。
+
+      看下面的例子。
+      ```js
+      class Point {
+        #x;
+
+        constructor(x = 0) {
+          this.#x = +x;
+        }
+
+        get x() {
+          return this.x;
+        }
+
+        set x(value) {
+          this.#x = +value;
+        }
+      }
+      ```
+      上面代码中，`#x`就是私有属性，在`Point`类之外是读取不到这个属性的。由于井号`#`是属性名的一部分，使用时必须带有
+      `#`一起使用，所以`#x`和`x`是两个不同的属性。
+
+      这种写法不仅可以写私有属性，还可以用来写私有方法。
+      ```js
+      class Foo {
+        #a;
+        #b;
+
+        constructor(a, b) {
+          this.#a = a;
+          this.#b = b;
+        }
+
+        #sum() {
+          return this.#a + this.#b;
+        }
+
+        printSum() {
+          console.log(this.#sum());
+        }
+      }
+
+      var foo = new Foo(1, 2);
+
+      foo.printSum();
+      // 3
+      ```
+      上面代码中，`#sum()`就是一个私有方法。
+
+      另外，私有属性也可以设置getter和setter方法。
+      ```js
+      class Counter {
+        #xValue = 0;
+
+        constructor() {
+        }
+
+        get #x() { return this.#xValue; };
+
+        set #x(value) {
+          this.#xValue = value;
+        }
+
+        printValue(bool) {
+          if (bool) {
+            console.log(this.#xValue);
+          } else {
+            console.log('setting');
+            this.#xValue = 10;
+          }
+        }
+      }
+
+      const counter = new Counter();
+
+      counter.printValue(false); // setting
+      counter.printValue(true); // 10
+      ```
+      上面代码中，`#x`是一个私有属性，它的读写通过`get #x()`和`set #x()`来完成。
+
+      私有属性不限于从`this`引用，只要在类的内部，实例也可以引用私有属性。
+      ```js
+      class Foo {
+        #privateValue = 42;
+
+        static getPrivateValue(foo) {
+          return foo.#privateValue;
+        }
+      }
+
+      console.log(Foo.getPrivateValue(new Foo())); // 42;
+      ```
+      上面代码允许从实例`foo`上面引用私有属性。
+
+      私有属性和私有方法前面，也可以加上`static`关键字，表示这是一个静态的私有属性和私有方法。
+      ```js
+      class FakeMath {
+        static PI = 22 / 7;
+        static #totallyRandomNumber = 4;
+
+        static #computeRandomNumber() {
+          return FakeMath.#totallyRandomNumber;
+        }
+
+        static random() {
+          console.log('I heard you like random nubmers');
+          return FakeMath.#computeRandomNumber();
+        }
+      };
+
+      console.log(FakeMath.PI); // 3.142857142857143
+      console.log(FakeMath.random());
+      // I heard you like random nubmers
+      // 4
+
+      console.log(FakeMath.#totallyRandomNumber);
+      // Uncaught SyntaxError: Private field '#totallyRandomNumber' must be declared in an enclosing class
+      console.log(FakeMath.#computeRandomNumber());
+      // Uncaught SyntaxError: Private field '#totallyRandomNumber' must be declared in an enclosing class
+      ```
+      上面代码中，`#totallyRandomNumber`是私有属性，`#computeRandomNumber()`是私有方法，只能在`FakeMath`这个类的内部调用，
+      外部调用就会报错。
+    */
+    
+  </script>
+</body>
+</html>
