@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## 类的prototype属性和__proto__属性
+      在浏览器中经常会看到，打印一个对象，然后这个对象里会包含`__proto__`属性，这个属性是指向对应的构造函数的`prototype`属性。
+      Class作为构造函数的语法糖，同时有`prototype`和`__proto__`这两个属性，因此同时存在两条继承链。
+
+      1. 子类的`__proto__`属性，表示构造函数的继承，总是指向父类。
+      2. 子类`prototype`属性的`__proto__`属性，表示方法的继承，总是指向父类的`prototype`属性。
+      ```js
+      class A {
+      }
+
+      class B extends A {
+      }
+
+      console.log(B.__proto__);
+      // class A {
+      // }
+
+      console.log(B.prototype.__proto__);
+      // {
+      //   constructor: class A
+      //   __proto__: Object
+      // }
+
+      console.log(B.__proto__ === A); // true
+      console.log(B.prototype.__proto__ === A.prototype); // true
+      ```
+      上面的代码中，子类`B`的`__proto__`属性指向父类`A`，子类`B`的`prototype`属性的`__proto__`属性指向父类`A`的`prototype`属性。
+
+      这样的结果是因为，类的继承按照下面的模式实现的。
+      ```js
+      class A {
+      }
+
+      class B {
+      }
+
+      // B的实例继承A的实例
+      Object.setPrototypeOf(B.prototype, A.prototype);
+
+      // B继承A的静态属性
+      Object.setPrototypeOf(B, A);
+
+      const b = new B();
+      ```
+      使用`Object.setPrototypeOf`方法实现。
+      ```js
+      class A {
+      }
+
+      class B {
+      }
+
+      // 关键代码
+      Object.setPrototypeOf = function(obj, proto) {
+        obj.__proto = proto;
+        return obj;
+      }
+
+      Object.setPrototypeOf(B.prototype, A.prototype);
+      // 等于
+      B.prototype.__proto__ = A.prototype;
+
+      Object.setPrototypeOf(B, A);
+      // 等于
+      B.__proto = A;
+      ```
+      这样就得到了上面的结果。这两条继承链，可以这样理解：作为一个对象，子类（`B`）的原型（__proto__属性）是父类（`A`）；作为
+      一个构造函数，子类（`B`）的原型对象（`prototype`属性）是父类的原型对象（`prototype`属性）的实例。
+      ```js
+      class A {  }
+      class B {  }
+      B.prototype = Object.create(A.prototype);
+      // 等于
+      B.prototype.__proto__ = A.prototype;
+      ```
+      `extends`关键字后面可以加多种类型的值。
+      ```js
+      class B extends A {
+      }
+      ```
+      上面代码中`A`，只要是一个有`prototype`属性的函数，就能被`B`继承。由于函数都有`prototype`属性（除了`Function.prototyep`函数），
+      因此`A`可以是任意函数。
+
+      下面，讨论两种情况。第一种，子类继承`Object`类。
+      ```js
+      class A extends Object {
+      }
+
+      console.log(A.__proto__ === Object); //true
+      console.log(A.prototype.__proto__ === Object.prototype); // true
+
+      // 以下代码可以打印看看A的原型有哪些属性
+      console.log(A.__proto__); 
+      console.log(A.prototype.__proto__);
+      ```
+      以上代码中，`A`其实就是构造函数`Object`的复制，`A`的实例就是`Object`的实例。
+
+      第二种情况，不存在任何继承。
+      ```js
+      class A {
+      }
+
+      console.log(A.__proto__ == Function.prototype); // true
+      console.log(A.prototype.__proto__ === Object.prototype); // true
+      ```
+      这种情况下，`A`作为一个基类（也就是不存在任何继承），就是一个普通函数，所以直接继承`Function.prototype`。但是，`A`调用后返回一个空对象
+      （即`Object`实例），所以`A.prototype.__proto__`指向构造函数（`Object`）的`prototype`属性。
+
+      ### 实例的__proto__属性
+      子类实例的`__proto__`属性的`__proto__`属性，指向父类实例的`__proto__`属性。也就是说，子类的原型的原型，是父类的原型。
+      ```js
+      class Point {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+        }
+      }
+
+      class ColorPoint extends Point {
+        constructor(x, y, color) {
+          super(x, y);
+          this.color = color;
+        }
+      }
+
+      var p1 = new Point(2, 3);
+      var p2 = new ColorPoint(2, 3, 'red');
+
+      console.log(p2.__proto__);
+      // Point {
+      //   constructor: class ColorPoint
+      //   __proto__: Object
+      // }
+      console.log(p2.__proto__ === p1.__proto__); // false
+
+      console.log(p2.__proto__.__proto__);
+      // {
+      //   constructor: class Point
+      //   __proto__: Object
+      // }
+      console.log(p2.__proto__.__proto__ === p1.__proto__); // true
+      ```
+      上面代码中，`ColorPoint`继承了`Point`，导致前者原型的原型时后者的原型。
+
+      这样，通过子类实例的`__proto__.__proto__`属性，可以修改父类实例的行为。
+      ```js
+      class Point {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+        }
+      }
+
+      class ColorPoint extends Point {
+        constructor(x, y, color) {
+          super(x, y);
+          this.color = color;
+        }
+      }
+
+      var p1 = new Point(2, 3);
+      var p2 = new ColorPoint(2, 3, 'red');
+
+      p2.__proto__.__proto__.printName = function() {
+        console.log('Ha');
+      }
+
+      p1.printName(); // Ha
+      ```
+      上面代码在`ColorPoint`的实例`p2`上向`Point`类添加方法，结果影响到了`Point`的实例`p1`。
+    */
+    
+  </script>
+</body>
+</html>
