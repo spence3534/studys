@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+  <script>
+    /*
+      ## Number.isInteger()
+      `Number.isInteger()`用来判断一个数值是否为整数。
+      ```js
+      console.log(Number.isInteger(25)); // true
+      console.log(Number.isInteger(25.5)); // false
+      ```
+
+      js内部，整数和浮点数采用的是同样的储存方法，所以25和25.0被视为同一个值。
+      ```js
+      console.log(Number.isInteger(25)); // true
+      console.log(Number.isInteger(25.0)); // true
+      ```
+      如果参数不是数值的话，`Number.isInteger`返回`false`。
+      ```js
+      console.log(Number.isInteger()); // false
+      console.log(Number.isInteger(null)); // false
+      console.log(Number.isInteger('15')); // false
+      console.log(Number.isInteger(true)); // false
+      ```
+      要注意的是，js数值储存为64位双精度格式，数值精度最多可以达到53个二进制位（1个隐藏位于52个有效位）。如果
+      数值的精度超过这个限度，第54位及后端的位就会被丢弃，这种情况下，`Number.isIntger`可能会误判。
+      ```js
+      console.log(Number.isInteger(3.0000000000000002)); // true
+      ```
+      上面代码中，`Number.isInteger`的参数明明不是整数，但是会返回`true`。原因就是这个小数的精度达到了小数点后16个
+      十进制位，转成二进制位超过了53个二进制位，导致最后的那个2被丢弃了。
+
+      类似的情况还有，如果一个数值的绝对值小于`Number.MIN_VALUE`（5E-324），即小于js能够分辨的最小值，会被自动转为0。
+      这时，`Number.isInteger`也会误判。
+      ```js
+      console.log(Number.isInteger(5E-324)); // false
+      console.log(Number.isInteger(5E-325)); // true
+      ```
+      上面代码中，`5E-325`由于值太小，会被自动转为0，因此返回`true`。
+
+      总之，如果对数值精度的要求较高，不建议使用`Number.isInteger()`判断一个数值是否为整数。
+    */
+  </script>
+</body>
+</html>
