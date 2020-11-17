@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+
+<body>
+  <script>
+    /*
+      ## BigInt类型
+      JavaScript所有数字都保存成64位浮点数，这给数值的表示带来了两个限制。一是数值的精度只能到53个二进制位
+      （相当于16个十进制位），大于这个范围的整数，JavaScript是无法精确表示的，这使得JavaScript不适合进行
+      科学和金融方面的精确计算。二是大于或等于2的1024次方的数值，JavaScript无法表示，会返回`Infinity`。
+      ```js
+      // 超过53个二进制位的数值，无法保持精度
+      console.log(Math.pow(2, 53) === Math.pow(2, 53) + 1); // true
+
+      // 超过2的1024次方的数值，无法表示
+      console.log(Math.pow(2, 1024)); // Infinity
+      ```
+
+      ES2020引入了一种新的数据类型BigInt（大整数），来解决这个问题，这是ECMAScript的第八种数据类型。BigInt
+      只用来表示整数，没有位数的限制，任何位数的整数都可以精确表示。
+      ```js
+      const a = 2172141653n;
+      const b = 15346349309n;
+
+      // BigInt 可以保持精度
+      console.log(a * b); // 33334444555566667777n
+
+      // 普通整数无法保持精度
+      console.log(Number(a) * Number(b)); // 33334444555566670000
+      ```
+      为了与Number类型区别，BigInt类型的数据必须添加后缀`n`。
+      ```js
+      console.log(123); // 普通整数
+      console.log(123n); // BigInt
+
+      // BigInt的运算
+      console.log(1n + 2n); // 3n
+      ```
+      BigInt同样可以使用各种进制表示，都要加上后缀`n`。
+      ```js
+      console.log(0b1101n); // 二进制 13n
+      console.log(0o777n); // 八进制 511n
+      console.log(0xFFn); // 十六进制 255n
+      ```
+      BigInt与普通整数是两种值，它们之间并不相等。
+      ```js
+      console.log(42n === 42); // false
+      ```
+      `typeof`运算符对于BigInt类型的数据会返回`bigint`。
+      ```js
+      console.log(typeof 123n); // bigint
+      ```
+      BigInt可以使用负号（-），但是不能使用正号（+），因为会和asm.js冲突。
+      ```js
+      console.log(-42n); // 这是正确的
+      console.log(+42n); // 报错了
+      ```
+      JavaScript以前不能计算70的阶乘，因为超出了可以表示的精度。
+      ```js
+      let p = 1;
+      for (let i = 1; i <= 70; i++) {
+        p *= i;
+      }
+      console.log(p); // 1.197857166996989e+100
+      ```
+      现在支持大整数了，就可以算了，浏览器的开发者工具运行下面代码，就可以了。
+      ```js
+      let p = 1n;
+      for (let i = 1n; i <= 70n; i++) {
+        p *= i;
+      }
+      console.log(p);
+      // 11978571669969891796072783721689098736458938142546425857555362864628009582789845319680000000000000000n
+      ```
+    */
+
+  </script>
+</body>
+
+</html>
