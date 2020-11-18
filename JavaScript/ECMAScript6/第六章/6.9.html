@@ -78,8 +78,60 @@
       console.log(p);
       // 11978571669969891796072783721689098736458938142546425857555362864628009582789845319680000000000000000n
       ```
-    */
 
+      ### BigInt对象
+      JavaScript原生提供`BigInt`对象，可以用作构造函数生成BigInt类型的数值。转换规则基本与`Number()`一致，将其他类型
+      的值转为BigInt。
+      ```js
+      console.log(BigInt(123)); // 123n
+      console.log(BigInt('123')); // 123n
+      console.log(BigInt(false)); // 0n
+      console.log(BigInt(true)); // 1n
+      ```
+      `BigInt()`构造函数必须有参数，而且参数必须可以正常转为数值，下面的用法都会报错。
+      ```js
+      console.log(new BigInt()); // Uncaught TypeError: BigInt is not a constructor
+      console.log(BigInt(undefined)); // Uncaught TypeError: Cannot convert undefined to a BigInt
+      console.log(BigInt(null)); // Uncaught TypeError: Cannot convert null to a BigInt
+      console.log(BigInt('123n')); // Uncaught SyntaxError: Cannot convert 123n to a BigInt
+      console.log(BigInt('abc')); // Uncaught SyntaxError: Cannot convert abc to a BigInt
+      ```
+      上面代码中，尤其值得注意字符串`123n`无法解析成Number类型，所以会报错。
+
+      参数如果是小数，也会报错。
+      ```js
+      console.log(BigInt(1.5));
+      // Uncaught RangeError: The number 1.5 cannot be converted to a BigInt because it is not an integer
+      console.log(BigInt('1.5'));
+      // Uncaught SyntaxError: Cannot convert 1.5 to a BigInt
+      ```
+      BigInt对象继承了Object对象的两个实例方法。
+      * `BigInt.prototype.toString()`
+      * `BigInt.prototype.valueOf()`
+      它还继承了Number对象的一个实例方法。
+      * BigInt.prototype.toLocaleString()
+      此外，还提供了三个静态方法。
+      * `BigInt.asUintN(width, BigInt)`：给定的BigInt转为0到2的width次方-1之间对应的值。
+      * `BigInt.asIntN(width, BigInt)`：给定的BigInt转为-2的width-1次方到2的width-1次方-1之间对应的值。
+      * `BigInt.parseint(string, [radix])`：和`Number.parseInt()`类似，将一个字符串转成指定进制的BigInt。
+      ```js
+      const max = 2n ** (64n - 1n) - 1n;
+
+      console.log(BigInt.asIntN(64, max));
+      // 9223372036854775807n
+      console.log(BigInt.asIntN(64, max + 1n));
+      // -9223372036854775808n
+      console.log(BigInt.asUintN(64, max + 1n));
+      // 9223372036854775808n
+      ```
+      上面代码中，`max`是64位带符号的BigInt所能表示的最大值。如果对这个值加`1n`，`BigInt.asIntN()`将会
+      返回一个负值，因为这时新增的一位将被解释为符号位。而`BigInt.asUintN()`方法由于不存在符号位，所以可以
+      正确返回结果。
+
+      如果`BigInt.asIntN()`和`BigInt.asUintN()`指定的位数，小于数值本身的位数，那么头部的位将被舍弃。
+
+      下面
+    */
   </script>
 </body>
 
