@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
 </head>
+
 <body>
   <script>
-    /*  
+    /*
       ## this问题
       虽然`Proxy`可以代理针对目标对象的访问，但它不是目标对象的透明代理，即不做任何拦截的情况下也无法保证
       与目标对象的行为一致。主要原因是在`Proxy`代理的情况下，目标对象内部的`this`关键字会指向`Proxy`代理。
@@ -79,7 +81,7 @@
       console.log(proxy.getDate()); // 13
       ```
     */
-    
   </script>
 </body>
+
 </html>
