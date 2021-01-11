@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-08-25 15:01:02
+ * @LastEditTime: 2021-01-11 14:23:11
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: \iconmall-csc:\Users\PC\Desktop\My document\studys\ts\03.js
+ */
 /**
  * Typescript中的数据类型有：
  * undefined类型
@@ -49,7 +57,7 @@ console.log(x); // [ 'hello', 10 ]
 x[0] = "world";
 console.log(x);
 // 错误操作
-// x = [10, "hello"] 
+// x = [10, "hello"]
 console.log("-------------------------");
 /*
   enum 枚举类型  类似对象 一个个列举出来 比如：世界上人的类型：男人、女人、中性
@@ -59,11 +67,10 @@ console.log("-------------------------");
 */
 var REN;
 (function (REN) {
-    REN["nan"] = "\u7537\u4EBA";
-    REN["nv"] = "\u5973\u4EBA";
-    REN["yao"] = "\u5996";
+  REN["nan"] = "\u7537\u4EBA";
+  REN["nv"] = "\u5973\u4EBA";
+  REN["yao"] = "\u5996";
 })(REN || (REN = {}));
-;
 console.log(REN.yao); // 妖
 // 枚举还可以这样用
 var man = REN.nan;
@@ -77,7 +84,7 @@ console.log(t); // true
 console.log("-------------------------");
 // void 空类型 当一个函数没有返回值时，你通常会见到其返回值类型是void：
 function warnUser() {
-    console.log("这只是一条消息而已");
+  console.log("这只是一条消息而已");
 }
 warnUser();
 // 声明一个void类型的变量没有什么大用，因为你只能为它赋予undefined和null
