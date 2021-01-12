@@ -32,10 +32,39 @@
   上面的代码里，分别制定了每天和每小时的数据。数组中的内容如下图所示。
   ![](./images/7-1.png)
   每行就是每天的数据，每列是当天不同时段的气温。
+
+  ### 迭代二维数组的元素
+  如果想看这个矩阵的输出，使用下面的函数，专门输出其中的值。
+  ```js
+  let averageTemp = [];
+  averageTemp[0] = [72, 75, 79, 79, 81, 81];
+  averageTemp[1] = [81, 79, 75, 75, 73, 73];
+
+  function printMatrix(arr) {
+    console.log(arr);
+    for (let i = 0; i < arr.length; i++) {
+      console.log(arr[i]);
+      for (let j = 0; j < arr[i].length; j++) {
+        console.log(arr[i][j]);
+      }
+    }
+  }
+
+  printMatrix(averageTemp);
+  ```
 */
 let averageTemp = [];
 averageTemp[0] = [72, 75, 79, 79, 81, 81];
 averageTemp[1] = [81, 79, 75, 75, 73, 73];
 
-console.log(averageTemp);
-// [ [ 72, 75, 79, 79, 81, 81 ], [ 81, 79, 75, 75, 73, 73 ] ]
+function printMatrix(arr) {
+  console.log(arr);
+  for (let i = 0; i < arr.length; i++) {
+    console.log(arr[i]);
+    for (let j = 0; j < arr[i].length; j++) {
+      console.log(arr[i][j]);
+    }
+  }
+}
+
+printMatrix(averageTemp);
