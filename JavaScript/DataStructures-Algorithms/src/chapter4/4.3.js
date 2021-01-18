@@ -5,7 +5,7 @@
   那个元素，在最坏的情况下需要迭代数组的所有位置，其中的`n`代表数组的长度。如果数组有更多元素的话，所需的时
   间就会更长。另外，数组是元素的一个有序集合，为了保证元素排序有序，它会占用更多的内存空间。
 
-  如果额能直接获取元素，占用较少的内存空间，并且仍然保证所有元素按照我们的需要排列，那不是更好吗？对于js语言
+  如果我们能直接获取元素，占用较少的内存空间，并且仍然保证所有元素按照我们的需要排列，那不是更好吗？对于js语言
   实现栈数据结构的场景，我们也可以用一个js对象来储存所有的栈元素，保证它们的顺序并且遵循`LIFO`原则。下面来
   实现这样的行为。
 
@@ -39,8 +39,7 @@
   console.log(stack);
   // { count: 2, items: { '0': 5, '1': 10 } }
   ```
-  可以看到`Stack`类内部，`items`包含两个元素`5`和`10`，两个元素`key`则是`count`的值。`count`为`2`是因为在添加
-  元素之后才进行叠加的。
+  可以看到`Stack`类内部的`items`包含的值和`count`属性在最后的`log`中输出。
 
   ### 验证一个栈是否为空和它的大小
   `count`属性也表示栈的大小。因此，可以简单的返回`count`属性的值来实现`size`方法。
@@ -103,17 +102,17 @@
   ```
   ### 创建toString方法
   在数组的版本中，并不需要关心`toString`方法的实现，因为数据结构可以直接使用数组本身的`toString`方法。
-  对于使用对象的版本，将创建一个`toString`方法来像数组一样打印出栈的内容。
+  对于使用对象的版本，将创建一个`toString`方法来像数组一样输出栈的内容。
   ```js
   toString() {
-    // 如果栈为空，将返回一个空字符串。
+    // 栈为空，将返回一个空字符串。
     if (this.isEmpty()) {
       return "";
     }
 
-    // 如果栈不为空，就需要用它底部的第一个元素作为字符串的初始值
+    // 栈不为空，就需要用它底部的第一个元素作为字符串的初始值
     let objString = `${this.items[0]}`;
-    // 如果栈只包含一个元素，就不会执行`for`循环。
+    // 栈只包含一个元素，就不会执行`for`循环。
     for (let i = 1; i < this.count; i++) {
       // 迭代整个栈的键，一直到栈顶，添加一个逗号（,）以及下一个元素。
       objString = `${objString},${this.items[i]}`;
@@ -177,14 +176,14 @@
     }
 
     toString() {
-      // 如果栈为空，将返回一个空字符串。
+      // 栈为空，将返回一个空字符串。
       if (this.isEmpty()) {
         return "";
       }
 
-      // 如果栈不为空，就需要用它底部的第一个元素作为字符串的初始值
+      // 栈不为空，就需要用它底部的第一个元素作为字符串的初始值
       let objString = `${this.items[0]}`;
-      // 如果栈只包含一个元素，就不会执行`for`循环。
+      // 栈只包含一个元素，就不会执行`for`循环。
       for (let i = 1; i < this.count; i++) {
         // 迭代整个栈的键，一直到栈顶，添加一个逗号（,）以及下一个元素。
         objString = `${objString},${this.items[i]}`;
@@ -194,80 +193,3 @@
   }
   ```
  */
-class Stack {
-  constructor() {
-    this.count = 0;
-    this.items = {};
-  }
-
-  push(ele) {
-    this.items[this.count] = ele;
-    this.count++;
-  }
-
-  size() {
-    return this.count;
-  }
-
-  isEmpty() {
-    return this.count === 0;
-  }
-
-  pop() {
-    // 首先判断栈是否为空，如果为空，就返回undefined
-    if (this.isEmpty()) {
-      return undefined;
-    }
-    // 如果栈不为空的话，就将`count`属性减1
-    this.count--;
-    // result保存了栈顶的元素
-    const result = this.items[this.count];
-    // 这里是删除栈顶的元素，由于使用的是对象，所以可以使用delete运算符从对象中删除一个特定的值
-    delete this.items[this.count];
-    // 之后返回栈顶的元素
-    return result;
-  }
-
-  peek() {
-    if (this.isEmpty()) {
-      return undefined;
-    }
-    this.items[this.count - 1];
-  }
-
-  clear() {
-    this.items = {};
-    this.count = 0;
-  }
-
-  anotherClear() {
-    while (!this.isEmpty()) {
-      this.pop();
-    }
-  }
-
-  toString() {
-    // 如果栈为空，将返回一个空字符串。
-    if (this.isEmpty()) {
-      return "";
-    }
-
-    // 如果栈不为空，就需要用它底部的第一个元素作为字符串的初始值
-    let objString = `${this.items[0]}`;
-    // 如果栈只包含一个元素，就不会执行`for`循环。
-    for (let i = 1; i < this.count; i++) {
-      // 迭代整个栈的键，一直到栈顶，添加一个逗号（,）以及下一个元素。
-      objString = `${objString},${this.items[i]}`;
-    }
-    return objString;
-  }
-}
-
-const stack = new Stack();
-stack.push(5);
-stack.push(10);
-console.log(stack);
-// { count: 2, items: { '0': 5, '1': 10 } }
-
-console.log(stack.toString());
-console.log(stack.items);

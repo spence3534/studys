@@ -105,13 +105,17 @@
   console.log(stack.size()); // 3
   console.log(stack.isEmpty()); // true
   ```
-  我们往栈里添加了`10`。调用`size`方法，输出的是`3`，因为栈里有三个元素。如果调用`isEmpty`方法，输出的是`false`。
-  因为栈里有三个元素，不是空栈。
+  我们往栈里添加了`10`。调用`size`方法，输出的是`3`，栈里有三个元素。调用`isEmpty`方法，输出的是`false`。
 
   下面展示了到现在为止对栈的操作，以及栈的当前状态。
   ![](./images/4-2-4.jpg)
 
   在调用`pop`方法之前，栈里有三个元素，调用两次后，现在栈只剩下`1`了。
+  ```js
+  stack.pop();
+  stack.pop();
+  console.log(stack.size());
+  ```
 
   下面展示上面所做的操作完整代码。
   ```js
