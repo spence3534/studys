@@ -80,7 +80,8 @@
   // true
   ```
 
-  ####使用`map`和`filter`方法
+  #### 使用`map`和`filter`方法
+
   js还有两个会返回新数组的迭代方法。第一个是`map`。
   ```js
   const myMap = arr.map(isEven);

@@ -102,6 +102,125 @@
 
   #### 创建toString方法
   下面来增加一个`toString`方法。
+  ```js
+  toString() {
+    if (this.isEmpty()) {
+      return '';
+    }
+
+    let objString = `${this.items[this.lowestCount]}`;
+
+    for (let i = this.lowestCount + 1; i < this.count; i++) {
+      objString = `${objString},${this.items[i]}`;
+    }
+
+    return objString;
+  }
+  ```
+  由于`Queue`类中的第一个索引不一定是`0`，所以从索引值为`lowestCount`的位置开始迭代。
+  
+  这样一个队列就大功告成了。
+
+  `Queue`类和`Stack`类非常像。只不过区别就在于`dequeue`方法和`peek`方法，就在于这两个数据结构的原则不一样所导致的。
+
+  ### 使用Queue类
+  下面我们就来使用这个`Queue`类，先验证一下是否为空。
+  ```js
+  const queue = new Queue();
+
+  console.log(queue.isEmpty()); // true
+  ```
+  接下来，添加一些元素，可以是任何类型的元素。
+  ```js
+  queue.enqueue("xiaohong");
+  queue.enqueue("xiaoming");
+  queue.enqueue("xiaolan");
+  ```
+  再执行一下其他的命令。
+  ```js
+  console.log(queue.toString()); // 队列里有xiaohong,xiaoming,xiaolan
+  console.log(queue.size()); // 3 // 队列里有三个元素
+  console.log(queue.isEmpty()); // false 队列不为空
+  console.log(queue.dequeue()); // 移除xiaohong
+  console.log(queue.dequeue()); // 移除xiaoming
+  console.log(queue.toString()); // 队列最后剩下xiaolan
+  ```
+  以上就是队列所有的操作。下面列出队列的所有代码。
+  ```js
+  class Queue {
+    constructor() {
+      this.count = 0;
+      this.lowestCount = 0;
+      this.items = {};
+    }
+
+    enqueue(ele) {
+      this.items[this.count] = ele;
+      this.count++;
+    }
+
+    dequeue() {
+      if (this.isEmpty()) {
+        return undefined;
+      }
+
+      const result = this.items[this.lowestCount];
+      delete this.items[this.lowestCount];
+      this.lowestCount++;
+      return result;
+    }
+
+    peek() {
+      if (this.isEmpty()) {
+        return undefined;
+      }
+      return this.items[this.lowestCount];
+    }
+
+    isEmpty() {
+      return this.count - this.lowestCount === 0;
+    }
+
+    size() {
+      return this.count - this.lowestCount;
+    }
+
+    clear() {
+      this.items = {};
+      this.count = 0;
+      this.lowestCount = 0;
+    }
+
+    toString() {
+      if (this.isEmpty()) {
+        return '';
+      }
+
+      let objString = `${this.items[this.lowestCount]}`;
+
+      for (let i = this.lowestCount + 1; i < this.count; i++) {
+        objString = `${objString},${this.items[i]}`;
+      }
+
+      return objString;
+    }
+  }
+
+  const queue = new Queue();
+
+  console.log(queue.isEmpty()); // true
+
+  queue.enqueue("xiaohong");
+  queue.enqueue("xiaoming");
+  queue.enqueue("xiaolan");
+
+  console.log(queue.toString()); // 队列里有xiaohong,xiaoming,xiaolan
+  console.log(queue.size()); // 3 // 队列里有三个元素
+  console.log(queue.isEmpty()); // false 队列不为空
+  console.log(queue.dequeue()); // 移除xiaohong
+  console.log(queue.dequeue()); // 移除xiaoming
+  console.log(queue.toString()); // 队列最后剩下xiaolan
+  ```
 */
 
 class Queue {
@@ -165,6 +284,15 @@ class Queue {
 
 const queue = new Queue();
 
-queue.enqueue(1);
-queue.enqueue(2);
-queue.enqueue(3);
+console.log(queue.isEmpty()); // true
+
+queue.enqueue("xiaohong");
+queue.enqueue("xiaoming");
+queue.enqueue("xiaolan");
+
+console.log(queue.toString()); // 队列里有xiaohong,xiaoming,xiaolan
+console.log(queue.size()); // 3 // 队列里有三个元素
+console.log(queue.isEmpty()); // false 队列不为空
+console.log(queue.dequeue()); // 移除xiaohong
+console.log(queue.dequeue()); // 移除xiaoming
+console.log(queue.toString()); // 队列最后剩下xiaolan

@@ -4,7 +4,7 @@
   ```js
   let numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   ```
-  ### 在数组末尾插入元素
+  #### 在数组末尾插入元素
   如果想要给数组添加一个元素（比如`10`），只要把值赋给数组中最后一个空位上的元素就可以了。
   ```js
   numbers[numbers.length] = 10;
@@ -55,3 +55,49 @@
   ```
   用`unshift`方法，就可以在数组的开始处添加值了。
 */
+let numbers = [1, 2, 3, 4, 5];
+Array.prototype.myUnshift = function () {
+  for (let i = this.length + arguments.length - 1; i >= 0; i--) {
+    if (i > arguments.length - 1) {
+      this[i] = this[i - arguments.length];
+    } else {
+      this[i] = arguments[i];
+    }
+  }
+}
+
+numbers.myUnshift(-1);
+console.log(numbers);
+// [-3, -2, -1, 1, 2, 3, 4, 5]
+
+Array.prototype.reIndex = function (arr) {
+  const newArr = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] !== undefined) {
+      newArr.push(arr[i]);
+    }
+  }
+  return newArr;
+}
+
+Array.prototype.myShift = function () {
+  for (let i = 0; i < this.length; i++) {
+    this[i] = this[i + 1];
+  }
+  return this.reIndex(this);
+}
+
+Array.prototype.Shift = function () {
+  var first = this[0];
+  for (let index = 0; index < this.length; index++) {
+    this[index] = this[index + 1] //前一个值等于后一个值
+  }
+  this.length--
+  console.log(this);
+  console.log(this.length--);
+  return first
+}
+
+var arr = [8, 6, 3, 2, 9, 5, 7, 1, 4]
+console.log(arr.Shift())
+console.log(arr)
