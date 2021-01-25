@@ -136,7 +136,7 @@
   queue.enqueue("xiaoming");
   queue.enqueue("xiaolan");
   ```
-  再执行一下其他的命令。
+  再执行一下其他方法。
   ```js
   console.log(queue.toString()); // 队列里有xiaohong,xiaoming,xiaolan
   console.log(queue.size()); // 3 // 队列里有三个元素
@@ -269,7 +269,7 @@ class Queue {
 
   toString() {
     if (this.isEmpty()) {
-      return '';
+      return "";
     }
 
     let objString = `${this.items[this.lowestCount]}`;
