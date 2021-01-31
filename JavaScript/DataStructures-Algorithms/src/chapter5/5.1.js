@@ -282,17 +282,44 @@ class Queue {
   }
 }
 
-const queue = new Queue();
+function hotPotato(names, num) {
+  const queue = new Queue();
+  const eliminatedList = []; // 淘汰的名单
 
-console.log(queue.isEmpty()); // true
+  for (let i = 0; i < names.length; i++) {
+    // 先把传入的人名添加到队列里
+    queue.enqueue(names[i]);
+  }
 
-queue.enqueue("xiaohong");
-queue.enqueue("xiaoming");
-queue.enqueue("xiaolan");
+  // size()是队列的元素个数
+  while (queue.size() > 1) {
+    // 根据传入的次数进行循环
+    for (let i = 0; i < num; i++) {
+      // 从队列的头部移除一项，并把移除的这项放到队列尾部
+      queue.enqueue(queue.dequeue());
+    }
+    // for循环一旦达到传入次数时，就把队列最前一项移除并添加到names数组中
+    eliminatedList.push(queue.dequeue());
+    console.log(eliminatedList);
+    console.log(queue.toString());
+  }
 
-console.log(queue.toString()); // 队列里有xiaohong,xiaoming,xiaolan
-console.log(queue.size()); // 3 // 队列里有三个元素
-console.log(queue.isEmpty()); // false 队列不为空
-console.log(queue.dequeue()); // 移除xiaohong
-console.log(queue.dequeue()); // 移除xiaoming
-console.log(queue.toString()); // 队列最后剩下xiaolan
+  return {
+    eliminated: eliminatedList,
+    // 把队列里剩下最后一个元素移除，也是获胜者
+    winner: queue.dequeue(),
+  };
+}
+
+const names = ["小红", "小黄", "小明", "小兰", "小吕"];
+const result = hotPotato(names, 1);
+
+result.eliminated.forEach((item) => {
+  console.log(`${item}被淘汰`);
+  // 小黄被淘汰;
+  // 小兰被淘汰;
+  // 小红被淘汰;
+  // 小吕被淘汰;
+});
+console.log(`${result.winner}胜利了`);
+// 小明胜利了
