@@ -74,7 +74,7 @@
     } else {
       current = this.head;
       while (current.next !== undefined) {
-        // 设置current为下一个元素
+        // 设置current为下一个元素进行迭代
         current = current.next;
       }
       // current.next为undefined就表示到了链表的尾部，然后把最后一个元素的next属性设置为下一元素
@@ -314,7 +314,7 @@
     return objString;
   }
   ```
-  实际上和之前讲的栈、队列的`toString`方法都大同小异，判断链表是否为空，空则返回空字符串。如果不为空，就用链表第一个元素的值
+  和之前的栈、队列的`toString`方法都大同小异，判断链表是否为空，空则返回空字符串。如果不为空，就用链表第一个元素的值
   初始化方法最后返回的字符串。然后，迭代链表中的所有其他元素，把元素值添加到字符串上，如果链表只有一个元素，就不会进入循环，
   也不会向`objString`添加其他值，因为`current !== undefined`验证失败。
 
@@ -339,7 +339,7 @@
       } else {
         current = this.head;
         while (current.next !== undefined) {
-          // 设置current为下一个元素
+          // 设置current为下一个元素进行迭代
           current = current.next;
         }
         // current.next为undefined就表示到了链表的尾部，然后把最后一个元素的next属性设置为下一元素
@@ -513,7 +513,7 @@ class LinkedList {
     // 比较链表中的元素是否相等
     this.equalsFn = function (a, b) {
       return a === b;
-    }
+    };
   }
 
   push(ele) {
@@ -580,7 +580,7 @@ class LinkedList {
         prev.next = node;
       }
       this.count++;
-      return true
+      return true;
     }
     return false;
   }
@@ -615,7 +615,7 @@ class LinkedList {
 
   toString() {
     if (this.head === undefined) {
-      return '';
+      return "";
     }
 
     let objString = this.head.element;
