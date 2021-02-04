@@ -101,6 +101,7 @@
       let current = this.head;
 
       if (index === 0) {
+        // 把head改成当前元素的下一个元素
         this.head = current.next;
         if (this.count === 1) {
           this.tail = undefined;
@@ -109,12 +110,17 @@
         }
       } else if (index === this.count - 1) {
         current = this.tail;
+        // tail更新为倒数第二个元素
         this.tail = current.prev;
         this.tail.next = undefined;
       } else {
+        // 当前元素
         current = this.getElementAt(index - 1);
+        // 当前元素前面一个元素
         const prev = current.prev;
+        // 当前元素前面一个元素指针指向当前元素的下一个元素，跳过当前元素
         prev.next = current.next;
+        // 当前元素的prev指针指向前面一个元素
         current.next.prev = prev;
       }
       this.count--;
@@ -132,7 +138,13 @@
 
   2. 从最后一个位置移除元素：有了最后一个元素的引用（`tail`），就不需要迭代双向链表找到它。直接把`tail`赋给`current`变量。接下来，把`tail`
   更新为双链表的倒数第二个元素。然后再把`next`指针更新为`undefined`。下图展示操作过程。
+  
   <img src="./images/6/6-2-2-2.png" />
+
+  3. 从双向链表中间移除一个元素：首先需要迭代双向链表，直到该元素的位置。`current`变量就是要移除的元素。通过`prev.next`和`current.prev`
+  的引用，直接跳过它。`prev.next`指向`current.next`，而`current.next.prev`指向`prev`，如下图。
+
+  <img src="./images/6/6-2-2-3.png" />
  */
 
 class LinkedList {
@@ -327,13 +339,17 @@ class DoublyLinkedList extends LinkedList {
         }
       } else if (index === this.count - 1) {
         current = this.tail;
-        // tail更新为倒数第二个元素
+        // tail更新为倒数第二个元素~
         this.tail = current.prev;
         this.tail.next = undefined;
       } else {
+        // 当前元素
         current = this.getElementAt(index - 1);
+        // 当前元素前面一个元素
         const prev = current.prev;
+        // 当前元素前面一个元素指针指向当前元素的下一个元素，跳过当前元素
         prev.next = current.next;
+        // 当前元素的prev指针指向前面一个元素
         current.next.prev = prev;
       }
       this.count--;
@@ -345,8 +361,8 @@ class DoublyLinkedList extends LinkedList {
 
 const list = new DoublyLinkedList();
 list.insert(5, 0);
-/* list.insert(10);
-list.insert(15); */
+list.insert(10);
+list.insert(15);
 console.log(list.toString());
 list.removeAt(0);
 console.log(list);
