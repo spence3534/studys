@@ -5,6 +5,7 @@
   如下图。
 
   <img src="./images/6/6-2-1.png" />
+
   可以看出，双向链表的每个元素都多出了一个指针（`prev`），指向上一个元素。
 
   ### 创建双向链表
@@ -145,6 +146,142 @@
   的引用，直接跳过它。`prev.next`指向`current.next`，而`current.next.prev`指向`prev`，如下图。
 
   <img src="./images/6/6-2-2-3.png" />
+
+  ### 双向链表整体代码
+  ```js
+  class DoublyNode extends Node {
+    constructor(ele, next, prev) {
+      super(ele, next);
+      this.prev = prev; // 新增：前一个元素
+    }
+  }
+
+  class DoublyLinkedList extends LinkedList {
+    constructor(equalsFn) {
+      super(equalsFn);
+      this.tail = undefined; // 最后一个元素的引用
+    }
+
+    push(ele) {
+      const node = new DoublyNode(ele);
+      if (this.head === undefined) {
+        this.head = node;
+        this.tail = node; // 新增
+      } else {
+        // 新添加
+        this.tail.next = node;
+        node.prev = this.tail;
+        this.tail = node;
+      }
+      this.count++;
+    }
+
+    insert(ele, index) {
+      if (index >= 0 && index <= this.count) {
+        const node = new DoublyNode(ele);
+        let current = this.head;
+        // 情况1
+        if (index === 0) {
+          if (this.head === undefined) {
+            // 新增
+            this.head = node;
+            this.tail = node;
+          } else {
+            node.next = this.head;
+            current.prev = node; // 新增
+            this.head = node;
+          }
+        } else if (index === this.count) {
+          //情况2
+          current = this.tail;
+          current.next = node;
+          node.prev = current;
+          this.tail = node;
+        } else {
+          //情况3
+          const prev = this.getElementAt(index - 1);
+          current = prev.next;
+          node.next = current;
+          prev.next = node;
+          current.prev = node; // 新增
+          node.prev = prev; // 新增
+        }
+        this.count++;
+        return true;
+      }
+      return false;
+    }
+
+    removeAt(index) {
+      if (index >= 0 && index < this.count) {
+        let current = this.head;
+
+        if (index === 0) {
+          // 把head改成当前元素的下一个元素
+          this.head = current.next;
+          if (this.count === 1) {
+            this.tail = undefined;
+          } else {
+            this.head.prev = undefined;
+          }
+        } else if (index === this.count - 1) {
+          current = this.tail;
+          // tail更新为倒数第二个元素~
+          this.tail = current.prev;
+          this.tail.next = undefined;
+        } else {
+          // 当前元素
+          current = this.getElementAt(index - 1);
+          // 当前元素前面一个元素
+          const prev = current.prev;
+          // 当前元素前面一个元素指针指向当前元素的下一个元素，跳过当前元素
+          prev.next = current.next;
+          // 当前元素的prev指针指向前面一个元素
+          current.next.prev = prev;
+        }
+        this.count--;
+        return current.element;
+      }
+      return undefined;
+    }
+
+    indexOf(ele) {
+      let current = this.head;
+      let index = 0;
+      while (current !== null) {
+        if (this.equalsFn(ele, current.element)) {
+          return index;
+        }
+
+        index++;
+        current = current.next;
+      }
+      return -1;
+    }
+
+    getTail() {
+      return this.tail;
+    }
+
+    clear() {
+      super.clear();
+      this.tail = undefined;
+    }
+
+    inverseToString() {
+      if (this.tail === null) {
+        return "";
+      }
+      let objString = `${this.tail.element}`;
+      let prev = this.tail.prev;
+      while (prev !== null) {
+        objString = `${objString}, ${prev.element}`;
+        prev = prev.prev;
+      }
+      return objString;
+    }
+  }
+  ```
  */
 
 class LinkedList {
@@ -183,7 +320,6 @@ class LinkedList {
         this.head = current.next;
       } else {
         const prev = this.getElementAt(index - 1);
-        console.log(prev);
         current = prev.next;
         prev.next = current.next;
       }
@@ -289,6 +425,20 @@ class DoublyLinkedList extends LinkedList {
     this.tail = undefined; // 最后一个元素的引用
   }
 
+  push(ele) {
+    const node = new DoublyNode(ele);
+    if (this.head === undefined) {
+      this.head = node;
+      this.tail = node; // 新增
+    } else {
+      // 新添加
+      this.tail.next = node;
+      node.prev = this.tail;
+      this.tail = node;
+    }
+    this.count++;
+  }
+
   insert(ele, index) {
     if (index >= 0 && index <= this.count) {
       const node = new DoublyNode(ele);
@@ -357,12 +507,42 @@ class DoublyLinkedList extends LinkedList {
     }
     return undefined;
   }
+
+  indexOf(ele) {
+    let current = this.head;
+    let index = 0;
+    while (current !== null) {
+      if (this.equalsFn(ele, current.element)) {
+        return index;
+      }
+
+      index++;
+      current = current.next;
+    }
+    return -1;
+  }
+
+  getTail() {
+    return this.tail;
+  }
+
+  clear() {
+    super.clear();
+    this.tail = undefined;
+  }
+
+  inverseToString() {
+    if (this.tail === null) {
+      return "";
+    }
+    let objString = `${this.tail.element}`;
+    let prev = this.tail.prev;
+    while (prev !== null) {
+      objString = `${objString}, ${prev.element}`;
+      prev = prev.prev;
+    }
+    return objString;
+  }
 }
 
-const list = new DoublyLinkedList();
-list.insert(5, 0);
-list.insert(10);
-list.insert(15);
-console.log(list.toString());
-list.removeAt(0);
-console.log(list);
+module.exports = { DoublyLinkedList, DoublyNode, LinkedList, Node };
