@@ -172,7 +172,7 @@
 
   :::warning
   这里有些人会有疑惑，为什么不像优化`intersection`方法一样去优化`difference`呢？这是因为`setA`和`setB`之间的差集可能
-  与`setB`和`setA`之间的差集不同。
+  跟`setB`和`setA`之间的差集不同。
   :::
   
   ### 子集
