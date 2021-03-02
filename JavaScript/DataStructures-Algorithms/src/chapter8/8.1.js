@@ -1,11 +1,4 @@
 /*
- * @Author: mikey.zhaopeng
- * @Date: 2021-03-02 14:42:39
- * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2021-03-02 18:22:42
- */
-
-/*
   # 字典和散列表
 
   现在已经知道集合是一组不可重复的元素。在字典中，存储的是`[键，值]`对，键名是用来查询特定元素的。字典和集合很相似，集合是
