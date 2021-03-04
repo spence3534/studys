@@ -634,3 +634,7 @@ class Node {
     this.next = undefined; // 指向链表中下一个元素的指针。
   }
 }
+
+module.exports = {
+  LinkedList,
+};
