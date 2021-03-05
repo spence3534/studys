@@ -542,7 +542,6 @@ class LinkedList {
         this.head = current.next;
       } else {
         const prev = this.getElementAt(index - 1);
-        console.log(prev);
         current = prev.next;
         prev.next = current.next;
       }

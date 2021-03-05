@@ -229,7 +229,7 @@
   hashTable.put("Jake", "深圳市福田区");
   hashTable.put("Nathan", "深圳市光明新区");
   hashTable.put("Athelstan", "深圳市盐田区");
-  hashTable.put("Sargeras", "坪山区");
+  hashTable.put("Sargeras", "深圳市坪山区");
 
   console.log(hashTable.hashCode("Ygritte"), "Ygritte");
   console.log(hashTable.hashCode("Jonathan"), "Jonathan");
@@ -310,9 +310,63 @@
   用`LinkedList`实例中的`push`方法添加一个`ValuePair`实例。
 
   ##### get方法
-  
+  下面来实现`get`方法，用于获取给定键的值。
+  ```js
+  get(key) {
+    const position = this.hashCode(key); // 转换成哈希值
+    const linkedList = this.table[position]; // 获取链表
+    // 检查该位置的链表是否有效
+    if (linkedList != null && !linkedList.isEmpty()) {
+      // 获取链表头部的引用
+      let current = linkedList.getHead();
+      // 从头到位迭代链表，找到指定key
+      while (current != null) {
+        if (current.element.key === key) {
+          return current.element.value;
+        }
+        current = current.next;
+      }
+    }
+    return undefined;
+  }
+  ```
+
+  #### remove方法
+  这里的remove方法和之前的remove方法有所不同。因为现在用的是链表，所以需要从链表中移除一个元素。
+  ```js
+  remove(key) {
+    const position = this.hashCode(key); // 转换成哈希值
+    const linkedList = this.table[position]; // 获取链表
+    // 检查该位置的链表是否有效
+    if (linkedList != null && !linkedList.isEmpty()) {
+      let current = linkedList.getHead();
+      // 从头开始迭代链表，找到指定的key
+      while (current != null) {
+        if (current.element.key === key) {
+          // 如果链表中的元素是想要找到的元素，就从链表中移除
+          linkedList.remove(current.element);
+
+          // 如果是链表为空，就从散列表中删除该位置
+          if (linkedList.isEmpty()) {
+            delete this.table[position];
+          }
+          return true;
+        }
+        current = current.next;
+      }
+    }
+    return false;
+  }
+  ```
 
   #### 线性探查
+  还有一种解决冲突的方法是线性探索。之所以叫做线性，是因为它处理冲突的方法是将元素直接存储到表中，而不是像分离链接那样要使用链表。
+
+  当想向表中某个位置添加一个新元素时，如果索引`position`的位置已经被占了，就尝试`position + 1`的位置。如果`position + 1`的
+  位置也被占了，就尝试`position + 2`的位置，以此类推，直到在散列表中找到一个空闲的位置。
+
+  假设，有一个非空的散列表，想要添加一个新的键和值。计算这个新建的`hash`，并且检查散列表中对应的位置是否被占。如果没有，就把该值添加
+  到正确的位置。如果被占了，就迭代散列表，找到一个空闲的位置。
  */
 const { LinkedList } = require("../chapter6/6.1");
 function defaultToString(item) {
@@ -452,9 +506,98 @@ class HashTableSeparateChaining {
     }
     return false;
   }
+
+  get(key) {
+    const position = this.hashCode(key); // 转换成哈希值
+    const linkedList = this.table[position]; // 获取链表
+    // 检查该位置的链表是否有效
+    if (linkedList != null && !linkedList.isEmpty()) {
+      // 获取链表头部的引用
+      let current = linkedList.getHead();
+      // 从头开始迭代链表，找到指定的key
+      while (current != null) {
+        if (current.element.key === key) {
+          return current.element.value;
+        }
+        current = current.next;
+      }
+    }
+    return undefined;
+  }
+
+  remove(key) {
+    const position = this.hashCode(key); // 转换成哈希值
+    const linkedList = this.table[position]; // 获取链表
+    // 检查该位置的链表是否有效
+    if (linkedList != null && !linkedList.isEmpty()) {
+      let current = linkedList.getHead();
+      // 从头开始迭代链表，找到指定的key
+      while (current != null) {
+        if (current.element.key === key) {
+          // 如果链表中的元素是想要找到的元素，就从链表中移除
+          linkedList.remove(current.element);
+
+          // 如果是链表为空，就从散列表中删除链表
+          if (linkedList.isEmpty()) {
+            delete this.table[position];
+          }
+          return true;
+        }
+        current = current.next;
+      }
+    }
+    return false;
+  }
+
+  getTable() {
+    return this.table;
+  }
+
+  isEmpty() {
+    return this.size() === 0;
+  }
+
+  size() {
+    return Object.keys(this.table).length;
+  }
+
+  clear() {
+    this.table = {};
+  }
+
+  toString() {
+    if (this.isEmpty()) {
+      return "";
+    }
+    let keys = Object.keys(this.table);
+    let objString = `${keys[0]} => ${this.table[keys[0]].toString()}`;
+    for (let i = 1; i < keys.length; i++) {
+      objString = `${objString}, ${keys[i]} => ${this.table[
+        keys[i]
+      ].toString()}`;
+    }
+    return objString;
+  }
 }
-const hashTable = new HashTable();
 
 const hashTableSeparateChaining = new HashTableSeparateChaining();
+hashTableSeparateChaining.put("Ygritte", "深圳市光明区");
+hashTableSeparateChaining.put("Jonathan", "深圳市宝安区");
+hashTableSeparateChaining.put("Jamie", "深圳市龙岗区");
+hashTableSeparateChaining.put("Jack", "深圳市南山区");
+hashTableSeparateChaining.put("Jasmine", "深圳市罗湖区");
+hashTableSeparateChaining.put("Jake", "深圳市福田区");
+hashTableSeparateChaining.put("Nathan", "深圳市光明新区");
+hashTableSeparateChaining.put("Athelstan", "深圳市盐田区");
+hashTableSeparateChaining.put("Sargeras", "深圳市坪山区");
 
-hashTableSeparateChaining.put("ming", "深圳市龙岗区");
+console.log(hashTableSeparateChaining.get("Jonathan")); // 深圳市宝安区
+
+hashTableSeparateChaining.remove("Jonathan"); // 移除Jonathan
+
+console.log(hashTableSeparateChaining.get("Jonathan")); // undefined
+
+console.log(hashTableSeparateChaining.get("Jamie")); // 深圳市龙岗区
+
+console.log(hashTableSeparateChaining.toString());
+// 4 => [#Ygritte: 深圳市光明区], 5 => [#Jonathan: 深圳市宝安区], [#Jamie: 深圳市龙岗区], 7 => [#Jack: 深圳市南山区], [#Athelstan: 深圳市盐田区], 8 => [#Jasmine: 深圳市罗湖区], 9 => [#Jake: 深圳市福田区], 10 => [#Nathan: 深圳市光明新区], [#Sargeras: 深圳市坪山区]
