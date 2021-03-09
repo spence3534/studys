@@ -367,6 +367,352 @@
 
   假设，有一个非空的散列表，想要添加一个新的键和值。计算这个新建的`hash`，并且检查散列表中对应的位置是否被占。如果没有，就把该值添加
   到正确的位置。如果被占了，就迭代散列表，找到一个空闲的位置。
+
+  当从散列表删除一个键值对的时候，使用之前的移除元素的方法是不够的。如果只是移除一个元素，就可能在查找有相同`hash`值的其他元素时找到
+  一个空位置。这就导致算法出问题。
+
+  线性探查分两种。第一种是软删除方法。用一个特殊的值标记表示键值对已经被删除了，并不是真正的删除它。可以理解为惰性删除或软删除。散列表
+  被操作过后，就会得到一个标记了若干删除位置的散列表。不过这会降低散列表的效率。
+
+  第二种方法需要检查是否有必要将一个或多个元素移动到之前的位置。当搜索一个键时，这种方法可以避免找到一个空位置。如果移动元素是必要的，就
+  需要在散列表中挪动键值对。
+
+  下面我们来实现第二种方法，移动一个或者多个元素到之前的位置。
+
+  #### put方法
+  ```js
+  put(key, val) {
+    if (key != null && val != null) {
+      const position = this.hashCode(key);
+      if (this.table[position] == null) {
+        this.table[position] = new ValuePair(key, val);
+      } else {
+        let index = position + 1;
+        // 检查该位置是否为空，不为空就往下找，直到有空位为止
+        while (this.table[index] != null) {
+          index++;
+        }
+        this.table[index] = new ValuePair(key, val);
+      }
+      return true;
+    }
+    return false;
+  }
+  ```
+  `put`方法的核心思想在于，如果位置已经被占了，就往下找没有被占的位置，也就是`position`的值为`null`或者`undefined`时。所以
+  声明了`index`并赋值为`position + 1`。然后验证该位置是否被占，如果被占了，就继续递增`index`，直到找到一个没有被占据的位置。
+  最后，把值分配到该位置上。
+
+  来测试一下`put`方法。
+  ```js
+  const hash = new HashTableLinearProbing();
+
+  hash.put("Ygritte", "深圳市光明区");
+  hash.put("Jonathan", "深圳市宝安区");
+  hash.put("Jamie", "深圳市龙岗区");
+  console.log(hash.toString());
+  // 4 => [#Ygritte: 深圳市光明区], 5 => [#Jonathan: 深圳市宝安区], 6 => [#Jamie: 深圳市龙岗区]
+  ```
+  可以看到，插入Ygritte时，它的散列值为`4`，由于散列表刚被创建，位置`4`还是空的，就在这里插入数据。然后在位置`5`插入Jonathan。
+  它是空的，所以插入这个元素。最后在位置`5`上插入`Jamie`，由于它的散列值也是`5`。位置`5`已经被Jonathan占了，所以检查索引值为
+  `position + 1`的位置（`6`），位置`6`为空。所以就在位置`6`上插入`Jamie`。
+
+  #### get方法
+  现在已经有插入所有的元素方法，下面来实现`get`方法。
+  ```js
+  get(key) {
+    const position = this.hashCode(key);
+    // 确认该键是否存在
+    if (this.table[position] != null) {
+
+      // 如果存在，就检查要找的值是否是原始位置上的值
+      if (this.table[position].key === key) {
+        return this.table[position].value;
+      }
+
+      let index = position + 1;
+      
+      // 寻找空余位置
+      while (this.table[index] != null && this.table[index].key !== key) {
+        index++;
+      }
+
+      // 当跳出while循环时，验证元素的键是否是要找的键
+      if (this.table[index] != null && this.table[index].key === key) {
+        return this.table[index].value;
+      }
+    }
+    
+    // 如果迭代完整个散列表而且index位置上是null或着undefined，说明要找的键不存在，返回undefined。
+    return undefined;
+  }
+  ```
+  `get`方法的核心是，如果这个键存在，就检查要找的值是否为原始位置上的值。如果是，就返回这个值。如果不是，就在下一个位置继续找，
+  递增`index`查找散列表上的元素一直到要找的元素，或者找到一个空位置。当从`while`循环跳出的时候，就验证元素的键是否是要找
+  的键，如果是，就返回它的值。如果迭代完整个散列表而且`index`的位置上是`null`或`undefined`的话，说明键不存在，就返回`undefined`。
+
+  #### remove方法
+  `remove`方法和`get`基本上相同。
+  ```js
+  remove(key) {
+    const position = this.hashCode(key);
+    if (this.table[position] != null) {
+      delete this.table[position];
+      this.verifyRemoveSideEffect(key, position);
+      return true;
+    }
+    let index = position + 1;
+    while (this.table[index] != null && this.table[index].key != key) {
+      index++;
+    }
+    if (this.table[index] != null && this.table[index].key === key) {
+      delete this.table[index];
+      this.verifyRemoveSideEffect(key, index);
+      return true;
+    }
+    return false;
+  }
+  ```
+  在`remove`方法中，从散列表中删除元素。可以直接从原始`hash`位置找到元素，如果有冲突并处理了，就可以在另外一个位置找到元素。
+  由于我们并不知道在散列表的不同位置上是否存在具有相同`hash`的元素，需要验证删除操作是否有副作用。如果有，就需要把冲突的元素
+  移动到一个之前的位置，这样就不会产生空位置。要完成这个操作就需要用到下面的方法。
+  ```js
+  verifyRemoveSideEffect(key, removePosition) {
+    // 获取被删除的key的哈希值
+    const hash = this.hashCode(key);
+
+    // 被删除的key的下一个位置
+    let index = removePosition + 1;
+
+    while (this.table[index] != null) {
+      // 计算当前位置的key的哈希值
+      const posHash = this.hashCode(this.table[index].key);
+
+      // 如果当前元素的hash值小于等于它原始的`hash`值或者当前元素的hash小于等于被删除的key的位置的值
+      // 就把当前元素移动到被删除的key的位置上，并且删除当前元素，最后把删除的key的位置更新成当前的index
+      if (posHash <= hash || posHash <= removePosition) {
+        this.table[removePosition] = this.table[index];
+        delete this.table[index];
+        removePosition = index;
+      }
+      index++;
+    }
+  }
+  ```
+  `verifyRemoveSideEffect`方法接收两个参数：被删除的`key`和`key`被删除的位置。首先，要获取被删除的`key`的`hash`值。
+  然后，从被删除的`key`的下一个位置开始迭代直到找到一个空位置。当空位置被找到后，表示元素都在合适的位置上，不需要进行移动。当
+  迭代后面的元素时，就需要计算当前位置上元素的`hash`值。如果元素的`hash`值小于等于它原始的`hash`值或当前元素的`hash`值小于
+  等于`removePosition`（也就是被删除的`key`的`hash`值），就说明需要把当前元素移动到被删除的`key`的位置上。移动完成之后，
+  可以删除当前的元素，因为它已经被复制到被删除的`key`的位置上了。还需要将`removedPosition`更新为当前的`index`，重复这个过程。
+
+  下面来测试一下删除操作。
+  ```js
+  const hash = new HashTableLinearProbing();
+
+  hash.put("Ygritte", "深圳市光明区");
+  hash.put("Jonathan", "深圳市宝安区");
+  hash.put("Jamie", "深圳市龙岗区");
+  console.log(hash.toString());
+  // 4 => [#Ygritte: 深圳市光明区], 5 => [#Jonathan: 深圳市宝安区], 6 => [#Jamie: 深圳市龙岗区]
+
+  hash.remove("Jonathan");
+  console.log(hash.toString());
+  // 4 => [#Ygritte: 深圳市光明区], {5 => [#Jamie: 深圳市龙岗区]}
+  ```
+  这里删除了位置`5`的`Jonathan，位置`5`现在空闲了。验证一下是否有副作用。然后来到存储Jamie的位置`6`，当前的散列值为`5`，它的
+  散列值小于等于散列值`5`，所以要把Jamie复制到位置`5`并且删除`Jamie`。位置`6`空闲了。而下一个位置也是空闲的，本次执行完成了。
+
+  #### HashTableLinearProbing整体代码
+  ```js
+  class HashTableLinearProbing {
+    constructor(toStrFn = defaultToString) {
+      this.toStrFn = toStrFn;
+      this.table = {};
+    }
+
+    loseHashCode(key) {
+      if (typeof key === "number") {
+        return key;
+      }
+      const tableKey = this.toStrFn(key);
+      let hash = 0;
+      for (let i = 0; i < tableKey.length; i++) {
+        hash += tableKey.charCodeAt(i);
+      }
+
+      return hash % 37;
+    }
+
+    hashCode(key) {
+      return this.loseHashCode(key);
+    }
+
+    put(key, val) {
+      if (key != null && val != null) {
+        const position = this.hashCode(key);
+        if (this.table[position] == null) {
+          this.table[position] = new ValuePair(key, val);
+        } else {
+          let index = position + 1;
+          // 检查该位置是否为空，不为空就往下找，直到有空位为止
+          while (this.table[index] != null) {
+            index++;
+          }
+          this.table[index] = new ValuePair(key, val);
+        }
+        return true;
+      }
+      return false;
+    }
+
+    get(key) {
+      const position = this.hashCode(key);
+      // 确认该键是否存在
+      if (this.table[position] != null) {
+
+        // 如果存在，就检查要找的值是否是原始位置上的值
+        if (this.table[position].key === key) {
+          return this.table[position].value;
+        }
+
+        let index = position + 1;
+        
+        // 寻找空余位置
+        while (this.table[index] != null && this.table[index].key !== key) {
+          index++;
+        }
+
+        // 当跳出while循环时，验证元素的键是否是要找的键
+        if (this.table[index] != null && this.table[index].key === key) {
+          return this.table[index].value;
+        }
+      }
+      
+      // 如果迭代完整个散列表而且index位置上是null或着undefined，说明要找的键不存在，返回undefined。
+      return undefined;
+    }
+
+    remove(key) {
+      const position = this.hashCode(key);
+      if (this.table[position] != null) {
+        delete this.table[position];
+        this.verifyRemoveSideEffect(key, position);
+        return true;
+      }
+      let index = position + 1;
+      while (this.table[index] != null && this.table[index].key != key) {
+        index++;
+      }
+      if (this.table[index] != null && this.table[index].key === key) {
+        delete this.table[index];
+        this.verifyRemoveSideEffect(key, index);
+        return true;
+      }
+      return false;
+    }
+
+    // 验证副作用函数
+    verifyRemoveSideEffect(key, removePosition) {
+      // 获取被删除的key的哈希值
+      const hash = this.hashCode(key);
+
+      // 被删除的key的下一个位置
+      let index = removePosition + 1;
+
+      while (this.table[index] != null) {
+        // 计算当前位置的key的哈希值
+        const posHash = this.hashCode(this.table[index].key);
+
+        // 如果当前元素的hash值小于等于被删除的key的hash值或者当前元素的hash小于等于被删除的key的位置的值
+        // 就把当前元素移动到被删除的key的位置上，并且删除当前元素，最后把删除的key的位置更新成当前的index
+        if (posHash <= hash || posHash <= removePosition) {
+          this.table[removePosition] = this.table[index];
+          delete this.table[index];
+          removePosition = index;
+        }
+        index++;
+      }
+    }
+
+    size() {
+      return Object.keys(this.table).length;
+    }
+
+    isEmpty() {
+      return this.size() === 0;
+    }
+
+    toString() {
+      if (this.isEmpty()) {
+        return "";
+      }
+
+      const keys = Object.keys(this.table);
+      let objString = `${keys[0]} => ${this.table[keys[0]].toString()}`;
+      for (let i = 1; i < keys.length; i++) {
+        objString = `${objString}, {${keys[i]} => ${this.table[
+          keys[i]
+        ].toString()}}`;
+      }
+
+      return objString;
+    }
+  }
+
+  const hash = new HashTableLinearProbing();
+
+  hash.put("Ygritte", "深圳市光明区");
+  hash.put("Jonathan", "深圳市宝安区");
+  hash.put("Jamie", "深圳市龙岗区");
+  console.log(hash.toString());
+  // 4 => [#Ygritte: 深圳市光明区], 5 => [#Jonathan: 深圳市宝安区], 6 => [#Jamie: 深圳市龙岗区]
+
+  hash.remove("Jonathan");
+  console.log(hash.toString());
+  // 4 => [#Ygritte: 深圳市光明区], {5 => [#Jamie: 深圳市龙岗区]}
+  ```
+
+  ### 创建更好的散列函数
+  上面的`loseHashCode`散列函数并不是一个好的散列函数，因为它产生的冲突太多了。一个好的散列函数是有几方面构成的：插入和检索元素的
+  时间，也就是性能。以及较低的冲突可能性。大家可以在网上找一些不同的实现方法，也可以实现自己的散列函数。
+
+  另一个可以实现的、比之前用的`loseHashCode`更好的散列函数是`djb2`。
+  ```js
+  djb2HashCode(key) {
+    const tableKey = this.toStrFn(key);
+    let hash = 5381;
+    for (let i = 0; i < tableKey.length; i++) {
+      hash = (hash * 33) + tableKey.charCodeAt(i);
+    }
+    return hash % 1013
+  }
+  ```
+  在把键转化为字符串之后，`djb2HashCode`方法包括初始化一个`hash`变量并赋值为一个质数，大多数都是使用`5381`，然后迭代参数`key`，
+  把`hash`和`33`相乘，并和当前迭代到的字符串的ASCII码值相加。最后用相加的和跟另一个随机质数相除的余数。
+
+  下面用之前插入数据的代码验证一下是否会产生冲突。
+  ```js
+  hash.put("Ygritte", "深圳市光明区");
+  hash.put("Jonathan", "深圳市宝安区");
+  hash.put("Jamie", "深圳市龙岗区");
+  hash.put("Jack", "深圳市南山区");
+  hash.put("Jasmine", "深圳市罗湖区");
+  hash.put("Jake", "深圳市福田区");
+  hash.put("Nathan", "深圳市光明新区");
+  hash.put("Athelstan", "深圳市盐田区");
+  hash.put("Sargeras", "深圳市坪山区");
+  console.log(hash.toString());
+  // {223 => [#Nathan: 深圳市光明新区]},
+  // {275 => [#Jasmine: 深圳市罗湖区]},
+  // {288 => [#Jonathan: 深圳市宝安区]},
+  // {619 => [#Jack: 深圳市南山区]},
+  // {711 => [#Sargeras: 深圳市坪山区]},
+  // {807 => [#Ygritte: 深圳市光明区]},
+  // {877 => [#Jake: 深圳市福田区]},
+  // {925 => [#Athelstan: 深圳市盐田区]},
+  // {962 => [#Jamie: 深圳市龙岗区]}
+  ```
+  然而并没有冲突。这并不是最好的散列函数，但是是最推崇的散列函数之一。
  */
 const { LinkedList } = require("../chapter6/6.1");
 function defaultToString(item) {
@@ -580,24 +926,139 @@ class HashTableSeparateChaining {
   }
 }
 
-const hashTableSeparateChaining = new HashTableSeparateChaining();
-hashTableSeparateChaining.put("Ygritte", "深圳市光明区");
-hashTableSeparateChaining.put("Jonathan", "深圳市宝安区");
-hashTableSeparateChaining.put("Jamie", "深圳市龙岗区");
-hashTableSeparateChaining.put("Jack", "深圳市南山区");
-hashTableSeparateChaining.put("Jasmine", "深圳市罗湖区");
-hashTableSeparateChaining.put("Jake", "深圳市福田区");
-hashTableSeparateChaining.put("Nathan", "深圳市光明新区");
-hashTableSeparateChaining.put("Athelstan", "深圳市盐田区");
-hashTableSeparateChaining.put("Sargeras", "深圳市坪山区");
+class HashTableLinearProbing {
+  constructor(toStrFn = defaultToString) {
+    this.toStrFn = toStrFn;
+    this.table = {};
+  }
 
-console.log(hashTableSeparateChaining.get("Jonathan")); // 深圳市宝安区
+  loseHashCode(key) {
+    if (typeof key === "number") {
+      return key;
+    }
+    const tableKey = this.toStrFn(key);
+    let hash = 0;
+    for (let i = 0; i < tableKey.length; i++) {
+      hash += tableKey.charCodeAt(i);
+    }
 
-hashTableSeparateChaining.remove("Jonathan"); // 移除Jonathan
+    return hash % 37;
+  }
 
-console.log(hashTableSeparateChaining.get("Jonathan")); // undefined
+  hashCode(key) {
+    return this.djb2HashCode(key);
+  }
 
-console.log(hashTableSeparateChaining.get("Jamie")); // 深圳市龙岗区
+  put(key, val) {
+    if (key != null && val != null) {
+      const position = this.hashCode(key);
+      if (this.table[position] == null) {
+        this.table[position] = new ValuePair(key, val);
+      } else {
+        let index = position + 1;
+        // 检查该位置是否为空，不为空就往下找，直到有空位为止
+        while (this.table[index] != null) {
+          index++;
+        }
+        this.table[index] = new ValuePair(key, val);
+      }
+      return true;
+    }
+    return false;
+  }
 
-console.log(hashTableSeparateChaining.toString());
-// 4 => [#Ygritte: 深圳市光明区], 5 => [#Jonathan: 深圳市宝安区], [#Jamie: 深圳市龙岗区], 7 => [#Jack: 深圳市南山区], [#Athelstan: 深圳市盐田区], 8 => [#Jasmine: 深圳市罗湖区], 9 => [#Jake: 深圳市福田区], 10 => [#Nathan: 深圳市光明新区], [#Sargeras: 深圳市坪山区]
+  get(key) {
+    const position = this.hashCode(key);
+    if (this.table[position] != null) {
+      if (this.table[position].key === key) {
+        return this.table[position].value;
+      }
+
+      let index = position + 1;
+      while (this.table[index] != null && this.table[index].key !== key) {
+        index++;
+      }
+      if (this.table[index] != null && this.table[index].key === key) {
+        return this.table[index].value;
+      }
+    }
+    return undefined;
+  }
+
+  remove(key) {
+    const position = this.hashCode(key);
+    if (this.table[position] != null) {
+      delete this.table[position];
+      this.verifyRemoveSideEffect(key, position);
+      return true;
+    }
+    let index = position + 1;
+    while (this.table[index] != null && this.table[index].key != key) {
+      index++;
+    }
+    if (this.table[index] != null && this.table[index].key === key) {
+      delete this.table[index];
+      this.verifyRemoveSideEffect(key, index);
+      return true;
+    }
+    return false;
+  }
+
+  // 验证副作用函数
+  verifyRemoveSideEffect(key, removePosition) {
+    // 获取被删除的key的哈希值
+    const hash = this.hashCode(key);
+
+    // 被删除的key的下一个位置
+    let index = removePosition + 1;
+
+    while (this.table[index] != null) {
+      // 计算当前位置的key的哈希值
+      const posHash = this.hashCode(this.table[index].key);
+
+      // 如果当前元素的hash值小于等于被删除的key的hash值或者当前元素的hash小于等于被删除的key的位置的值
+      // 就把当前元素移动到被删除的key的位置上，并且删除当前元素，最后把删除的key的位置更新成当前的index
+      if (posHash <= hash || posHash <= removePosition) {
+        this.table[removePosition] = this.table[index];
+        delete this.table[index];
+        removePosition = index;
+      }
+      index++;
+    }
+  }
+
+  size() {
+    return Object.keys(this.table).length;
+  }
+
+  isEmpty() {
+    return this.size() === 0;
+  }
+
+  toString() {
+    if (this.isEmpty()) {
+      return "";
+    }
+
+    const keys = Object.keys(this.table);
+    let objString = `{${keys[0]} => ${this.table[keys[0]].toString()}}`;
+    for (let i = 1; i < keys.length; i++) {
+      objString = `${objString},\n{${keys[i]} => ${this.table[
+        keys[i]
+      ].toString()}}`;
+    }
+
+    return objString;
+  }
+
+  djb2HashCode(key) {
+    const tableKey = this.toStrFn(key);
+    let hash = 5381;
+    for (let i = 0; i < tableKey.length; i++) {
+      hash = hash * 33 + tableKey.charCodeAt(i);
+    }
+    return hash % 1013;
+  }
+}
+
+const hash = new HashTableLinearProbing();

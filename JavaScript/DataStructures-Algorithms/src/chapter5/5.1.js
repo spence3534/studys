@@ -223,7 +223,7 @@
   ```
 */
 
-class Queue {
+/* class Queue {
   constructor() {
     this.count = 0;
     this.lowestCount = 0;
@@ -322,4 +322,241 @@ result.eliminated.forEach((item) => {
   // 小吕被淘汰;
 });
 console.log(`${result.winner}胜利了`);
-// 小明胜利了
+// 小明胜利了 */
+
+class Queue {
+  constructor() {
+    this.count = 0;
+    this.lowestCount = 0;
+    this.items = {};
+  }
+
+  enqueue(ele) {
+    this.items[this.count] = ele;
+    this.count++;
+  }
+
+  dequeue() {
+    if (this.isEmpty()) {
+      return undefined;
+    }
+
+    const result = this.items[this.lowestCount];
+    delete this.items[this.lowestCount];
+    this.lowestCount++;
+    return result;
+  }
+
+  peek() {
+    if (this.isEmpty()) {
+      return undefined;
+    }
+
+    return this.items[this.lowestCount];
+  }
+
+  isEmpty() {
+    return this.count - this.lowestCount === 0;
+  }
+
+  size() {
+    return this.count - this.lowestCount;
+  }
+
+  clear() {
+    this.count = 0;
+    this.lowestCount = 0;
+    this.items = {};
+  }
+
+  toString() {
+    if (this.isEmpty()) {
+      return "";
+    }
+
+    let objString = `${this.items[this.lowestCount]}`;
+    for (let i = this.lowestCount + 1; i < this.count; i++) {
+      objString = `${objString}, ${this.items[i]}`;
+    }
+
+    return objString;
+  }
+}
+
+class Deque {
+  constructor() {
+    this.count = 0;
+    this.lowestCount = 0;
+    this.items = {};
+  }
+
+  addFront(ele) {
+    if (this.isEmpty()) {
+      this.addBack(ele);
+    } else if (this.lowestCount > 0) {
+      this.lowestCount--;
+      this.items[this.lowestCount] = ele;
+    } else {
+      for (let i = this.count; i > 0; i--) {
+        this.items[i] = this.items[i - 1];
+      }
+      this.count--;
+      this.lowestCount = 0;
+      this.items[0] = ele;
+    }
+  }
+
+  addBack(ele) {
+    this.items[this.count] = ele;
+    this.count++;
+  }
+
+  removeFront() {
+    if (this.isEmpty()) {
+      return undefined;
+    }
+    const result = this.items[this.lowestCount];
+    delete this.items[this.lowestCount];
+    this.lowestCount++;
+    return result;
+  }
+
+  removeBack() {
+    if (this.isEmpty()) {
+      return undefined;
+    }
+
+    this.count--;
+    const result = this.items[this.count];
+    delete this.items[this.count];
+    return result;
+  }
+
+  peekFront() {
+    if (this.isEmpty()) {
+      return undefined;
+    }
+    return this.items[this.lowestCount];
+  }
+
+  peekBack() {
+    if (this.isEmpty()) {
+      return undefined;
+    }
+    return this.items[this.count - 1];
+  }
+
+  isEmpty() {
+    return this.count - this.lowestCount === 0;
+  }
+
+  size() {
+    return this.count - this.lowestCount;
+  }
+
+  clear() {
+    this.count = 0;
+    this.lowestCount = 0;
+    this.items = {};
+  }
+
+  toString() {
+    if (this.isEmpty()) {
+      return "";
+    }
+
+    let objString = `${this.items[this.lowestCount]}`;
+    for (let i = this.lowestCount + 1; i < this.count; i++) {
+      objString = `${objString}, ${this.items[i]}`;
+    }
+    return objString;
+  }
+}
+
+function hotPotato(names, num) {
+  const queue = new Queue();
+  const eliminatedList = [];
+
+  for (let i = 0; i < names.length; i++) {
+    queue.enqueue(names[i]);
+  }
+
+  while (queue.size() > 1) {
+    for (let i = 0; i < num; i++) {
+      console.log(queue.items);
+      queue.enqueue(queue.dequeue());
+    }
+
+    eliminatedList.push(queue.dequeue());
+  }
+
+  return {
+    eliminated: eliminatedList,
+    winner: queue.dequeue(),
+  };
+}
+
+const names = [
+  "前端工程师",
+  "后端工程师",
+  "算法工程师",
+  "测试工程师",
+  "运维工程师",
+];
+
+const result = hotPotato(names, 1);
+
+result.eliminated.forEach((item) => {
+  console.log(`${item}被淘汰了`);
+});
+// 后端工程师被淘汰了
+// 测试工程师被淘汰了
+// 前端工程师被淘汰了
+// 运维工程师被淘汰了
+console.log(`${result.winner}获胜了！`);
+// 算法工程师获胜了！
+
+function palindromeCheck(str) {
+  // 判断传入的字符串是否合法
+  if (str === undefined || str === null || (str != null && str.length === 0)) {
+    return false;
+  }
+
+  const deque = new Deque();
+  // 把字符串转成小写并剔除空格
+  const lowerString = str.toLocaleLowerCase().split(" ").join("");
+
+  // 回文标识
+  let isEqual = true;
+
+  // 存储双端队列头部字符串
+  let firstChar = "";
+
+  // 存储双端队列尾部字符串
+  let lastChar = "";
+
+  // 将字符串逐个添加到双端队列中
+  for (let i = 0; i < lowerString.length; i++) {
+    deque.addBack(lowerString.charAt(i));
+  }
+
+  while (deque.size() > 1 && isEqual) {
+    // 移除双端队列头部的字符串并将返回结果赋值给firstChar变量
+    firstChar = deque.removeFront();
+
+    // 移除双端队列尾部的字符串并将返回结果赋值给lastChar变量
+    lastChar = deque.removeBack();
+
+    // 如果双端队列两端移除的元素互不相同，证明不是回文
+    if (firstChar !== lastChar) {
+      isEqual = false;
+    }
+    return isEqual;
+  }
+}
+
+console.log(palindromeCheck("stts")); // true
+console.log(palindromeCheck("level")); // true
+console.log(palindromeCheck("小姐姐姐姐小")); // true
+console.log(palindromeCheck("上海自来水来自海上")); // true
+console.log(palindromeCheck("知道不不知道")); // false
