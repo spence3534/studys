@@ -225,7 +225,7 @@
 
     const valuePairs = this.keyValues();
     let objString = `${valuePairs[0].toString()}`;
-    for (let i = 0; i < valuePairs.length; i++) {
+    for (let i = 1; i < valuePairs.length; i++) {
       objString = `${objString}, ${valuePairs[i].toString()}`;
     }
     return objString;
@@ -394,7 +394,7 @@
 
       const valuePairs = this.keyValues();
       let objString = `${valuePairs[0].toString()}`;
-      for (let i = 0; i < valuePairs.length; i++) {
+      for (let i = 1; i < valuePairs.length; i++) {
         objString = `${objString}, ${valuePairs[i].toString()}`;
       }
       return objString;
@@ -521,45 +521,9 @@ class Dictionary {
 
     const valuePairs = this.keyValues();
     let objString = `${valuePairs[0].toString()}`;
-    for (let i = 0; i < valuePairs.length; i++) {
+    for (let i = 1; i < valuePairs.length; i++) {
       objString = `${objString}, ${valuePairs[i].toString()}`;
     }
     return objString;
   }
 }
-
-const dictionary = new Dictionary();
-
-dictionary.set("ming", "深圳市宝安区");
-dictionary.set("hong", "深圳市南山区");
-dictionary.set("lang", "深圳市龙岗区");
-
-console.log(dictionary.hasKey("hong"));
-// true
-
-console.log(dictionary.size());
-// 3
-
-console.log(dictionary.keys());
-// [ 'ming', 'hong', 'lang' ]
-
-console.log(dictionary.values());
-// [ '深圳市宝安区', '深圳市南山区', '深圳市龙岗区' ]
-
-console.log(dictionary.get("hong"));
-// 深圳市南山区
-
-// 移除一个元素
-dictionary.remove("ming");
-
-console.log(dictionary.keyValues());
-// [
-//   { key: "hong", value: "深圳市南山区" },
-//   { key: "lang", value: "深圳市龙岗区" },
-// ];
-
-dictionary.forEach((key, val) => {
-  console.log(`key: ${key},  value: ${val}`);
-});
-// key: hong,  value: 深圳市南山区
-// key: lang,  value: 深圳市龙岗区
