@@ -62,15 +62,21 @@
   ```
 
   ### 递归阶乘
-  
+  我们来用递归重写`iteration`函数。
+  ```js
+  function iteration(num) {
+    if (num === 1 || num === 0) { // 基线条件
+      return 1;
+    }
+    return num * iteration(num - 1); // 递归调用
+  }
+  ```
 */
 function iteration(num) {
-  if (num < 0) return undefined;
-  let total = 1;
-  for (let n = num; n > 1; n--) {
-    total = total * n;
+  if (num === 1 || num === 0) {
+    return 1;
   }
-  return total;
+  return num * iteration(num - 1);
 }
 
 console.log(iteration(5));
