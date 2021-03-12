@@ -42,41 +42,4 @@
   `recursion1`函数不断调用自己，只有`answer`的值为`true`时。返回了`true`，也退出了递归调用。
 
   有了基本的了解之后，来看看计算机中有哪些著名的递归算法。
-
-  ## 数的阶乘
-  下面来看看如何计算一个数的阶乘。数`n`的阶乘，表示从`1`到`n`的整数的乘积。`5`的阶乘表示为`5`，和`5 x 4 x 3 x 2 x 1`相同，结果为`120`。
-
-  ### 迭代阶乘
-  使用一个循环来写计算一个数阶乘的函数，看下面代码。
-  ```js
-  function iteration(num) {
-    if (num < 0) return undefined;
-    let total = 1;
-    for (let n = num; n > 1; n--) {
-      total = total * n;
-    }
-    return total;
-  }
-
-  console.log(iteration(5)); // 120
-  ```
-
-  ### 递归阶乘
-  我们来用递归重写`iteration`函数。
-  ```js
-  function iteration(num) {
-    if (num === 1 || num === 0) { // 基线条件
-      return 1;
-    }
-    return num * iteration(num - 1); // 递归调用
-  }
-  ```
 */
-function iteration(num) {
-  if (num === 1 || num === 0) {
-    return 1;
-  }
-  return num * iteration(num - 1);
-}
-
-console.log(iteration(5));
