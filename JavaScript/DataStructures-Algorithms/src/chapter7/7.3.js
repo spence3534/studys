@@ -369,5 +369,5 @@ setC.add(20);
 setC.add(30);
 setC.add(40);
 
-console.log(setA.isSubsetOf(setB)); // true
+console.log(setA.otherIntersection(setC)); // true
 console.log(setA.isSubsetOf(setC)); // false
