@@ -2,7 +2,8 @@
   box-sizing: border-box;
 }
 
-*::after,
+*,
+::after,
 ::before {
   box-sizing: inherit;
 }
@@ -13,11 +14,6 @@ body {
 
 body * + * {
   margin-top: 1.5em;
-}
-
-.container {
-  max-width: 1080px;
-  margin: 0 auto;
 }
 
 header {
@@ -34,10 +30,33 @@ header {
   border-radius: 0.5em;
 }
 
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
 .media {
   float: left;
   width: 50%;
   padding: 1.5em;
   background-color: #eee;
   border-radius: 0.5em;
+}
+
+.media-image {
+  width: 100px;
+  height: 100px;
+}
+
+.clearfix::before,
+.clearfix::after {
+  display: table;
+  content: " ";
+}
+.clearfix::after {
+  clear: both;
+}
+
+.media:nth-child(odd) {
+  clear: both;
 }
