@@ -3,7 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title></title>
+    <title>CSS表格布局</title>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body></body>
+  <body>
+    <!-- 
+      ! CSS表格布局实现等高列布局 最古老的方式
+      <header><h1>Hello World</h1></header>
+      <div class="wrapper">
+        <div class="container">
+          <main class="main">
+            <h2>Come you us!</h2>
+            <p>
+              The Franklin Running club meets at 6:00pm every Thursday at the town
+              square. Runs are three to five miles, at your own pace.
+            </p>
+          </main>
+          <aside class="sidebar">
+            <div class="widget"></div>
+            <div class="widget"></div>
+          </aside>
+        </div>
+      </div>
+    -->
+
+    <header><h1>前端图图</h1></header>
+    <div class="container">
+      <main class="main">
+        <h2>Come you us!</h2>
+        <div>
+          <p>
+            The Franklin Running club meets at 6:00pm every Thursday at the town
+            square. Runs are three to five miles, at your own pace.
+          </p>
+        </div>
+      </main>
+      <aside class="sidebar">
+        <a href="/twitter" class="button-link"> follow us on Twitter </a>
+        <a href="/facebook" class="button-link"> like us on Facebook </a>
+        <a href="/sponsors" class="sponsor-link"> become a sponsor </a>
+      </aside>
+    </div>
+
+    <div class="test">
+      <div class="test1"></div>
+      <div class="test2"></div>
+      <div class="test3"></div>
+      <div class="test4"></div>
+      <div class="test5"></div>
+      <div class="test6"></div>
+      <div class="test7"></div>
+      <div class="test8"></div>
+    </div>
+  </body>
 </html>

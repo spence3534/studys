@@ -1,0 +1,119 @@
+:root {
+  box-sizing: border-box;
+}
+*,
+::before,
+::after {
+  box-sizing: inherit;
+}
+body {
+  background: #eee;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+header {
+  color: #fff;
+  background: #0072b0;
+  border-radius: 0.5em;
+  padding: 0.5em 1.5em;
+}
+
+main {
+  display: block;
+}
+
+/* ! CSS表格布局 */
+/* .wrapper {
+  margin-left: -1.5em;
+  margin-right: -1.5em;
+}
+
+.container {
+  display: table;
+  width: 100%;
+  border-spacing: 1.5em 0;
+}
+
+.main {
+  display: table-cell;
+  width: 70%;
+  background: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar {
+  display: table-cell;
+  width: 30%;
+  padding: 1.5em;
+  background: #fff;
+  border-radius: 0.5em;
+  margin-left: 1.5em;
+} */
+
+.container {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.main {
+  padding: 1em 1.5em;
+  width: 70%;
+  background: #fff;
+  border-radius: 0.5em;
+}
+
+.sidebar {
+  width: 30%;
+  margin-top: 0;
+  padding: 1.5em;
+  margin-left: 1.5em;
+  background: #fff;
+  border-radius: 0.5em;
+}
+
+.button-link {
+  display: block;
+  padding: 0.5em;
+  color: #fff;
+  background: #0090c9;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.button-link + .button-link {
+  margin-top: 1.5em;
+}
+
+.sponsor-link {
+  display: block;
+  color: #0072b0;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+body * + * {
+  margin-top: 1.5em;
+}
+
+.test {
+  display: flex;
+}
+
+.test * + * {
+  width: 100px;
+  height: 100px;
+  background: red;
+  margin-top: 1.5em;
+  margin-left: 1.5em;
+}
+
+.test1 {
+  width: 100px;
+  height: 100px;
+  background: red;
+  margin-top: 1.5em;
+}
+
+.test1 {
+}
