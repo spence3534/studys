@@ -12,6 +12,7 @@
 
 ```html
 <style></style>
+
 <main class="main clearfix">
   //...浮动元素
 
@@ -19,17 +20,17 @@
 </main>
 ```
 
-- 在父元素上设置伪元素`::after`和`::before`选择器。
+- 在父元素上多加给一个类选择器设置该类选择器伪元素`::after`和`::before`选择器。
 
 ```css
-/* 第一版 会导致外边距折叠*/
+/* 第一版 会导致容器外边距折叠*/
 .clearfix::after {
   content: " ";
   display: block;
   clear: both;
 }
 
-/* 第二版 考虑外边距不折叠*/
+/* 第二版 考虑容器外边距不折叠 */
 .clearfix::after,
 .clearfix::before {
   display: table;
@@ -40,3 +41,24 @@
   clear: both;
 }
 ```
+
+### BFC
+
+BFC （块级格式化上下文）是网页的一块区域，元素基于这块区域进行布局。BFC 会将内部的内容和外部的上下文隔离开。有 3 个特点。
+
+- 内部所有元素的上下外边距。它们不会跟 BFC 外面的元素产生外边距折叠。
+- 内部所有的浮动元素。
+- 不会跟 BFC 外面的浮动元素重叠。
+
+简单的说，BFC 里的内容不会跟外部的元素重叠或相互影响。
+
+给元素创建 BFC 的方法如下。
+
+- `float`：`left或right`，不是`none`即可。
+- `overflow`：`hidden、auto`或`scroll`，不是`visible`即可。
+- `display`：`inline-block`、`table-cell`、`table-caption`、`flex`、`inline-flex`、`gird`和`inline-grid`。具有这些属性的元素都是**块级容器**。
+- `position`：`absolute`或`fixed`。
+
+> `<html>`根元素也是一个 BFC。
+
+用`overflow: auto`是创建 BFC 最简单的方式，当然你也可以用上面其他的方法。但是这得看情况。

@@ -25,7 +25,7 @@ header {
 }
 
 .main {
-  padding: 0 1.5em;
+  padding: 0 1.5em 1.5em;
   background: #fff;
   border-radius: 0.5em;
 }
@@ -35,9 +35,61 @@ header {
   margin: 0 auto;
 }
 
-.media {
+.row::after {
+  content: " ";
+  display: block;
+  clear: both;
+}
+
+.row {
+  margin-left: -0.75em;
+  margin-right: -0.75em;
+}
+
+[class*="column-"] {
   float: left;
+  padding: 0 0.75em;
+  margin-top: 0;
+}
+
+.column-1 {
+  width: 8.3333%;
+}
+.column-2 {
+  width: 16.6667%;
+}
+.column-3 {
+  width: 25%;
+}
+.column-4 {
+  width: 33.3333%;
+}
+.column-5 {
+  width: 41.6667%;
+}
+.column-6 {
   width: 50%;
+}
+.column-7 {
+  width: 58.3333%;
+}
+.column-8 {
+  width: 66.6667%;
+}
+.column-9 {
+  width: 75%;
+}
+.column-10 {
+  width: 83.333%;
+}
+.column-11 {
+  width: 91.6667%;
+}
+.column-12 {
+  width: 100%;
+}
+
+.media {
   padding: 1.5em;
   background-color: #eee;
   border-radius: 0.5em;
@@ -46,6 +98,16 @@ header {
 .media-image {
   width: 100px;
   height: 100px;
+  float: left;
+}
+
+.media-body {
+  margin-top: 0;
+  overflow: auto;
+}
+
+.media-body h4 {
+  margin-top: 0;
 }
 
 .clearfix::before,
@@ -53,10 +115,11 @@ header {
   display: table;
   content: " ";
 }
+
 .clearfix::after {
   clear: both;
 }
 
-.media:nth-child(odd) {
-  clear: both;
-}
+/* .media:nth-child(odd) {
+  clear: left;
+} */
