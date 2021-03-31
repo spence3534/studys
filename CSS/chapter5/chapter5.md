@@ -13,6 +13,65 @@ flex 布局的容器有以下几个属性。
 
 #### flex-direction 属性
 
+`flex-direction`具有四个属性值。
+
+- `row`: 在主轴方向从左到右排列子元素。
+
+- `row-reverse`：在主轴方向从右到左排列子元素。
+
+- `column`：在主轴方向从上到下排列子元素（副轴从左到右）。
+
+- `column-reverse`：在主轴方向从下到上排列子元素（副轴从右到左）。
+
+#### flex-wrap 属性
+
+`flex-wrap`有三个属性值。
+
+- `nowrap`：子元素超出容器宽度时也不换行。
+- `wrap`：子元素超出容器宽度时进行换行。
+- `wrap-reverse`：子元素超出容器宽度时以相反的顺序换行。
+
+#### flex-flow 属性
+
+`flex-flow`是`flex-direction`和`flex-wrap`的缩写。
+
+```css
+.flex-item {
+  flex-flow: row wrap;
+}
+```
+
+#### justify-content 属性
+
+`justify-content`有五个属性。控制子元素在主轴上对齐方式。
+
+- `flex-start`：从左到右
+- `flex-end`：从右到左
+- `center`：居中对齐
+- `space-between`：左右两端对齐，子元素之间的间隔相等
+- `space-around`：左右两端的子元素间隔相等，中间的子元素的间隔是两边子元素间隔一倍。
+
+#### align-items 属性
+
+`align-items`也有五个属性值。控制子元素在副轴上的对齐方式。
+
+- `stretch`：默认值，子元素没有设置高度的情况下，让所有子元素填满容器高度。
+- `flex-start`：从上到下
+- `flex-end`：从下到上
+- `center`：元素居中
+- `baseline`：让元素根据每个子元素的第一行字对齐。
+
+#### align-content 属性
+
+父元素设置了`flex-wrap`并且子元素在换行的情况下，`align-content`才生效。它具有六个属性值，用于控制子元素在**副轴**上的每行间距。处理的方式和`justify-content`一样。
+
+- `flex-start`：从上到下
+- `flex-end`：从下到上
+- `center`：居中对齐
+- `space-between`：上下两端对齐，子元素之间的间隔相等
+- `space-around`：上下两端的子元素间隔相等，中间的子元素的间隔是两边子元素间隔一倍。
+- `stretch`：初始值，子元素之间的间隔占满整个容器。
+
 ### 弹性子元素属性
 
 #### flex 属性
@@ -39,7 +98,7 @@ flex 布局的容器有以下几个属性。
 
 #### flex-shrink 属性
 
-`flex-shrink`可以让每个子元素进行收缩防止溢出。值为`0`时，不会进行收缩。大于`0`时，则收缩并且不溢出。值越大的元素收缩越多。
+`flex-shrink`可以让每个子元素进行收缩防止溢出。值为`0`时，不会进行收缩。大于`0`时，则收缩并且不会溢出。值越大的元素收缩越多。
 
 ```css
 /* 等价于flex: 1 1 33.33% */
@@ -52,3 +111,11 @@ flex 布局的容器有以下几个属性。
   flex: 66.66%;
 }
 ```
+
+#### align-self 属性
+
+`align-self`属性控制子元素在容器中的副轴方向的对齐方式，默认值为`auto`。它跟`align-items`效果还有属性值都一样。
+
+#### order 属性
+
+`order`可以控制子元素的顺序排列。从主轴的起点开始，初始值为`0`，如果一个子元素设置为`-1`，它会移动到最前面。指定为`1`，则会移动到最后面。
