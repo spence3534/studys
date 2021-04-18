@@ -535,13 +535,13 @@ Content-Language: zh-CN
 
 `Content-Length`表示实体主体部分的大小。以字节为单位。
 
-#### Content-Location
-
-`Content-Location`字段指的是要返回的数据的地址。
-
 ```http
 Content-Length: 10000
 ```
+
+#### Content-Location
+
+`Content-Location`字段指的是要返回的数据的地址。
 
 #### Content-Range
 
@@ -733,8 +733,8 @@ HTTP 协议中的请求和响应不会对通信方进行确认。也就是说存
 
 HTTP 协议的实现本身很简单，不管是谁发送过来的请求都会返回响应，因此不确认通信方，会存在下面几点问题。
 
-- 无法确定请求发送到目标的 Web 服务器是否是按照真实意图返回响应的那台服务器。有可能是已伪装的 Web 服务器。
-- 无法确定响应返回到的客户端是否是按照真实意图接收响应的那个客户端。有可能是已伪装的客户端。
+- 无法确认发送请求的目标服务器是否为真正返回响应的服务器。有可能是已伪装的 Web 服务器。
+- 无法确认响应返回到的客户端是否为真正接收响应的那个客户端。有可能是已伪装的客户端。
 - 无法确定正在通信的对方是否具备访问权限。因为某些 Web 服务器上保存有重要的信息，只想发给特定用户通信的权限。
 - 无法判断请求是来自哪里、出自谁手。
 - 即使是无意义的请求也会照单全收。无法阻止大量请求下的 DoS 攻击（Denial of Service，拒绝服务器攻击）。
@@ -868,7 +868,7 @@ HTTPS 采用了对称加密和非对称加密两者并用的混合加密。使�
 
 ### SSL 和 TSL
 
-HTTPS 用的是 SL（Secure Socket Layer 安全套阶层） 和 TLS（Transport Layer Security 安全传输层协议）这两个协议。SSL 最开始是由网景先倡导，后来网景崩盘了，就转移给了 IETF 的手里。IETF 以 SSL3.0 为准，之后又定制了 TLS1.0、TLS1.1 和 TLS1.2。TSL 是以 SSL 为原型开发的协议，有时候统一称该协议为 SSL。
+HTTPS 用的是 SSL（Secure Socket Layer 安全套阶层） 和 TLS（Transport Layer Security 安全传输层协议）这两个协议。SSL 最开始是由网景先倡导，后来网景崩盘了，就转移给了 IETF 的手里。IETF 以 SSL3.0 为准，之后又定制了 TLS1.0、TLS1.1 和 TLS1.2。TSL 是以 SSL 为原型开发的协议，有时候统一称该协议为 SSL。
 
 ### 为什么不一直用 HTTPS
 
