@@ -45,16 +45,16 @@
   在给函数传递参数的个数不确定的时候，就可以通过剩余参数进行传递。说白了就是剩余参数就是形参
   是一个数组，传递几个实参过来都可以直接存在形参的数组中。
 */
-function searchXiaoJieJie(...xuqiu:string[]):string {
-  let yy:string = "找到了";
-  for (let i=0; i<xuqiu.length; i++) {
-    yy = yy + xuqiu[i];
-    if (i<xuqiu.length) {
-      yy = yy + "、";
+function searchXiaoJieJie(...xuqiu: string[]): string {
+  let yy: string = '找到了'
+  for (let i = 0; i < xuqiu.length; i++) {
+    yy = yy + xuqiu[i]
+    if (i < xuqiu.length) {
+      yy = yy + '、'
     }
   }
-  yy = yy + "的小姐姐"
+  yy = yy + '的小姐姐'
   return yy
 }
-var result:string = searchXiaoJieJie("22岁", "大长腿", "瓜子脸", "水蛇腰");
-console.log(result); // 找到了22岁、大长腿、瓜子脸、水蛇腰、的小姐姐
+var result: string = searchXiaoJieJie('22岁', '大长腿', '瓜子脸', '水蛇腰')
+console.log(result) // 找到了22岁、大长腿、瓜子脸、水蛇腰、的小姐姐

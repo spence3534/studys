@@ -181,77 +181,77 @@
   }
   ```
  */
-const { LinkedList, Node } = require("./6.2");
+const { LinkedList, Node } = require('./6.2')
 
 class CircularLinkedList extends LinkedList {
   constructor(equalsFn) {
-    super(equalsFn);
+    super(equalsFn)
   }
 
   push(ele) {
-    const node = new Node(ele);
-    let current = "";
+    const node = new Node(ele)
+    let current = ''
     if (this.head === undefined) {
-      this.head = node;
+      this.head = node
     } else {
-      current = this.getElementAt(this.size() - 1);
-      current.next = node;
+      current = this.getElementAt(this.size() - 1)
+      current.next = node
     }
-    node.next = this.head;
-    this.count++;
+    node.next = this.head
+    this.count++
   }
 
   insert(ele, index) {
     if (index >= 0 && index <= this.count) {
-      const node = new Node(ele);
-      let current = this.head;
+      const node = new Node(ele)
+      let current = this.head
       if (index === 0) {
         if (this.head === undefined) {
-          this.head = node;
+          this.head = node
           // 插入元素的next指针指向头部元素（也就是指向了本身）
-          node.next = this.head;
+          node.next = this.head
         } else {
-          node.next = current;
+          node.next = current
           // 获取循环链表最后一个元素
-          current = this.getElementAt(this.size());
+          current = this.getElementAt(this.size())
           // 更新链表
-          this.head = node;
+          this.head = node
           // 最后一个元素指针指向头部元素
-          current.next = this.head;
+          current.next = this.head
         }
       } else {
-        const prev = this.getElementAt(index - 1);
-        node.next = prev.next;
-        prev.next = node;
+        const prev = this.getElementAt(index - 1)
+        node.next = prev.next
+        prev.next = node
       }
-      this.count++;
-      return true;
+      this.count++
+      return true
     }
-    return false;
+    return false
   }
 
   removeAt(index) {
     if (index >= 0 && index <= this.count) {
-      let current = this.head;
+      let current = this.head
       if (index === 0) {
         if (this.size() === 1) {
-          this.head = undefined;
+          this.head = undefined
         } else {
-          const removed = this.head;
-          current = this.getElementAt(this.size());
-          this.head = this.head.next;
-          current.next = this.head;
+          const removed = this.head
+          current = this.getElementAt(this.size())
+          this.head = this.head.next
+          current.next = this.head
           // 改变current引用，因为后面return的时候要用到并且表示移除了元素的值。
-          current = removed;
+          current = removed
         }
       } else {
-        const prev = this.getElementAt(index - 1);
-        current = prev.next;
-        prev.next = current.next;
+        const prev = this.getElementAt(index - 1)
+        current = prev.next
+        prev.next = current.next
       }
-      this.count--;
-      return current.element;
+      this.count--
+      return current.element
     }
-    return undefined;
+    return undefined
   }
 }
