@@ -142,6 +142,7 @@
   let person: Person = (name, age = 23): string => {
     return `我是${name}, 今年${age}岁`
   }
+
   ```
   上面的例子中，声明一个函数表达式`person`，并注解它类型为`Person`。参数的类型不用再次注解，因为在
   定义`Person`类型时已经注解过了（`TS`会从`Person`中推导出来）。给`age`设置一个默认值，类型则从`Person`
