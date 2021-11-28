@@ -1,11 +1,12 @@
 /*
  * @Author: your name
  * @Date: 2020-08-25 15:01:02
- * @LastEditTime: 2021-01-11 14:23:11
- * @LastEditors: your name
+ * @LastEditTime: 2021-11-28 21:38:30
+ * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \iconmall-csc:\Users\PC\Desktop\My document\studys\ts\03.js
  */
+
 /**
  * Typescript中的数据类型有：
  * undefined类型
