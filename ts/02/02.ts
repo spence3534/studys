@@ -222,8 +222,51 @@
 
   多数情况下，`TS`会先把字面量重载放到非字面量重载前面，然后按顺序解析。在定义重载时，
   一定要把最精确的定义放在最前面。
+
+  ### 泛型
+  在了解泛型之前，我们先来看个例子：
+  ```js
+  function merge(arr1: string[], arr2: string[]): string[]
+  function merge(arr1: number[], arr2: number[]): number[]
+  function merge(arr1: object[], arr2: object[]): object[]
+
+  function merge(arr1: any, arr2: any) {
+    return [...arr1.concat(arr2)]
+  }
+
+  let strings = merge(['1', '2'], ['3', '4'])
+  let numbers = merge([1, 2], [3, 4])
+  let objects = merge([{ name: '图图' }], [{ name: '小美' }])
+  console.log(strings[0])
+  console.log(numbers[0])
+  console.log(objects[0].name)
+  // Property 'name' does not exist on type 'object'
+  ```
+  上面代码中，我们使用函数重载实现了一个可以合并字符串数组、数字数组、对象数组的`merge`函数。访问`strings`和`numbers`第一个元素都没有问题，但是当想在控制台输入`objects`变量第一个元素中的属性时，`TS`抛出错误了。这是因为`object`无法描述对象的结构，所以抛出了错误。而且没有指明对象的具体结构。
+
+  在实际开发中，有时候，并不知道函数中需要什么类型。但又不想限制函数只接收某个类型，而且还兼容未来的某种类型。那么**泛型***就派上用场了，泛型也是`TS`中最难懂的一个部分。
+
+  > 泛型参数：在类型层面施加约束的占位类型，也叫多态类型参数。
+
+  下面我们来改造一下上面的例子：
+  ```js
+  function merge<T>(arr1: T[], arr2: T[]): T[]
+
+  function merge<T>(arr1: T[], arr2: T[]) {
+    return [...arr1.concat(arr2)]
+  }
+  let strings = merge(['1', '2'], ['3', '4'])
+  let numbers = merge([1, 2], [3, 4])
+  let objects = merge([{ name: '图图' }], [{ name: '小美' }])
+  console.log(objects[0].name)
+  ```
+  上面代码中，`merge`函数使用一个泛型参数`T`，但我们并不知道具体类型是什么；`TS`从传入的`arr1`和`arr2`中推导`T`的类型。调用`merge`函数时，`TS`推导出`T`的具体类型之后，会把`T`出现的每个地方都替换成推导出的类型。`T`就像一个占位类型，类型检查器会根据上下文填充具体的类型。
+
+  泛型使用尖括号`<>`来声明（你可以把尖括号理解成`type`关键字，只不过声明的是泛型）。尖括号的位置限定泛型的作用域（只有少数几个地方可以用尖括号），`TS`将确保当前作用域中相同的泛型参数最终都绑定同一个具体类型。鉴于上面的例子中括号的位置，`TS`将在调用`merge`函数时为泛型`T`绑定具体类型。而为`T`绑定哪一个具体类型，就取决于调用`merge`函数时传入的参数。
+
+  > `T`是一个类型名称，也可以使用任何名称，比如`Name`、`Person`、`Value`等。
+
+  泛型还可以是多个，在尖括号中以逗号分隔开。来看下面的例子。
+
+
 */
-
-
-
-
