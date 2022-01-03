@@ -267,6 +267,106 @@
   > `T`是一个类型名称，也可以使用任何名称，比如`Name`、`Person`、`Value`等。
 
   泛型还可以是多个，在尖括号中以逗号分隔开。来看下面的例子。
+  ```js
+  function Person<T, U>(name: T, age: U): [T, U] {
+    return [name, age]
+  }
+
+  const person = Person('图图', 18)
+  ```
+  上面代码中，有两个泛型：表示人名的`T`和年龄的`U`，最后返回一个具备这两个值的数组。
+
+  #### 绑定泛型
+  声明泛型的位置不仅限制了泛型的作用域，还决定`TS`啥时候给泛型绑定具体类型。以上面的代码为例。
+  ```js
+  type Person = {
+    <T, U>(name: T, age: U): [T, U]
+  }
+
+  let person: Person = (name, age) => [name, age]
+  ```
+  `<T, U>在类型签名中声明，`TS`会在调用`Person`类型的函数时给`T`绑定具体的类型。
+
+  如果把`<T, U>`的作用域限定在类型别名`Person`中，`TS`将要求在使用`Person`时显示绑定类型。
+  ```js
+  type Person<T, U> = {
+    (name: T, age: U): [T, U]
+  }
 
 
+  let person: Person = (name, age) => [name, age]
+  // Generic type 'Person' requires 2 type argument(s).
+
+  type otherPerson = Person
+  // Generic type 'Person' requires 2 type argument(s).
+
+  let person1: Person<string, number> = (name, age) => [name, age]
+
+  type arrPerson = Person<string, number>
+  ```
+  在使用泛型时，给泛型绑定具体类型。对函数来说，在调用函数时。对于类，在实例化时。对于类型别名和接口，在使用别名和实现接口时。
+
+  ### 泛型推导
+  上面的所有泛型例子，我们都是让`TS`自动推导出泛型。也可以显式注解泛型。在显式注解泛型时，要么把所有的泛型都加上注解，要么都不注解。
+  ```js
+  function Person<T, U>(name: T, age: U): [T, U] {
+    return [name, age]
+  }
+
+  let person = Person<string, number>('图图', 23)
+  ```
+  ### 泛型别名
+  我们可以使用`type`关键字给泛型声明别名，看下面的例子。
+  ```js
+  type DomEvent<T> = {
+    target: T,
+    type: string
+  }
+
+  type DivEvent = DomEvent<HTMLDivElement | null>
+
+  let myDiv: DivEvent = {
+    target: document.querySelector("#myDiv"),
+    type: "click"
+  }
+  // 或者
+  let myDiv: DomEvent<HTMLDivElement | null> = {
+    target: document.querySelector('#myDiv'),
+    type: 'click'
+  }
+  ```
+  大家要注意的是，在使用`DomEvent`泛型时。必须显式注解类型参数，在这种情况下，`TS`是无法自行推导的。
+
+  泛型别名还可以在函数的签名中使用。`TS`给`T`绑定类型时，还会给`DomEvent`绑定。
+  ```js
+  type DomEvent<T> = {
+    target: T,
+    type: string
+  }
+
+  function myClick<T>(e: DomEvent<T>): void {
+    console.log('click me');
+  }
+
+  myClick({ // T 为 Element 或 null
+    target: document.querySelector("#myDiv"),
+    type: "click"
+  })
+  ```
+
+  ### 泛型默认类型
+  函数的参数可以指定默认值，而泛型可以指定默认类型。
+  ```js
+  type Person<T = string> = {
+    name: T,
+    age: number
+  }
+
+  let person: Person = {
+    name: '图图',
+    age: 10
+  }
+  ```
+  要注意的是，泛型默认类型和函数的可选参数一样的，有默认类型的泛型要放到没有默认类型的泛型后面。
 */
+

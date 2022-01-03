@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title></title>
-</head>
-<body>
-  <button id="throttle">点击按钮</button>
-  <script>
-
-    // 函数节流第一版
-    /* function throttle(fn, interval) {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+  </head>
+  <body>
+    <button id="throttle">点击按钮</button>
+    <script>
+      // 函数节流第一版
+      /* function throttle(fn, interval) {
       var self = fn; // 首先用一个变量self保存要延迟执行的函数
       var timer = undefined; // 然后用一个变量保存定时器，初始化为undefined
       var firstTime = true; // 用一个变量做为是否是第一次调用的标识，初始化为true;
@@ -41,8 +40,8 @@
       }
     } */
 
-    // 结合时间戳的版本
-    /* function throttle(fn, wait, time) {
+      // 结合时间戳的版本
+      /* function throttle(fn, wait, time) {
       let previous = null; // 用于记录上一次设置的时间
       let timer = null; // 设置定时器的返回值
 
@@ -70,8 +69,8 @@
       }
     } */
 
-    // 函数防抖
-    /* window.onload = function() {
+      // 函数防抖
+      /* window.onload = function() {
       var btn = document.getElementById("throttle");
       btn.addEventListener("click", debounce(myDebounce));
     }
@@ -92,6 +91,6 @@
     function myDebounce() {
       console.log("this is debounce");
     } */
-  </script>
-</body>
+    </script>
+  </body>
 </html>
