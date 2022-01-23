@@ -1,33 +1,30 @@
-type ClassConstructor<T> = new (...args: any[]) => T
+type Shoe = {
+  purpose: string
+}
 
-function withEZDebug<C extends ClassConstructor<{ getDebugValue(): object }>>(Class: C) {
-  return class extends Class {
+class BalletFlat implements Shoe {
+  purpose = 'dancing'
+}
 
-    debug() {
-      console.log(Class.constructor)
-      let Name = Class.constructor
-      let value = this.getDebugValue()
-      return Name + `( ${JSON.stringify(value)} )`
+class Boot implements Shoe {
+  purpose = 'woodcutting'
+}
+
+class Sneaker implements Shoe {
+  purpose = 'walking'
+}
+
+let Shoe = {
+  create(type: 'balletFlat' | 'boot' | 'sneaker'): Shoe {
+    switch (type) {
+      case 'balletFlat':
+        return new BalletFlat
+      case 'boot':
+        return new Boot
+      case 'sneaker':
+        return new Sneaker
     }
   }
 }
 
-
-class HardToDebugUser {
-  constructor(
-    private id: number,
-    private firstName: string,
-    private lastName: string
-  ) { }
-
-  getDebugValue() {
-    return {
-      id: this.id,
-      name: `${this.firstName}  ${this.lastName}`
-    }
-  }
-}
-
-let User = withEZDebug(HardToDebugUser)
-let user = new User(3, 'emma', 'gluzman')
-console.log(user.debug())
+console.log(Shoe.create('boot'))
