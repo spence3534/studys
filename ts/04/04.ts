@@ -282,9 +282,28 @@ let notes: Notes = {
 // Type '{ notes: never[]; id: number; }' is not assignable to type 'Notes'.
 // Object literal may only specify known properties, and 'id' does not exist in type 'Notes'
 
-type isNumber <T> = T extends number ? true : false
+/* type isNumber <T> = T extends number ? true : false
 
 type A = isNumber<string>
 type B = isNumber<number>
 
-let string: A = false
+let string: A = false */
+
+
+// type Without<T, U> = T extends U ? never : T
+
+// type A = Without<boolean | number | string, boolean>
+
+// const strOrnum: A = '图图' || 1111 
+
+/* type ElementType<T> = T extends Array<infer U> ? U : T
+
+type strArr = ElementType<number[]>
+
+const strs: strArr = 1 */
+
+/* type ElementType<T> = T extends Array<infer U> ? U : T
+
+type Num = ElementType<number[]>
+
+const num: Num = 1 */
