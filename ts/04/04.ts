@@ -260,7 +260,7 @@ function setValues(params: Readonly<Account>) {
 }
 setValues(options3)
 
-// 
+//
 type OtherAccount = Pick<Account, 'id'>
 let options4: OtherAccount = {
   id: 1,
@@ -294,7 +294,7 @@ let string: A = false */
 
 // type A = Without<boolean | number | string, boolean>
 
-// const strOrnum: A = '图图' || 1111 
+// const strOrnum: A = '图图' || 1111
 
 /* type ElementType<T> = T extends Array<infer U> ? U : T
 
@@ -307,3 +307,34 @@ const strs: strArr = 1 */
 type Num = ElementType<number[]>
 
 const num: Num = 1 */
+
+/* type StrOrNum = number | string
+type Str = string
+
+type Num = Exclude<StrOrNum, Str>
+
+const num : Num = 1 */
+
+/* type StrOrBool = string | boolean
+type NumOrBool = number | boolean
+
+type Value = Extract<StrOrBool, NumOrBool> // boolean
+
+let val: Value = false */
+
+/* type ObjectOrNull = Object | null
+
+type Value = NonNullable<ObjectOrNull> // Object
+
+let obj: Value = {
+  a: 1
+} */
+
+type Person = { name: string, age: number }
+type NewObj = { new(): Person }
+
+type ObjectType = InstanceType<NewObj> // { name: string; age: number; }
+const person: Person = {
+  name: 'xxx',
+  age: 24
+}
