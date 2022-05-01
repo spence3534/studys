@@ -330,11 +330,28 @@ let obj: Value = {
   a: 1
 } */
 
-type Person = { name: string, age: number }
+/* type Person = { name: string, age: number }
 type NewObj = { new(): Person }
 
 type ObjectType = InstanceType<NewObj> // { name: string; age: number; }
-const person: Person = {
+const person: ObjectType = {
   name: 'xxx',
   age: 24
+} */
+
+/* function formatDate(date: any) {
+  if (typeof date === 'string') {
+    return new Date(date)
+  }
+  return new Date(date).getFullYear()
 }
+
+
+function getDate(): string | Date {
+  return '2022-01-01 11:35:00'
+}
+
+let date = getDate()
+
+formatDate(date as string)
+formatDate(<Date>date) */
