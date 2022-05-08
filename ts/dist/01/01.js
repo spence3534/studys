@@ -1,3 +1,4 @@
+"use strict";
 /*
   js给出错误信息是在真正运行时，而ts是在输入代码的过程中，编辑器就会给出错误信息。
 
@@ -290,45 +291,8 @@
   ```
   上面代码中，`Orange`键没有赋值。`TS`自动推导出`Orange`的值为`12`。因为它的前一个键的值为`11`，但这种行为只能是值为数字类型的情况下才会出现。
 */
-/* let num: unknown = 1 // unknown
-let isNum = num === 2 // boolean
-let addNum = num + 100 // Error: Object is of type 'unknown'
-
-
-if (typeof num === 'number') {
-  let d = num + 100 // number
-  console.log(d) // 101
-} */
-
-/* let value: boolean = true
-let isHide = false
-const hasKey = true
-let isShow = true
-let disable: false = true // Error: Type 'true' is not assignable to type 'false'.
-let isDisable: true = true
-
-let big1 = 1234n
-let big2: bigint = 5678n */
-
-/* let names: symbol = Symbol('美美')
-let height = Symbol('180')
-const weight: unique symbol = Symbol('55') // typeof weight
-let g: unique symbol = Symbol('55') // Error A variable whose type is a 'unique symbol' type must be 'const' */
-/* let a: undefined = undefined
-let b: null = null */
-
-// 返回void的函数
-function addNum() {
-  let a = 1 + 1
-  let b = a * a
-}
-
-function a() {
-  throw TypeError('总是报错')
-}
-
-function b() {
-  while (true) {
-    console.log('我在无限循环')
-  }
-}
+var a = 1;
+a = false;
+a = '图图';
+a = [1, 2, 3, 4];
+//# sourceMappingURL=01.js.map
