@@ -335,4 +335,115 @@ let date = getDate()
 
 formatDate(date as string)
 formatDate(<Date>date) */
+/* let fruit = {
+  name: '苹果',
+  price: 10
+} as const
+
+fruit.price = 15 */
+// Error Cannot assign to 'price' because it is a read-only property.
+/* interface Fruit {
+  name: string,
+  price: number
+}
+
+let fruit: Fruit = {
+  name: '猕猴桃',
+  price: 30
+}
+
+function getFruitPrice(price: number): string | number {
+  return price
+}
+
+getFruitPrice(fruit.price as number) */
+// 在没有使用明确赋值断言的情况下
+/* let userName!: string
+
+userName.slice(0, 3) */
+// Error Variable 'userName' is used before being assigned.
+/* type Fruit = {
+  name: string
+  price: number,
+  weight: number
+}
+
+type FruitKeys = keyof Fruit
+
+
+function getProperty<O extends object, K extends keyof O>(obj: O, key: K): O[K] {
+  return obj[key]
+}
+
+let fruit: Fruit = {
+  name: '苹果',
+  price: 10,
+  weight: 1
+}
+
+console.log(getProperty(fruit, 'name')) // 通过
+console.log(getProperty(fruit, 'weight')) // 通过 */
+/* console.log(getProperty(fruit, 'Weight')) */
+// Error Argument of type '"Weight"' is not assignable to parameter of type 'keyof Fruit'
+/* type Result = {
+  userId: number
+  tags: string[],
+  personName: string
+}
+
+type APIResponse = {
+  message: string,
+  status: string,
+  result: Result
+}
+
+type OptionAPIResponse = {
+  [K in keyof APIResponse]?: APIResponse[K]
+}
+
+type NullAPIResponse = {
+  [K in keyof APIResponse]: APIResponse[K] | null
+}
+
+type ReadonlyAPIResponse = {
+  readonly [K in keyof APIResponse]: APIResponse[K]
+}
+
+type WritableAPIResponse = {
+  -readonly [K in keyof APIResponse]: APIResponse[K]
+}
+
+type MustAPIResponse = {
+  [K in keyof APIResponse]-?: APIResponse[K]
+} */
+/* interface APIResponse {
+  message: string,
+  status: string,
+  result: string[]
+}
+
+type Result = Pick<APIResponse, 'result'>
+
+let res1: Result = {
+  result: ['1', '2', '3']
+} // ok
+
+let res2: Result = {
+  result: ['1', '2', '3'],
+  status: 'C0000'
+} */
+// Error: Type '{ result: string[]; status: string; }' is not assignable to type 'Result'.
+/* type IsString<T> = T extends string ? true : false
+
+type X = IsString<string> // true
+type Y = IsString<number> // false */
+/* type Person<T> = T extends { name: infer P; age: infer P } ? P : T
+
+type Age = Person<{ name: string, age: number }> // string | number
+type Name = Person<{ name: string, age: string }> // string
+
+
+let personName: Name = '小美' // ok
+let age: Age = 18 // ok
+let weight: Name = 50 // Error */
 //# sourceMappingURL=04.js.map

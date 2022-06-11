@@ -370,3 +370,46 @@
   要注意的是，泛型默认类型和函数的可选参数一样的，有默认类型的泛型要放到没有默认类型的泛型后面。
 */
 
+/* type Sum = {
+  (a: number, b: number): number,
+  (a: number, b: number, c:number): number
+}
+
+let sum: Sum = (a:number, b:number, c?:number) => {
+  if (c !== undefined) {
+    return a + b +c
+  }
+  return a + b
+}
+
+console.log(sum(2, 3)) // 5
+
+console.log(sum(2, 3, 5)) // 10 */
+
+/* type Person<T, U> = {
+  (name: T, age: U): {}
+}
+
+let person: Person<string, number> = (name, age) => {
+  return { name, age }
+}
+
+type OtherPerson = Person<string, number> */
+// Error Generic type 'Person' requires 2 type argument(s)
+
+/* type Person<T, U> = {
+  (name: T, age: U): [T, U];
+};
+
+let person: Person = (name, age) => [name, age];
+// Generic type 'Person' requires 2 type argument(s).
+
+type otherPerson = Person;
+// Generic type 'Person' requires 2 type argument(s).
+
+let person1: Person<string, number> = (name, age) => [name, age];
+
+type arrPerson = Person<string, number>; */
+
+// Error Required type parameters may not follow optional type parameters
+

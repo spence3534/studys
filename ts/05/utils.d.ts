@@ -1,11 +1,5 @@
-declare module '*.png'
+/// <reference types="./05.d.ts" />
 
-declare module 'json!*' {
-  let value: object
-  export default value
-}
-
-declare module '*.css' {
-  let css: CSSRuleList
-  export default css
+interface A {
+  weight: number
 }

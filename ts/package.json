@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^12.7.12"
+    "@types/node": "^12.7.12",
+    "tim-js-sdk": "^2.19.1"
   }
 }

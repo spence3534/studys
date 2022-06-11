@@ -1,30 +1,32 @@
-type Shoe = {
-  purpose: string
-}
 
-class BalletFlat implements Shoe {
-  purpose = 'dancing'
-}
-
-class Boot implements Shoe {
-  purpose = 'woodcutting'
-}
-
-class Sneaker implements Shoe {
-  purpose = 'walking'
-}
-
-let Shoe = {
-  create(type: 'balletFlat' | 'boot' | 'sneaker'): Shoe {
-    switch (type) {
-      case 'balletFlat':
-        return new BalletFlat
-      case 'boot':
-        return new Boot
-      case 'sneaker':
-        return new Sneaker
-    }
+/* class Person {
+  name: string
+  constructor(name: string) {
+    this.name = name
+  }
+  getName(): string {
+    return this.name
   }
 }
 
-console.log(Shoe.create('boot'))
+class OtherPerson {
+  name: string
+  constructor(name: string) {
+    this.name = name
+  }
+  getName(): string {
+    return this.name
+  }
+}
+
+
+function getPersonInfo(person: Person) {
+  return person.getName()
+}
+
+
+let person = new Person('图图')
+let otherPerson = new OtherPerson('小美')
+
+getPersonInfo(person)
+getPersonInfo(otherPerson) */

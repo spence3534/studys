@@ -1,8 +1,1 @@
-class Utils {
-  constructor() {
-  }
-
-  getDay(params) {
-    return params
-  }
-}
+export let num = 1;
