@@ -198,3 +198,42 @@ func delta(old, new int) int {
 
 ### 变量的生命周期
 变量的生命周期指的是在程序运行期间变量有效存在的时间段。对于在包一级声明的变量来说，它们的生命周期和整个程序的运行周期是一致的。而相比之下，局部变量的生命周期则是动态的：每次从创建一个新变量的声明语句开始，直到该变量不再被引用为止，变量的存储空间可能会被回收。函数的参数变量和返回值变量都是局部变量。它们在函数每次调用时创建。
+
+### 类型
+一个类型声明语句创建一个新的类型名称，和现有类型具有相同的底层结构。新命名的类型提供一个方法，用来分隔不同概念的类型，即使它们的底层类型相同也是不兼容的。
+```golang
+type typeName Type
+```
+类型声明语句一般出现在包一级中，创建一个类型名字的首字符为大写，在包外部也可以使用。
+
+下面我们来看一下Go中的类型声明。
+```golang
+package tempconv
+
+import "fmt"
+
+type Celsius float64
+type Fahrenheit float64
+
+const (
+	absoluteZeroC Celsius = -273.15
+	FreezingC     Celsius = 0
+	BoilingC      Celsius = 100
+)
+
+func main() {
+	fmt.Printf("%g\n", BoilingC-FreezingC)
+	boilingF := CToF(BoilingC)
+	fmt.Printf("%g\n", boilingF-CToF(FreezingC))
+	// fmt.Printf("%g\n", boilingF-FreezingC) // Error invalid operation: boilingF - FreezingC (mismatched types Fahrenheit and Celsius)
+}
+
+func CToF(c Celsius) Fahrenheit {
+	return Fahrenheit(c*9/5 + 32)
+}
+
+func FToC(f Fahrenheit) Celsius {
+	return Celsius((f - 32) * 5 / 9)
+}
+```
+这个例子中分别声明了两个不同温度单位的类型`Celsius`和`Fahrenheit`。虽然底层的类型都是`float64`，但它们是不同的数据类型。所以它们不能相互比较或混在一个表达式运算。`CToF`和`FToc`这两个函数中，都用到了`Celsius`
