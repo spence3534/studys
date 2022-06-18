@@ -208,7 +208,7 @@ type typeName Type
 
 下面我们来看一下Go中的类型声明。
 ```golang
-package tempconv
+package main
 
 import "fmt"
 
@@ -225,7 +225,7 @@ func main() {
 	fmt.Printf("%g\n", BoilingC-FreezingC)
 	boilingF := CToF(BoilingC)
 	fmt.Printf("%g\n", boilingF-CToF(FreezingC))
-	// fmt.Printf("%g\n", boilingF-FreezingC) // Error invalid operation: boilingF - FreezingC (mismatched types Fahrenheit and Celsius)
+	fmt.Printf("%g\n", boilingF-FreezingC) // 编译错误：类型不匹配
 }
 
 func CToF(c Celsius) Fahrenheit {
@@ -236,4 +236,39 @@ func FToC(f Fahrenheit) Celsius {
 	return Celsius((f - 32) * 5 / 9)
 }
 ```
-这个例子中分别声明了两个不同温度单位的类型`Celsius`和`Fahrenheit`。虽然底层的类型都是`float64`，但它们是不同的数据类型。所以它们不能相互比较或混在一个表达式运算。`CToF`和`FToc`这两个函数中，都用到了`Celsius`
+这个例子中分别声明了两个不同温度单位的类型`Celsius`和`Fahrenheit`。虽然底层的类型都是`float64`，但它们不是相同的类型，所以它们不能使用算术表达式进行比较和合并。`Celsius(t)`和`Fahrenheit(t)`是类型转换。而不是函数调用。它们不会改变值和表达方式，但改变了显式意义。函数`CToF`和`FToC`用来在两种温度计量单位之间转换，返回不同的数值。
+
+对于每个类型`T`，都有一个对应的类型转换操作`T(x)`把值`x`转换为类型`T`。如果两个类型具有相同的底层类型或两者都是指向相同底层类型变量的命名指针类型，那么两者都可以互相转换。类型转换不改变类型值的表达方式，仅仅改变类型。
+
+通过`==`和`<`之类的比较操作符，命名类型的值可以和其相同类型的值或者底层类型相同的未命名类型的值相比较。但是不同命名类型的不能直接比较：
+```golang
+func main() {
+	var c Celsius
+	var f Fahrenheit
+	fmt.Println(c == 0)
+	fmt.Println(f >= 0)
+	fmt.Println(c == f) // 编译错误 类型不匹配
+	fmt.Println(c == Celsius(f))
+}
+```
+这个例子中，类型转换`Celsius(f)`并没有改变参数的值，只是改变了类型。最后结果为`true`，因为`c`和`f`的值都是零值。
+
+命名类型还可以为该类型的值定义新的行为。这些行为表示为一组关联到该类型的函数集合，称为类型的方法集。之后会讲到，这里看一下简单的用法。
+```golang
+func (c Celsius) String() string {
+	return fmt.Sprintf("%g℃", c)
+}
+```
+这里声明语句中，`Celsius`类型的参数`c`出现在函数名的前面。表示声明的是`Celsius`类型的一个名叫`String`的方法，该方法返回该类型对象`c`带着`°C`温度单位的字符串。
+
+许多类型都会定义一个`String`方法，因为使用`fmt`包的打印方法时，会优先使用该类型对应的`String`方法返回的打印结果。
+```golang
+func main() {
+	c := FToC(212.0)
+	fmt.Println(c.String()) // 100℃
+	fmt.Printf("%v\n", c) // 100℃
+	fmt.Printf("%s\n", c) // 100℃
+	fmt.Println(c) // 100℃
+	fmt.Println(float64(c)) // 100
+}
+```
