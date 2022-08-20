@@ -12,12 +12,12 @@ func main() {
 	fmt.Println(a == d) // 编译错误：无法比较 [2]int == [3]int
 }
 
-func zero(ptr *[32]byte)  {
+/* func zero(ptr *[32]byte) {
 	for _, v := range ptr {
 		ptr[v] = 0
 	}
-}
+} */
 
-func zero(ptr *[32]byte)  {
+func zero(ptr *[32]byte) {
 	*ptr = [32]byte{}
 }

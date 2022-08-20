@@ -105,3 +105,114 @@ func zero(ptr *[32]byte)  {
 ```
 
 使用数组指针是高效的，同时允许被调函数修改调用方数组中的元素，但是因为数组长度是固定的，所以数组本身是不可变的。例如上面的`zero`函数不能接受一个`[16]byte`这样的数组指针，同样，也无法为数组添加或者删除元素。由于数组的长度不可变的特性，除了在特殊情况之外，我们很少使用数组。
+
+### slice
+
+`slice`表示一个拥有相同类型元素的可变长度的序列。`slice`常常写成`[]T`，其中元素的类型为`T`；
+
+`slice`是一种轻量级的数据结构，可以用来访问数组的元素，而这个数组称为`slice`的底层数组。`slice`有三个属性：指针、长度、和容量。指针指向`slice`元素对应的底层数组元素的地址，这个元素并不一定是数组的第一个元素。长度是指`slice`中的元素个数，不能超过`slice`的容量。容量的大小为`slice`的起始元素到底层数组的结尾位置的个数。
+
+一个底层数组可以对应多个`slice`，这些`slice`可以引用数组的任何位置，引用的数组部分区间可以重叠。数组定义如下：
+
+```go
+func main() {
+ months := []string{1: "january", 2: "february", 3: "march", 4: "april", 5: "may", 6: "june", 7: "july", 8: "august", 9: "september", 10: "october", 11: "november", 12: "december"}
+}
+```
+
+`january`就是`months[1]`，`december`是`months[12]`。通常，数组中索引`0`的位置存放数组的第一个元素，由于月份总是从1开始，因此可以不设置索引为0的元素，那么它就是一个空字符串。
+
+`slice`操作符`s[i:j]`（0 ≤ i ≤ j ≤ cap(s)）创建一个新的`slice`，这个`slice`引用了`s`找那个从`i`到`j-1`索引位置的所有元素，`s`既可以是数组或者指向数组的指针，也可以是`slice`。新`slice`的元素个数是`j-i`个。如果`i`索引位置被省略，那么将用`0`代替。如果`j`索引位置被省略，将会用`len(s)`代替。因此`slice months[1:13]`引用了所有有效月份，和`months[1:]`操作一样。`slice months[:]`表示引用了整个数组。下面来定义元素重叠的`slice`。
+
+```go
+Q2 := months[4:7]
+summer := months[6:9]
+fmt.Println(Q2)     // [april may june]
+fmt.Println(summer) // [june july august]
+```
+
+元素`june`同时包含在两个`slice`钟。下面来输出两个`slice`的共同元素。
+
+```go
+for _, s := range summer {
+  for _, q := range Q2 {
+    if s == q {
+      fmt.Println("重复元素为", s) // 重复元素为 june
+    }
+  }
+}
+```
+
+如果`slice`的引用超过了被引用对象的容量，也就是`cap(s)`，就会导致宕机；但如果`slice`的引用超出了被引用对象的长度，即`len(s)`，最终`slice`会比原`slice`长。
+
+```go
+fmt.Println(summer[:20]) // panic: runtime error: slice bounds out of range [:20] with capacity 7
+endlessSummer := summer[:6]
+fmt.Println(endlessSummer) // [june july august september october november]
+```
+
+另外，字符串的切片操作和`[]byte`字节类型切片的切片操作是相似的，都可以写成`x[m:n]`，并且返回一个原始字节序列的子序列，底层都是共享之前的底层数组，所以这种操作都是常量时间复杂度。`x[m:n]`切片操作对于子字符串则生成一个新字符串，如果`x`是`[]byte`，那么返回一个新的`[]byte`。
+
+因为`slice`包含了指向数组元素的指针，所以把一个`slice`传递给函数的时候，可以在函数内部修改底层数组的元。换句话说，复制一个`slice`只是对底层数组创建了一个新的`slice`别名。以下函数`reverse`在原内存空间把`[]int`类型的`slice`反转，而且它可以用于任意长度的`slice`。
+
+```go
+func reverse(s []int) {
+ for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+  s[i], s[j] = s[j], s[i]
+ }
+}
+
+a := []int{0, 1, 2, 3, 4, 5}
+reverse(a[:])
+fmt.Println(a) // [5 4 3 2 1 0]
+```
+
+和数组不同的是，`slice`无法做比较，因此不能用`==`来校验两个`slice`是否相等。标准库里面提供了高度优化的函数`bytes.Equal`来比较两个字节`slice`（`[]byte`）。但是对其他类型的`slice`，必须自己写函数来比较。
+
+```go
+func equal(x, y []string) bool {
+ if len(x) != len(y) {
+  return false
+ }
+
+ for i := range x {
+  if x[i] != y[i] {
+   return false
+  }
+ }
+ return true
+}
+```
+
+`slice`不可以直接用`==`做比较有两个原因。首先，和数组元素不同，`slice`的元素是非直接的，有可能`slice`可以包含自身。虽然有办法处理这种情况，但是没有一种方法是简单、高效、直观的。其次，因为`slice`的元素不是直接的，所以底层数组元素改变，同一个`slice`在不同的时间会拥有不同的元素。由于散列表（`map`类型）仅对元素的键做浅拷贝，这就要求散列表里面键在散列表的整个生命周期内必须保持不变。因此`slice`需要深度做比较，所以就不能用`slice`作`map`的键。对于引用类型，例如指针和通道，`==`相等测试可以判断两个是否是引用相同的对象。一个针对`slice`的浅相等测试的`==`操作可能是一定用处的，也能临时解决`map`类型的`key`问题。但`slice`和数组不同的相对测试行为会让人困惑。因此，安全的做法是直接禁止`slice`之间的比较操作。
+
+`slice`唯一允许的比较操作是和`nil`做比较。例如：
+
+```go
+if summer == nil {
+  //....
+}
+```
+
+`slice`类型的零值是`nil`。值为`nil`的`slice`没有对应的底层数组。值为`nil`的`slice`长度和容量都为零，但是也有非`nil`的`slice`长度和容量是零，例如`[]int{}`或`make([]int, 3)[3:]`。对于任何类型，如果它们的值可以是`nil`，那么这个类型的`nil`值可以使用一种转换表达式，例如`[]int(nil)`。
+
+```go
+var s []int
+fmt.Println(len(s), s == nil) // 0 true
+s = nil
+fmt.Println(len(s) == 0, s == nil) // true true
+s = []int(nil)
+fmt.Println(len(s) == 0, s == nil) // true true
+s = []int{}
+fmt.Println(len(s) == 0, s != nil) // true true
+```
+
+如果想检查一个`slice`是否为空，使用`len(s) == 0`，而不是`s == nil`，因为`s != nil`的情况下，`slice`也有可能为空。
+
+内置函数`make`可以创建一个具有指定元素类型、长度和容量的`slice`。其中容量参数可以省略，这种情况下，`slice`的长度和容量相等。
+
+```go
+make([]T, len)
+make([]T, len, cap) // 和make([]T, cap)[:len]功能相同
+```
+在底层，`make`创建了一个无名数组并返回了它的一个`slice`；这个数组只能通过这个`slice`访问。在第一种语句中，所返回的`slice`引用了整个数组。在第二种语句中，`slice`只引用了数组的前`len`个元素，但是它的容量是数组的长度，这为未来的`slice`元素留出空间。
