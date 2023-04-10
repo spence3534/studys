@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+
+</body>
+<script>
+  // 构造函数
+  function Person(age, height) {
+    this.age = age
+    this.height = height
+  }
+
+  // 每创建一个函数，都会有一个原型对象prototype。
+  console.log(Person.prototype)
+
+  // 构造函数的原型对象有个constructor属性，引用这个构造函数，两者是循环引用
+  console.log(Person.prototype.constructor)
+
+  // 原型链都会终止于Object的原型对象
+  console.log(Person.prototype.__proto__ === Object.prototype)
+
+  // object原型的原型是null
+  console.log(Object.prototype.__proto__)
+
+  // 每次调用构造函数创建实例时，这个实例的内部[[prototype]]指针会被赋值为构造函数的原型对象，通过这个属性可以访问对象的原型。
+  const person1 = new Person(18, '173')
+
+  // 实例可以通过__proto__找到原型对象。
+  console.log(person1.__proto__)
+
+  // 构造函数通过prototype属性找到原型对象，实例和构造函数没有直接关系，和原型对象有直接关系
+  console.log(Person.prototype)
+</script>
+</html>

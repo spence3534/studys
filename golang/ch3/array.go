@@ -9,7 +9,7 @@ func main() {
 	fmt.Println(a == b, a == c, b == c) // true false false
 
 	d := [3]int{1, 2}
-	fmt.Println(a == d) // 编译错误：无法比较 [2]int == [3]int
+	fmt.Println(d) // 编译错误：无法比较 [2]int == [3]int
 }
 
 /* func zero(ptr *[32]byte) {
