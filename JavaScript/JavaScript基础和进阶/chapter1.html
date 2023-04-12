@@ -38,6 +38,37 @@
 
   // 构造函数通过prototype属性找到原型对象，实例和构造函数没有直接关系，和原型对象有直接关系
   console.log(Person.prototype) */
+/*   function SuperType(name, age) {
+    this.name = name
+    this.age = age
+  }
+
+  function SubType() {}
+
+  SubType.prototype = new SuperType('图图', 20)
+
+  const person = new SubType()
+  console.log(person.__proto__ === SubType.prototype)
+  console.log(SubType.prototype.constructor) */
+
+  function curry(fun) {
+    return function curried(...args) {
+      if (args.length >= fun.length) {
+        return fun.apply(this, args);
+      } else {
+        return function(...args2) {
+          return curried.apply(this, args.concat(args2))
+        }
+      }
+    }
+  }
+
+  function sum(a, b, c) {
+    return a + b + c
+  }
+
+  let curriedSum = curry(sum)
+  console.log(curriedSum(1)(2)(3))
 </script>
 
 </html>

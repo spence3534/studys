@@ -22,7 +22,7 @@ console.log(Person.prototype.constructor === Person); // true
 function Person() {}
 
 console.log(Person.prototype);
-/* 
+/*
   constructor: ƒ Person()
   __proto__:
   constructor: ƒ Object()
@@ -64,7 +64,7 @@ console.log(person1.__proto__);
   name: "图图"
   constructor: ƒ Person() 
 */
-
+console.log(person1.__proto__ === Person.prototype) // true
 console.log(person1.__proto__.constructor === Person); // true
 ```
 
@@ -102,5 +102,38 @@ console.log(person1.__proto__ === person2.__proto__); // true
 4. 执行构造函数内部的代码（给新对象添加属性）。
 5. 返回新对象
 
-
 每创建一个函数，都会有一个prototype原型对象属性，这个原型对象属性有一个constructor属性，这个constructor属性指向这个构造函数，两者是引用关系，每次调用构造函数创建实例时，实例内部的__proto__属性会被赋值为构造函数的原型对象，通过这个属性可以访问对象的原型
+
+## this
+
+匿名函数中的`this`指向的是`window`。
+
+## 函数高级技巧
+
+### 高级定时器
+
+使用`setTimeout`实现一个`setInterval`。
+
+```js
+setTimeout(function() {
+  setTimeout(arguments.callee, 500)
+}, 500)
+```
+
+这里在回掉函数中使用到了`arguments.callee`属性。这个属性是一个指针，指向当前函数。
+
+### 函数柯里化
+
+```js
+function curry(fun) {
+  return function curried(...args) {
+    if (args.length >= fun.length) {
+      return fun.apply(this, args);
+    } else {
+      return function(...args2) {
+        return curried.apply(this, args.concat(args2))
+      }
+    }
+  }
+}
+```
