@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-
-<body>
-
-</body>
-<script>
-  /* // 构造函数
+  <body></body>
+  <script>
+    /* // 构造函数
   function Person(age, height) {
     this.age = age
     this.height = height
@@ -38,7 +35,7 @@
 
   // 构造函数通过prototype属性找到原型对象，实例和构造函数没有直接关系，和原型对象有直接关系
   console.log(Person.prototype) */
-/*   function SuperType(name, age) {
+    /*   function SuperType(name, age) {
     this.name = name
     this.age = age
   }
@@ -51,7 +48,7 @@
   console.log(person.__proto__ === SubType.prototype)
   console.log(SubType.prototype.constructor) */
 
-  function curry(fun) {
+    /* function curry(fun) {
     return function curried(...args) {
       if (args.length >= fun.length) {
         return fun.apply(this, args);
@@ -68,7 +65,66 @@
   }
 
   let curriedSum = curry(sum)
-  console.log(curriedSum(1)(2)(3))
-</script>
+  console.log(curriedSum(1)(2)(3)) */
+    function circulate(arr, key, child, value) {
+      if (Object.prototype.toString.call(arr) !== '[object Array]') {
+        throw new Error(`传入的不是一个数组`)
+      }
+      let val = null;
+      for (let index = 0; index < arr.length; index++) {
+        if (arr[index][key] === value) {
+          val = arr[index][key];
+          break;
+        }
 
+
+        let hasCondition = arr[index][child] instanceof Array && arr[index][child].length > 0
+        return hasCondition ? circulate(arr[index][child], key, child, value) : '没找到你想要的值';
+      }
+      return val;
+    }
+
+    const tree = [
+      {
+        name: 1,
+        arr: [
+          {
+            name: 2,
+            arr: [
+              {
+                name: 3,
+                arr: [
+                  {
+                    name: 4,
+                    arr: [
+                      {
+                        name: 5,
+                        arr: [
+                          {
+                            name: 6,
+                            arr: [
+                              {
+                                name: 7,
+                                arr: [
+                                  {
+                                    name: 8,
+                                    arr: []
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    console.log(circulate(tree, 'name', 'arr', 9))
+  </script>
 </html>
