@@ -66,9 +66,17 @@
 
   let curriedSum = curry(sum)
   console.log(curriedSum(1)(2)(3)) */
-    function circulate(arr, key, child, value) {
+    /**
+     * @description: 递归
+     * @param {*} arr 原数组
+     * @param {*} child 子数组名
+     * @param {*} key 目标属性名
+     * @param {*} value 目标
+     * @return {*}
+     */ 
+    function circulate(arr, child, key, value) {
       if (Object.prototype.toString.call(arr) !== '[object Array]') {
-        throw new Error(`传入的不是一个数组`)
+        throw new Error(`传入的不是一个数组`);
       }
       let val = null;
       for (let index = 0; index < arr.length; index++) {
@@ -77,8 +85,7 @@
           break;
         }
 
-
-        let hasCondition = arr[index][child] instanceof Array && arr[index][child].length > 0
+        let hasCondition = arr[index][child] instanceof Array && arr[index][child].length > 0;
         return hasCondition ? circulate(arr[index][child], key, child, value) : '没找到你想要的值';
       }
       return val;
@@ -108,7 +115,7 @@
                                 arr: [
                                   {
                                     name: 8,
-                                    arr: []
+                                    arr: [],
                                   },
                                 ],
                               },
@@ -125,6 +132,6 @@
         ],
       },
     ];
-    console.log(circulate(tree, 'name', 'arr', 9))
+    console.log(circulate(tree, 'arr', 'name', 9));
   </script>
 </html>
