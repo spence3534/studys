@@ -18,6 +18,6 @@ func main() {
 	}
 } */
 
-func zero(ptr *[32]byte) {
+/* func zero(ptr *[32]byte) {
 	*ptr = [32]byte{}
-}
+} */

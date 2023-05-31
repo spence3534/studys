@@ -21,14 +21,14 @@ func main() {
 	fmt.Println(summer[:20]) // panic: runtime error: slice bounds out of range [:20] with capacity 7
 	endlessSummer := summer[:6]
 	fmt.Println(endlessSummer) // [june july august september october november] */
-
-	s := make([]string, 5, 6)
-	s = append(s, "1")
-	s = append(s, "2")
-	fmt.Println(len(s))
+	var runes []rune
+	for _, v := range "hello, world" {
+		runes = append(runes, v)
+	}
+	fmt.Printf("%q\n", runes) // ['h' 'e' 'l' 'l' 'o' ',' ' ' 'w' 'o' 'r' 'l' 'd']
 }
 
-func reverse(s []int) {
+/* func reverse(s []int) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
@@ -45,4 +45,4 @@ func equal(x, y []string) bool {
 		}
 	}
 	return true
-}
+} */
