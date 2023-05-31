@@ -219,3 +219,121 @@ make([]T, len, cap) // 和make([]T, cap)[:len]功能相同
 在底层，`make`创建了一个无名数组并返回了它的一个`slice`；这个数组只能通过这个`slice`访问。在第一种语句中，所返回的`slice`引用了整个数组。在第二种语句中，`slice`只引用了数组的前`len`个元素，它的容量是数组的长度，这为未来的`slice`元素留出空间。
 
 ### append函数
+
+Go中内置的`append`函数用来把元素追加到`slice`的尾部（效果类似js数组的push方法）。
+
+```go
+func main() {
+  var runes []rune
+  for _, v := range "你好，图图" {
+    runes = append(runes, v)
+  }
+  fmt.Printf("%q\n", runes) // ['你' '好' '，' '图' '图']
+}
+```
+
+上面演示了怎样用`append`来给一个`rune`类型的`slice`添加元素。
+
+`append`函数可以同时给`slice`添加多个元素，甚至可以添加另一个`slice`中的所有元素。
+
+```go
+func main() {
+ var x []int
+ x = append(x, 1)
+ x = append(x, 1, 2, 3)
+ x = append(x, 1, 2, 3, 4, 5, 6)
+ x = append(x, x...)
+
+ fmt.Println(x) // [1 1 2 3 1 2 3 4 5 6 1 1 2 3 1 2 3 4 5 6]
+}
+```
+
+这里的`...`表示把`slice`打散进行传递。还有一种用法类似`js`的剩余参数。
+
+### slice 就地修改
+
+下面来实现一个给定的一个字符串列表中去除空字符串并返回一个新的`slice`函数。
+
+```go
+func nonempty(strings []string) []string {
+ i := 0
+ for _, s := range strings {
+  if s != "" {
+   strings[i] = s
+   i++
+  }
+ }
+ return strings[:i]
+}
+```
+
+`nonempty`函数传入的`slice`和返回的`slice`都是拥有相同的底层数组，这样就避免了在函数中重新分配一个数组。这种情况下，底层数组的元素只是部分被修改。
+
+```go
+func main() {
+ txt := []string{"1", "2", "", "3", "", "4"}
+ fmt.Printf("%q\n", nonempty(txt)) // ["1" "2" "3" "4"]
+ fmt.Printf("%q\n", txt)           // ["1" "2" "3" "4" "" "4"]
+}
+```
+
+也可以用`append`函数来实现:
+
+```go
+func anotherNonempty(strings []string) []string {
+ out := strings[:0]
+ for _, v := range strings {
+  if v != "" {
+   out = append(out, v)
+  }
+ }
+ return out
+}
+```
+
+`slice`可以用来实现一个栈。声明一个空的`slice`元素`stack`，用刚才学的`append`函数向`slice`末尾添加元素。
+
+```go
+func main() {
+ var stack []string
+
+ // 向末尾添加元素
+ stack = append(stack, "1", "2", "3", "4")
+
+ // 获取栈顶的元素，也就是最后一个元素
+ top := stack[len(stack)-1]
+ fmt.Print(top) // 4
+
+ // 删除栈顶的元素
+ stack = stack[:len(stack)-1]
+ fmt.Print("\n", stack)
+}
+```
+
+为了从`slice`的中间移除一个元素，并保留剩余元素的顺序，我们使用`copy`函数来把高位索引的元素向前移动来覆盖被移除元素所在的位置。
+
+```go
+func main() {
+ s := []int{5, 6, 7, 8, 9}
+ fmt.Println(remove(s, 2)) // [5 6 8 9]
+}
+
+func remove(slice []int, i int) []int {
+ copy(slice[i:], slice[i+1:])
+ return slice[:len(slice)-1]
+}
+```
+
+如果不需要保留`slice`中剩余元素的顺序，可以简单地把`slice`的最后一个元素赋值给被移除元素所在索引位置:
+
+```go
+func main() {
+ s := []int{5, 6, 7, 8, 9}
+ fmt.Println(remove(s, 2)) // [5 6 9 8]
+}
+
+func remove(slice []int, i int) []int {
+ slice[i] = slice[len(slice)-1]
+ return slice[:len(slice)-1]
+}
+```
