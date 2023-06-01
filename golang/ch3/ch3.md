@@ -337,3 +337,199 @@ func remove(slice []int, i int) []int {
  return slice[:len(slice)-1]
 }
 ```
+
+### map
+
+`map`散列表是一个拥有键值对元素的无序集合。在这个集合里，键的值是唯一的，键对应的值可以通过键来获取、更新或删除。在Go中，`map`是散列表的引用，`map`的类型是`map[K]V`，其中`K`和`V`是字典的键和值对应的数据类型。`map`中所有的键都拥有相同的数据类型，同时所有的值也拥有相同的类型，但是键的类型和值的类型不一定相同。键的类型`K`，必须是可以通过操作符`==`来进行比较的数据类型，所以`map`可以检测某一个键是否存在。
+
+以下是创建`map`的几种方法:
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+  // 1. 使用make函数创建一个map
+  names := make(map[string]int)
+  fmt.Println(names) // map[]
+
+  //2. 使用map字面量创建一个带有初始化键值对元素的字典
+  ages := map[string]int{
+    "图图": 25,
+    "小美": 23,
+  }
+
+  // 等价于
+  names := make(map[string]int)
+  ages["图图"] = 25
+  ages["小美"] = 23
+  fmt.Println(ages) // map[图图:25 小梅:23]
+
+  //3. 创建一个空map
+  heights := map[string]int{}
+}
+```
+
+访问`map`中的元素通过下标方式获取。
+
+```go
+fmt.Println(ages["图图"]) //25
+```
+
+使用内置函数`delete`根据键来删除字典中的元素。
+
+```go
+delete(ages, "图图")
+fmt.Println(ages) // map[小美:23]
+```
+
+即使键不存在`map`中，这里的删除操作也是可行的。`map`使用键来查找元素，如果对应的元素不存在，就会返回值类型的零值。
+
+```go
+fmt.Println(ages["图爸爸"]) // 0
+```
+
+这里我们从`ages`字典中获取`图爸爸`的键，由于这个键并不存在`ages`中。所以返回了`int`类型的零值`0`。
+
+注意，`map`元素不是一个变量，不能获取它地址，例如这样:
+
+```go
+_ = &ages["图图"] // 无效操作：无法获取 ages[“图图”] 的地址（int 类型的映射索引表达式）
+```
+
+无法获取`map`元素的地址是因为`map`的增长会导致已有的元素会被重新分布到新的存储位置，这样就导致获取地址失败。
+
+用`for`循环（结合`range`关键字）遍历`map`中所有的键和对应的值。
+
+```go
+func main() {
+  ages := map[string]int{
+    "小美": 23,
+    "图图": 25,
+  }
+  for name, age := range ages {
+    fmt.Println(name, age)
+    // 小美 23
+    // 图图 25
+  }
+}
+```
+
+`map`中元素的迭代顺序是不固定的，如果需要按照某种顺序来遍历`map`中的元素，必须显式地来给键排序。比如，键是字符串类型，可以使用`sort`包中的`Strings`函数来进行键的排序。
+
+```go
+import (
+ "fmt"
+ "sort"
+)
+func main() {
+  ages := map[string]int{
+    "小美": 23,
+    "图图": 25,
+  }
+  var names []string
+  for name := range ages {
+    names = append(names, name)
+  }
+  sort.Strings(names)
+  for _, name := range names {
+    fmt.Printf("%s\t%d\n", name, ages[name])
+    // 图图 25
+    // 小美 23
+  }
+}
+```
+
+在这个例子，第一个`for`循环中，我们只需要`map ages`中的所有键，所以忽略掉第二个循环变量。在第二个循环中，使用`slice names`中的元素值，所以这里使用空白标识符`_`来忽略第一个循环变量，也就是元素的索引。
+
+`map`类型的零值为`nil`，也就是没有引用任何散列表。
+
+```go
+func main() {
+  var ages map[string]int
+  fmt.Println(ages == nil)    // true
+  fmt.Println(len(ages) == 0) // true
+}
+```
+
+通常大部分`map`的操作都能安全地在`map`的零值`nil`上执行，包括查找元素，删除元素，获取`map`元素的个数，执行`range`循环，因为这跟空`map`的行为一致。但如果向零值`map`设置元素会导致错误:
+
+```go
+func main() {
+  var ages map[string]int
+  ages["图图"] = 25 // panic: assignment to entry in nil map
+}
+```
+
+所以设置元素之前，必须得初始化`map`。像下面这样:
+
+```go
+var ages = map[string]int{}
+ages["图图"] = 25
+fmt.Println(ages) // map[图图:25]
+```
+
+通过键`key`访问`map`中的元素总会有值。如果键`key`在`map`中，那么会得到`key`对应的值。如果键`key`不在`map`中，则会得到`map`值的类型的零值。有时候需要知道一个元素是否在`map`中。例如，元素类型是数值类型，而你需要区分一个不存在的元素或者是这个元素的值为`0`，可以像下面这样调试:
+
+```go
+ages := map[string]int{
+  "图图": 25,
+}
+age, ok := ages["图爸爸"]
+if !ok {
+  fmt.Print("不存在", age)
+}
+```
+
+还可以把这两条语句合并为一条语句，像下面这样:
+
+```go
+if age, ok := ages["图爸爸"]; !ok {
+  fmt.Print("不存在", age, ok) // 不存在0 false
+}
+```
+
+使用下标的方法来访问`map`的元素会产生两个值，第一个是键的值，第二个是布尔值，表示这个元素是否存在。
+
+`map`之间也是不能用来做比较的，只能和`nil`比较。要判断两个`map`中是否有相同的键和值，需要用循环来实现。
+
+```go
+func main() {
+  ages := map[string]int{
+    "图图": 25,
+    "小美": 23,
+  }
+
+  anotherAges := map[string]int{
+    "图图2": 23,
+    "小美":  23,
+  }
+
+  threeAges := map[string]int{
+    "图图": 25,
+    "小美": 23,
+  }
+  fmt.Println(equal(ages, anotherAges)) // false
+  fmt.Println(equal(ages, threeAges))   // true
+}
+
+func equal(x, y map[string]int) bool {
+  if len(x) != len(y) {
+    return false
+  }
+
+  for k, xv := range x {
+    if yv, ok := y[k]; !ok || yv != xv {
+    return false
+    }
+  }
+  return true
+}
+```
+
+可以看到例子中如何使用`!ok`来区分“有没有这个元素”和“有这个元素但值为零”的情况。如果只是用`xv != y[k]`来判断，下面的调用会产生错误的结果：
+
+```go
+fmt.Println(equal(map[string]int{"A": 0}, map[string]int{"B": 42})) // true
+```
