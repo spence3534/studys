@@ -533,3 +533,116 @@ func equal(x, y map[string]int) bool {
 ```go
 fmt.Println(equal(map[string]int{"A": 0}, map[string]int{"B": 42})) // true
 ```
+
+Go中没有提供`Set`类型，但可以用`map`来实现这个功能。因为`map`的键是唯一的。
+
+有时候，需要一个`map`它的键为`slice`时（`slice`是不能比较的），而`map`的键必须是可比较的。所以这个功能无法实现。但可以分两步来做：先定义一个函数`k`把每个键都映射到字符串，当`x`和`y`相等时，`k(x) == k(y)`才会成立。然后，创建一个`map`，`map`的键时字符串类型，在每个键元素被访问的时候，调用这个`k`函数。
+
+```go
+func main() {
+  var m = make(map[string]int)
+
+  var k = func(list []string) string {
+    return fmt.Sprintf("%q", list)
+  }
+
+  var Add = func(list []string) {
+    m[k(list)]++
+  }
+
+  var Count = func(list []string) int {
+    return m[k(list)]
+  }
+}
+```
+
+这个例子中，原理就是使用`fmt.Sprintf`来将`slice`转换成`map`键的字符串，使用`%q`来格式化`slice`并记录每个字符串。这个方法不仅使用于`slice`，可以用于任何不可直接比较的键类型。
+
+`map`的值类型可以是复合数据类型，例如`map`或`slice`。下面的代码中，变量`graph`的键类型是`string`类型；值类型是`map`类型`map[string]bool`，表示一个字符串集合。
+
+```go
+var graph = make(map[string]map[string]bool)
+
+func addEdge(from, to string) {
+  edges := graph[from]
+  if edges == nil {
+    edges = make(map[string]bool)
+    graph[from] = edges
+  }
+  edges[to] = true
+}
+
+func hasEdge(from, to string) bool {
+  return graph[from][to]
+}
+```
+
+`addEdge`函数延迟初始化`map`方法，也就是说在每个值第一次作为`key`时才会初始化。`addEdge`函数显示了如何让`map`为零值下也能正常工作。即使`from`和`to`都不存在，`graph[from][to]`始终返回一个值。
+
+### 结构体
+
+结构体是把零个或者多个任意类型的命名变量组合在一起的聚合数据类型。每个变量都叫做结构体的成员。结构体使用的典型的例子是员工信息记录，记录中有唯一`ID`、姓名、地址、出生日期、职位、薪水、直属领导等信息。所有的员工信息成员都作为一个整体组合在一个结构体中，可以复制一个结构体。将它传递给函数，作为函数的返回值，将结构体存储在数组里等等。
+
+这里定义了一个叫`Employee`的结构体和一个结构体变量`dilbert`。
+
+```go
+package main
+
+import "time"
+
+type Employee struct {
+  ID int
+  Name string
+  Address string
+  DoB time.Time
+  Position string
+  Salary int
+  ManagerID int
+}
+
+var dilbert Employee
+```
+
+`dilbert`的每个成员都可以通过点号`.`来访问，就像JS访问对象属性一样`dilbert.Name`这样。由于`dilbert`是一个变量，它的所有成员都是变量，那么我们可以给这些成员进行赋值操作。
+
+```go
+func main() {
+  dilbert.Salary += 15000 // 表现很好，加薪！
+
+  fmt.Print(dilbert.Salary) // 15000
+
+  // 获取成员变量的地址，通过指针来访问它
+  position := &dilbert.Position
+  *position = "图图" + *position
+  fmt.Println(dilbert.Position) // 图图
+}
+```
+
+点号也可以用在结构体指针上：
+
+```go
+func main() {
+  var employeeOfTheMonth *Employee = &dilbert
+  employeeOfTheMonth.Position += "( proactive team player )"
+  fmt.Println(employeeOfTheMonth.Position) // ( proactive team player )
+
+  // 中间那句等于
+  (*employeeOfTheMonth).Position += "( proactive team player )"
+}
+```
+
+函数`EmployeeByID`通过给定参数ID返回一个指向`Employee`结构体的指针。可以用点号来访问它的成员变量：
+
+```go
+func main() {
+  fmt.Println(EmployeeByID(dilbert.ManagerID).Position)
+
+  id := dilbert.ID
+  EmployeeByID(id).Salary = 0
+}
+
+func EmployeeByID(id int) *Employee {
+  return &dilbert
+}
+```
+`main`函数中的最后一条语句更新了函数`EmployeeByID`返回的指针指向的结构体`Employee`。如果函数`EmployeeByID`的返回类型是`Employee`而不是`*Employee`的话，那么代码无法通过编译的。由于赋值表达式的左边无法识别出一个变量。
