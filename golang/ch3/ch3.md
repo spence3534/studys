@@ -591,12 +591,12 @@ package main
 import "time"
 
 type Employee struct {
-  ID int
-  Name string
-  Address string
-  DoB time.Time
-  Position string
-  Salary int
+  ID        int
+  Name      string
+  Address   string
+  DoB       time.Time
+  Position  string
+  Salary    int
   ManagerID int
 }
 
@@ -645,4 +645,360 @@ func EmployeeByID(id int) *Employee {
   return &dilbert
 }
 ```
+
 `main`函数中的最后一条语句更新了函数`EmployeeByID`返回的指针指向的结构体`Employee`。如果函数`EmployeeByID`的返回类型是`Employee`而不是`*Employee`的话，那么代码无法通过编译的。由于赋值表达式的左边无法识别出一个变量。
+
+结构体的成员变量一般是一行写一个，变量名在类型的前面，相同的类型的变量可以写在一行上，就像下面这样。
+
+```go
+type AnotherEmployee struct {
+  ID            int
+  Name, Address string
+  DoB           time.Time
+  Position      string
+  Salary        int
+  ManagerID     int
+}
+```
+
+结构成员的顺序也很重要。如果把`Position`和`Name、Address`合在一起或者调整`Name`和`Address`的顺序，那么就是定义了一个不同的结构体类型。一般只会把相关成员变量写到一起。
+
+如果一个结构体的变量名以大写字母开头的话，这个变量就是可导出的，这是Go最主要的访问控制机制。一个结构体可以同时包含可导出和不可导出的变量。
+
+结构体类型的定义一般都是比较长的，因为每个变量占一行。虽然每次都可以重新定义整个结构体类型，但重复编写就很麻烦，所以完整的结构体通常只会在类型声明语句的地方出现。比如`Employee`。
+
+一个名为`S`的结构体类型是不能再包含`S`结构体类型的成员变量的（也就是聚合类型不能包含自己）。但`S`中可以定义一个`S`的指针类型，也就是`*S`，这样我们可以创建一些递归数据结构。如链表和树。
+
+```go
+func Sort(values []int) {
+  var root *tree
+  for _, v := range values {
+    root = add(root, v)
+  }
+  appendValues(values[:0], root)
+}
+
+func appendValues(values []int, t *tree) []int {
+  if t != nil {
+    values = appendValues(values, t.left)
+    values = appendValues(values, t.value)
+    values = appendValues(values, t.right)
+  }
+  return values
+}
+
+func add(t *tree, value int) *tree {
+  if t == nil {
+    t = new(tree)
+    t.value = value
+    return t
+  }
+
+  if value < t.value {
+    t.left = add(t.left, value)
+  } else {
+    t.right = add(t.right, value)
+  }
+  return t
+}
+```
+
+结构体的零值是由结构体成员的零值组成。没有任何成员变量的结构体叫做空结构体，写作`struct{}`。它没有长度，也不带任何信息，但有时候会很有用。有些开发人员用`map`模拟`Set`数据结构时，用它来当作`map`中的布尔值类型的`value`。只是强调只有`key`有用，但这种方式节约的内存很少且语法复杂，所以一般不要这么干。
+
+```go
+func Seen() {
+  seen := make(map[string]struct{})
+  // ....
+  if _, ok := seen[s]; !ok {
+    seen[s] = struct{}{}
+  }
+}
+```
+
+#### 结构体字面量
+
+结构体类型的值可以通过结构体字面量来设置的，结构体字面量可以指定每个成员的值。
+
+```go
+type Point struct {
+ X, Y int
+}
+
+p := Point{ 100, 50 }
+```
+
+有两种格式的结构体字面量。这里是第一种，要求按照正确的顺序，给每个成员变量指定一个值。这会导致开发和阅读代码的人必须记住每个成员变量的类型和顺序，还有在之后结构体成员变量扩充或者重新排列的时候代码维护性就很差。这种方式一般用来定义结构体类型的包中或者小结构体中，比如`image.Point{x, y}`或者`color.RGBA{red, green, blue, alpha}`。
+
+用得多的还是第二种方式，通过指定部分或全部成员变量的名称和值来初始化结构体变量。像下面这样:
+
+```go
+type Person struct {
+  name        string
+  age, height int
+}
+
+func main() {
+  p := Person{name: "图图", height: 175}
+  fmt.Printf("%#v\n", p) // {name:"图图", age:0, height:175}
+}
+```
+
+如果在这种初始化方式中某个成员变量没有指定，那它的值就是该成员变量类型的零值。指定了成员变量的名字，她们的顺序是无所谓的啦。
+
+这两种初始化方式不能混一起使用，另外也无法使用第一种初始化方式来绕过不可导出变量无法在其他包中使用的规则。
+
+```go
+package p
+type T struct { a, b int }
+
+package q
+import "p"
+var _ = p.T{ a: 1, b: 2 }
+var _ = p.T{1, 2}
+```
+
+这里的最后一行代码没有显示地提到不可导出变量，但它们被隐式地引用了，所以这也是不允许的。
+
+结构体类型的值可以作为参数传递给函数或者作为函数的返回值。看下面的例子：
+
+```go
+type Point struct{ X, Y int }
+
+func Scale(p Point, factor int) Point {
+  return Point{p.X * factor, p.Y * factor}
+}
+
+func main() {
+  fmt.Println(Scale(Point{100, 50}, 5)) // {500 250}
+}
+```
+
+如果是比较大的结构体通常都是用结构体指针的方式传递给函数或从函数中返回。
+
+```go
+type Employee struct {
+  ID        int
+  Name      string
+  Address   string
+  DoB       time.Time
+  Position  string
+  Salary    int
+  ManagerID int
+}
+
+func Bonus(e *Employee, percent int) int {
+  return (e.Salary * percent) / 100
+}
+
+func main() {
+  fmt.Println(Bonus(&Employee{Salary: 10000}, 10)) // 1000
+}
+```
+
+这种方式在函数需要修改结构体内容的时候也是必需的，在Go这种按值调用的语言中，调用的函数接收到的是实参的一个副本，并不是实参的引用。
+
+```go
+fmt.Println(AwardAnnualRaise(&Employee{Salary: 3000}).Salary) // 3150
+
+func AwardAnnualRaise(e *Employee) *Employee {
+  e.Salary = e.Salary * 105 / 100
+  return e
+}
+```
+
+一般结构体都通过指针的方式使用，那么我们可以使用一种简单的方式来创建、初始化一个`struct`类型的变量并获取它的地址:
+
+```go
+type Point struct{ X, Y int }
+
+func main() {
+  pp := &Point{1, 2}
+  fmt.Println(pp)
+
+  //等价于
+  yy := new(Point)
+  *yy = Point{1, 2}
+  fmt.Println(yy)
+}
+```
+
+以`&Point{1,2}`这种方式可以直接使用在表达式中，如函数调用。
+
+#### 结构体比较
+
+如果结构体所有成员变量都可以比较，那么这个结构体是可比较的，两个结构体的比较可以用`==`或`!=`。其中`==`操作符按照顺序比较两个结构体变量成员，看下面的例子。
+
+```go
+type Point struct{ X, Y int }
+
+func main() {
+  p := Point{100, 50}
+  q := Point{100, 50}
+  fmt.Println(p.X == q.X && p.Y == q.Y)
+  fmt.Println(p == q)
+}
+```
+
+和其他可比较的类型一样，可比较的结构体类型都可以作为`map`的键类型。
+
+```go
+func main() {
+  hits := make(map[Address]int)
+  hits[Address{"baidu.com", 433}]++
+  fmt.Println(hits) // map[{baidu.com 433}:1]
+}
+
+type Address struct {
+  hostname string
+  port     int
+}
+```
+
+#### 结构体嵌套和匿名成员
+
+Go具有不同寻常的结构体嵌套机制，这个机制可以把一个命名结构体作为另一个结构体类型的匿名成员使用；并提供了方便的语法，使用简单的表达式（比如`x.f`）就可以代替连续的成员（比如`x.d.e.f`）。
+
+比如，有个包含多个人信息的`Perons`结构体，里面有图图、小美。下面来定义这些人的类型。
+
+```go
+type Tutu struct {
+  name, sex string
+  age    int
+}
+
+type XiaoMei struct {
+  name, sex   string
+  age, height int
+}
+```
+
+`Tutu`类型定义了人名`name`、性别`sex`、年龄`age`，`XiaoMei`类型拥有`Tutu`类型的变量，另外还多了个`height`变量。创建一个`XiaoMei`对象:
+
+```go
+func main() {
+  var x XiaoMei
+  x.name = "小美"
+  x.sex = "女"
+  x.age = 23
+  x.height = 170
+  fmt.Println(x) // {小美 女 23 170}
+}
+```
+
+可以看到，`Tutu`和`XiaoMei`结构体中有部分变量是相同的，所以我们可以把相同部分抽离成另一个结构体。
+
+```go
+type Person struct {
+  name, sex string
+}
+type Tutu struct {
+  person Person
+  age    int
+}
+
+type XiaoMei struct {
+  personInfo Person
+  age        int
+  height     int
+}
+
+func main() {
+  var m XiaoMei
+  m.personInfo.name = "小美"
+  m.personInfo.sex = "女"
+  m.age = 23
+  m.height = 170
+}
+```
+
+这样看就清晰很多了，但是访问`XiaoMei`的成员就变得麻烦了。
+
+Go是允许我们定义不带名称的结构体成员的，只要指定类型就好；这种结构体成员称为匿名成员。这个结构体成员的类型必须是一个命名类型或者指向命名类型的指针。看下面的例子:
+
+```go
+type Person struct {
+ name, sex string
+}
+
+type Tutu struct {
+ Person
+ age int
+}
+
+type XiaoMei struct {
+ Tutu
+ height int
+}
+```
+
+`Tutu`和`XiaoMei`都有一个匿名成员。这里`Person`被嵌套在`Tutu`中，而`Tutu`又被嵌套在`XiaoMei`中。
+
+正是因为有了这种结构体嵌套的功能，我们才能直接访问到需要的变量而不是指定一长串中间变量：
+
+```go
+func main() {
+  var m XiaoMei
+  m.name = "小美" // 等价于m.personInfo.name = "小美"
+  m.sex = "女" // 等价于m.personInfo.sex = "女"
+  m.age = 23
+  m.height = 170
+}
+```
+
+使用“匿名成员”的说法多少有点不合适。上面的结构体成员`Person`和`Tutu`都是有名字的，对应类型的名字，只是这些名字在点号访问变量时是可选的。当访问需要的变量时可以省略中间所有的匿名成员。
+
+遗憾的是，结构体字面量并没有快捷方式来初始化结构体，所以下面的语法是会报错的:
+
+```go
+func main() {
+  var m XiaoMei
+  m = XiaoMei{"小美", "女", 23, 170}                         // 报错
+  m = XiaoMei{name: "小美", sex: "女", age: 23, height: 170} // 报错
+}
+```
+
+结构体字面量必须遵循形态类型的定义，所以我们用下面的两种方式来初始化，这两种方式是等价的:
+
+```go
+type Person struct {
+  name, sex string
+}
+type Tutu struct {
+  Person
+  age int
+}
+
+type XiaoMei struct {
+  Tutu
+  height int
+}
+
+func main() {
+  var m XiaoMei
+  m = XiaoMei{Tutu{Person{"小美", "女"}, 23}, 170}
+  fmt.Printf("%#v\n", m) // {Tutu:main.Tutu{Person:main.Person{name:"小美", sex:"女"}, age:23}, height:170}
+
+  m = XiaoMei{
+    Tutu: Tutu{
+    Person: Person{
+      name: "图图",
+      sex:  "男",
+    },
+    age: 25,
+    },
+    height: 175,
+  }
+  fmt.Printf("%#v\n", m) // {Tutu:main.Tutu{Person:main.Person{name:"图图", sex:"男"}, age:25}, height:175}
+
+  m.age = 24
+  fmt.Printf("%#v\n", m) // {Tutu:main.Tutu{Person:main.Person{name:"图图", sex:"男"}, age:24}, height:175}
+}
+```
+
+“匿名成员”拥有隐式的名字，所以不能在一个结构体中定义两个相同类型的匿名成员，不然会冲突。匿名成员的名字是由它们的类型决定的，它们的可导出性也是由它们的类型所决定。上面的例子中，`Person`和`Tutu`两个匿名成员是可导出的。即使这两个结构体不可导出的（`person`和`tutu`），仍然可以使用快捷方式:
+
+```go
+m.name = "牛爷爷" // 等价于m.tutu.person.x = "牛爷爷"
+```
+
+但是注释中那种显式指定中间匿名成员的方式在声明`person`和`tutu`的包之外是不允许的，因为它们不可导出的。
