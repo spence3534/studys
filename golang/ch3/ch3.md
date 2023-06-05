@@ -1132,5 +1132,42 @@ type User struct {
 这里和前面一样，对应的JSON字段名称不是首字母大写，结构体成员名称也必须首字母大写。由于在`unmarshal`阶段，JSON字段的名称关联到Go结构体成员的名称是忽略大小写的，因此只要在JSON中有下划线而Go中没有下划线的时候使用一下成员标签定义。这里只是选择性地对JSON中的字段解码，因为GitHub返回的信息有点多。
 
 `SearchIssues`函数发送HTTP请求并将回复解析成JSON。由于用户的查询请求参数中可能存在一些字符，这些字符在URL中是特殊字符，比如`?`或`&`，因此用`url.QueryEscape`函数来对查询中的特殊字符进行转义。
+
 ```go
+func SearchIssues(terms []string) (*IssuesSearchResult, error) {
+  q := url.QueryEscape(strings.Join(terms, " "))
+  resp, err := http.Get(IssuesURL + "?q=" + q)
+  if err != nil {
+    return nil, err
+  }
+
+  if resp.StatusCode != http.StatusOK {
+    resp.Body.Close()
+    return nil, fmt.Errorf("search query failed: %s", resp.Status)
+  }
+
+  var result IssuesSearchResult
+  if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+    resp.Body.Close()
+    return nil, err
+  }
+
+  resp.Body.Close()
+  return &result, nil
+}
+
+func main() {
+  var arr = []string{"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"}
+  result, err := SearchIssues(arr)
+  if err != nil {
+    log.Fatal(err)
+  }
+  fmt.Printf("%d issues: \n", result.TotalCount)
+  for _, item := range result.Items {
+    fmt.Printf("#%-5d %9.9s %.55s\n", item.Number, item.User.Login, item.Title)
+  }
+}
 ```
+前面的例子用了`json.Unmarshal`把整个字节`slice`解码为单个JSON实体。而这里使用了流式解码器（`json.Decoder`），用它来依次从字节流里面解码出多个JSON实体，现在还用不到这个功能。但有个方法`json.Encoder`的流式编码器。
+
+调用`Decode`方法来填充变量`result`。有各种方法将结果格式化得好看点。
