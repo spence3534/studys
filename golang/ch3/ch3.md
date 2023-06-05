@@ -1002,3 +1002,135 @@ m.name = "牛爷爷" // 等价于m.tutu.person.x = "牛爷爷"
 ```
 
 但是注释中那种显式指定中间匿名成员的方式在声明`person`和`tutu`的包之外是不允许的，因为它们不可导出的。
+
+### JSON
+
+Go通过标准库`encoding/json`、`encoding.xml`、`encoding/asn1`和其他的库对这些格式的编码和解码提供了友好的支持，这些库都拥有相同的`API`。这里我们用的最多的是`encoding/json`。
+
+有这么一个程序需要收集电影的观看次数并提供推荐。这个程序的`Movie`类型和典型的元素列表都在下面提供了。
+
+```go
+type Movie struct {
+  Title  string
+  Year   int  `json:"released"`
+  Color  bool `json:"color, omitemply"`
+  Actors []string
+}
+
+var movies = []Movie{
+  {Title: "casblanca", Year: 1942, Color: false, Actors: []string{"Humphery Bogart", "Ingrid Bergman"}},
+  {Title: "Cool Hand Luke", Year: 1967, Color: true, Actors: []string{"Paul Newman"}},
+  {Title: "Bullitt", Year: 1968, Color: true, Actors: []string{"Steve McQueen", "Jacqueline Bisset"}},
+}
+```
+
+这种类型的数据结构体最合适JSON，无论是从Go对象转为JSON还是从JSON转换为Go对象都很容易，把Go的数据结构（比如movies）转为JSON称为marshal（整理、排列、编列）。marshal是通过`json.Marshal`实现的：
+
+```go
+func main() {
+  data, err := json.Marshal(movies)
+  if err != nil {
+  log.Fatalf("json marshaling failed: %s", err)
+  }
+  fmt.Printf("%s\n", data)
+
+}
+```
+
+`Marshal`生成一个字节`slice`，包含了一个很长的字符串。把生成的结果堆在一起。
+
+```json
+[{"Title":"casblanca","released":1942,"color":false,"Actors":["Humphery Bogart","Ingrid Bergman"]},{"Title":"Cool Hand Luke","released":1967,"color":true,"Actors":["Paul Newman"]},{"Title":"Bullitt","released":1968,"color":true,"Actors":["Steve McQueen","Jacqueline Bisset"]}]
+```
+
+这种紧凑的格式让人难以阅读。为了方便阅读，有一个`json.MarshalIndent`方法可以输出整齐格式化后的结果。这个函数有两个参数。一个是定义每行输出的前缀字符串，另一个是定义缩进的字符串。通常两个缩进就好。
+
+```go
+func main() {
+  data, err := json.MarshalIndent(movies, "", "  ")
+  if err != nil {
+    log.Fatalf("json marshaling failed: %s", err)
+  }
+  fmt.Printf("%s\n", data)
+  // [
+  //   {
+  //     "Title": "casblanca",
+  //     "released": 1942,
+  //     "color": false,
+  //     "Actors": [
+  //       "Humphery Bogart",
+  //       "Ingrid Bergman"
+  //     ]
+  //   },
+  //   {
+  //     "Title": "Cool Hand Luke",
+  //     "released": 1967,
+  //     "color": true,
+  //     "Actors": [
+  //       "Paul Newman"
+  //     ]
+  //   },
+  //   {
+  //     "Title": "Bullitt",
+  //     "released": 1968,
+  //     "color": true,
+  //     "Actors": [
+  //       "Steve McQueen",
+  //       "Jacqueline Bisset"
+  //     ]
+  //   }
+  // ]
+}
+```
+
+`marshal`使用Go结构体成员的名称作为JSON对象里面字段的名称。只有可导出的成员可以转换为JSON字段，这就是为什么我们把Go结构体中的所有成员首字母都定义为大写。
+
+上面的结构体成员`Year`对应地转换为`released`，另外`Color`转换为`color`。这是通过 **成员标签定义** 实现的。成员标签定义是结构体成员在编译期间关联的一些元信息。
+
+成员标签定义可以是任意字符串，但按照习惯，是由一串由空格分开的标签键值对`key: "value"`组成的；因为标签的值使用双引号括起来，所以一般标签都是原生的字符串字面量。标签值的第一部分指定了Go结构体成员对应JSON中字段的名字。成员的标签通常是这样用。比如`total_count`对应Go里面的`TotalCount`。`Color`的标签还有一个额外的选项`omitempty`，它表示如果这个成员的值是零值或者为空，那么这个成员不会出现在JSON中。所以就上面的JSON中没有`Color`字段。
+
+`marshal`的逆操作是把JSON字符串解码为Go数据结构。通过调用`json.unmarshal`来实现。下面的代码把上面的JSON数据转成结构体`slice`，该结构体只有一个成员`Title`。通过合理定义Go的数据结构，可以选择把哪部分JSON数据解码到结构体对象中，哪些数据可以不要。当函数`unmarshal`调用完后，它将填充结构体`slice`中`Title`的值，其他字段全部丢弃。
+
+```go
+func main() {
+  data, err := json.MarshalIndent(movies, "", "  ")
+  fmt.Print(err)
+  var titles []struct{ Title string }
+  if err := json.Unmarshal(data, &titles); err != nil {
+    log.Fatalf("json unmarshaling failed: %s", err)
+  }
+  fmt.Println(titles) // [{casblanca} {Cool Hand Luke} {Bullitt}]
+}
+```
+
+很多web服务器都提供了JSON接口，通过发送HTTP请求来获取想要的JSON信息。我们通过GitHub提供的issue跟踪接口来演示一下。首先，定义需要的类型和常量:
+
+```go
+const IssuesURL = "https://api.github.com/search/issues"
+
+type IssuesSearchResult struct {
+  TotalCount int `json: "total_count"`
+  Items      []*Issue
+}
+
+type Issue struct {
+  Number    int
+  HTMLURL   string `json: html_url`
+  Title     string
+  State     string
+  User      *User
+  CreatedAt time.Time `json: "create_at"`
+  Body      string    // markdown格式
+}
+
+type User struct {
+  Login   string
+  HTMLURL string `json: html_url`
+}
+```
+
+这里和前面一样，对应的JSON字段名称不是首字母大写，结构体成员名称也必须首字母大写。由于在`unmarshal`阶段，JSON字段的名称关联到Go结构体成员的名称是忽略大小写的，因此只要在JSON中有下划线而Go中没有下划线的时候使用一下成员标签定义。这里只是选择性地对JSON中的字段解码，因为GitHub返回的信息有点多。
+
+`SearchIssues`函数发送HTTP请求并将回复解析成JSON。由于用户的查询请求参数中可能存在一些字符，这些字符在URL中是特殊字符，比如`?`或`&`，因此用`url.QueryEscape`函数来对查询中的特殊字符进行转义。
+```go
+```
