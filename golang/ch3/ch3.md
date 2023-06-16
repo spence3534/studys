@@ -1168,6 +1168,105 @@ func main() {
   }
 }
 ```
+
 前面的例子用了`json.Unmarshal`把整个字节`slice`解码为单个JSON实体。而这里使用了流式解码器（`json.Decoder`），用它来依次从字节流里面解码出多个JSON实体，现在还用不到这个功能。但有个方法`json.Encoder`的流式编码器。
 
 调用`Decode`方法来填充变量`result`。有各种方法将结果格式化得好看点。
+
+### 文本和HTML模板
+
+上面的例子只是简单的格式化，`Printf`函数足以完成，但有些情况下格式化会比这个复杂得多，而且要求格式和代码彻底分离。这个可以通过`text/template`包和`html/template`包里面的方法来实现，它们都提供一种机制，可以将变量的值填充到一个文本或HTML格式的模板中。
+
+模版是一个字符串或文件，它包含一个或多个两边用双大括号包围的单元`{{...}}`，这叫做操作。多数的字符串是直接输出的，但操作可以引发其他的行为。每个操作在模版里面都对应一个表达式，提供都简单强大的功能包括：输出值，选择结构体成员，调用函数和方法，描述控制逻辑（比如`if-else`和`range`循环），实例化其他的模版等等。下面是一个简单的字符串模版例子：
+
+```go
+const templ = `{{.TotalCount}} issues:
+{{range .Items}}---------------------
+Number: {{.Number}}
+User:  {{.User.Login}}
+Title: {{.Title | printf "%.64s"}}
+Age: {{.CreatedAt | daysAgo}} days {{end}}`
+```
+
+模版首先输出符合条件的`issue`数量，然后输出每个`issue`序号、用户、标题和距离创建时间已过去的天数。在这个操作里面，有一个表示当前值的标记，用点号`.`表示。当前值`.`最初被初始化为调用模版时的参数，这个例子中对应`IssuesSearchResult`。操作`{{.TotalCount}}`代表`TotalCount`成员的值，直接输出。`range.Items`和`end`操作创建一个循环，所以它们内部的值会展开很多次，这里的`.`号表示`Items`元素的值。
+
+在操作中，符号`|`会把前一个表达式的结果作为后一个函数的输入，类似`UNIX`中管道的概念。在`Title`的例子中，第二个操作就是`printf`函数，在所有的模板中，就是内置函数`fmt.Sprintf`的同义词。对于`Age`部分，第二个操作就是`daysAgo`，这个函数使用`time.Since`把`CreatedAt`转换为已过去的时间。
+
+```go
+func daysAgo(t time.Time) int {
+ return int(time.Since(t).Hours() / 24)
+}
+```
+
+需要注意，`CreatedAt`的类型是`time.Time`而不是`string`类型。同样地，一个类型可以定义方法来控制自己的字符串格式化方式，另外也可以定义方法来控制自身JSON序列化和反序列化的方式。`time.Time`的 JSON 序列化值就是该类型标准的字符串表示方法。
+
+通过模板输出结果需要两个步骤。首先，需要解析模版并转换为内部的表示方法，然后在指定的输入上面执行。解析模板只需要执行一次。下面代码创建并解析上面定义的文本模板`templ`。注意方法的链式调用：`template.New`创建并返回一个新的模版，`Funcs`方法把`daysAgo`等自定义函数注册到模板中，并返回模板；最后调用`Parse`方法。
+
+```go
+var report = template.Must(template.New("issuelist").Funcs(template.FuncMap{"daysAgo": daysAgo}).Parse(templ))
+```
+
+模板通常是在编译期间固定下来的，所以无法解析模板是程序中一个严重的bug。帮助函数`template.Must`提供了一种错误处理的方式，它接受一个模版和`error`类型作为参数，检查错误是否为`nil`（如果不是`nil`，则宕机），然后返回该模板。
+
+一旦创建了模板，添加了内部可调用的函数`daysAgo`，然后解析，再检查，就可以使用`IssuesSearchResult`作为数据源，使用`os.Stdout`作为输出目标执行这个模版：
+
+```go
+var report = template.Must(template.New("issuelist").Funcs(template.FuncMap{"daysAgo": daysAgo}).Parse(templ))
+
+func main() {
+  var arr = []string{"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"}
+  result, err := SearchIssues(arr)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  if err := report.Execute(os.Stdout, result); err != nil {
+    log.Fatal(err)
+  }
+}
+```
+
+下面来看`html/template`包。它使用和`text/template`包里一样的API和表达式语句，并且额外会对出现在HTML、Javascript、CSS和URL中的字符串进行自动转义。这些功能可以避免生成的HTML引发一些安全问题，比如通过生成HTML注入攻击，通过构造一个含恶意代码的问题标题，在模版中如果没有合理地进行转义，会让它们控制整个页面。
+
+```go
+var report = template.Must(template.New("issuelist").Parse(`
+<h1>{{.TotalCount}}</h1>
+<table>
+  <tr style="text-align: left">
+    <th>#</th>
+    <th>State</th>
+    <th>User</th>
+    <th>Title</th>
+  </tr>
+  {{range .Items}}
+  <tr>
+    <td><a href='{{.HTMLURL}}'>{{.Number}}</a></td>
+    <td>{{.State}}</td>
+    <td><a href='{{.User.HTMLURL}}'>{{.User.Login}}</a></td>
+    <td><a href='{{.HTMLURL}}'>{{.Title}}</a></td>
+  </tr>
+  {{end}}
+</table>
+`))
+```
+
+需要注意的是，`html/template`包会自动把HTML元字符转义，这样标题才会正常显示。如果错误得用到了`text/template`包，那么字符串`&lt;`会被当做小于号`<`，而字符串`<link>`将变成一个`link`元素，这将改变HTML的文档结构，甚至会产生安全问题。
+
+我们可以通过使用命名的字符串类型`template.HTML`类型而不是字符串类型避免模板自动转移受信任的HTML数据。同样的命名类型适用于受信任的 Javascript、CSS和URL。下面演示相同的数据在不同类型下的效果，A是字符串而B是`template.HTML`类型。
+
+```go
+func main() {
+  const templ = `<p>A: {{.A}}</p><p>B: {{.B}}</p>`
+  t := template.Must(template.New("escape").Parse(templ))
+  var data struct {
+    A string
+    B template.HTML
+  }
+
+  data.A = "<b>hello!</b>"
+  data.B = "<b>hello!</b>"
+  if err := t.Execute(os.Stdout, data); err != nil {
+    log.Fatal(err)
+  }
+}
+```
