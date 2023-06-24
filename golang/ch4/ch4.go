@@ -2,55 +2,21 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"math"
 )
 
-// for
+func hypot(x, y float64) (result float64) {
+	return math.Sqrt(x*x + y*y)
+}
+
 func main() {
-	forFunc()
+	fmt.Println(add(1, 3))   // 4
+	fmt.Println(sub(1, 3))   // -2
+	fmt.Println(first(1, 3)) // 1
+	fmt.Println(zero(1, 3))  // 0
 }
 
-func forFunc() {
-	var s, sep string
-	for i := 1; i < len(os.Args); i++ {
-		s += sep + os.Args[i]
-		sep = " "
-	}
-	fmt.Println(s, "进入11111111")
-}
-
-// if...else...
-/* func main() {
-	var isShow bool = false
-	if !isShow {
-		fmt.Println("进入true")
-	} else {
-		fmt.Println("进入false")
-	}
-} */
-
-// switch
-/* func main() {
-	fmt.Println(noTagSwitch(1))
-	tagSwitch(false)
-}
-
-func noTagSwitch(x int) int {
-	switch {
-	case x == 1:
-		return 1
-	default:
-		return 0
-	}
-}
-
-func tagSwitch(y bool) {
-	var a int = 1
-	switch y {
-	case true:
-		a++
-	default:
-		a--
-	}
-	fmt.Println(a)
-} */
+func add(x int, y int) int   { return x + y }
+func sub(x, y int) (z int)   { z = x - y; return }
+func first(x int, _ int) int { return x }
+func zero(int, int) int      { return 0 }

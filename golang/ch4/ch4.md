@@ -1,78 +1,65 @@
-## 语句
+## 函数
 
-### for
-
-在Go中只有`for`循环这一种循环语句。`for`循环有多种形式，其中一种如下所示：
+每个函数声明都包含一个函数名、一个形参列表、一个可选的返回值和函数体：
 
 ```go
-for initialization; condition; post {
- // ...
+func person(parameter-list) (result-list)  {
+ body
 }
 ```
 
-`for`循环的三部分不用括号包起来。花括号是必须的，左花括号必须和`post`语句在同一行。实际上，这三部分每个都是可省略的。如果`initialization`和`post`省略后，分号也可以省略：
+形参列表也就是一组变量的参数名和参数类型，这些局部变量的值都是由调用者提供的实参传递过来的。返回值描述了返回值的变量名以及类型。当函数返回一个无名变量或没有返回值，返回值的括号可以省略。如果一个函数不包含返回值，那么函数执行完后，不会返回任何值。看下面例子：
 
 ```go
-for condition {
-
+func hypot(x, y float64) float64 {
+  return math.Sqrt(x*x + y*y)
 }
-```
-
-连`condition`都省略掉的话，那么就变成一个无限循环了。
-
-```go
-for {
-
-}
-```
-
-### if...else
-
-Go中的`if`条件语句和`for`循环一样，条件两边不用加上括号。但主体部分要加上花括号。
-
-```go
-if condition {
-
-} else {
-
-}
-```
-
-### switch
-
-Go中的`switch`语句有两种方式：一种是带操作对象。另一种是不带操作对象，默认用`true`代替，这种行为叫做无**tag switch**。
-
-```go
-package main
-
-import "fmt"
 
 func main() {
- fmt.Println(noTagSwitch(1))
- tagSwitch(false)
-}
-
-// 不带操作对象时，
-func noTagSwitch(x int) int {
- switch {
- case x == 1:
-  return 1
- default:
-  return 0
- }
-}
-
-// 带操作对象的
-func tagSwitch(y bool) {
- var a int = 1
- switch y {
- case true:
-  a++
- default:
-  a--
- }
- fmt.Println(a)
+  fmt.Println(hypot(3, 4)) // 5
 }
 ```
 
-需要注意的是，Go语言不需要显示地在每个`case`后写`break`，默认执行完`case`之后的逻辑语句会自动退出。
+`x`和`y`为形参，`3`和`4`为实参，并且函数返回一个类型为`float64`的值。返回值也可以像形参那样被命名。这种情况下，每个返回值被声明成一个局部变量，并根据变量类型初始化喂相应的零值。
+
+当函数存在返回值时，必须以`return`语句结束，除非函数明确不会走完整个执行流程，比如在函数中抛出宕机异常或者函数内存在一个没有`break`退出条件的无限`for`循环。
+
+如果几个形参或者返回值的类型相同，就不必给每个形参都写出参数类型。下面两个声明是完全相同的：
+
+```go
+func f1(i, j, k int, s, t, string) {}
+
+func f2(i int, j int, k int, s string, t string) {}
+```
+
+下面以4种不同的方式声明一个带有2个`int`类型参数和1个`int`返回值的函数，空白标识符（`_`）用来表示一个参数在函数中未使用到。
+
+```go
+func main() {
+  fmt.Println(add(1, 3))   // 4
+  fmt.Println(sub(1, 3))   // -2
+  fmt.Println(first(1, 3)) // 1
+  fmt.Println(zero(1, 3))  // 0
+}
+
+func add(x int, y int) int   { return x + y }
+func sub(x, y int) (z int)   { z = x - y; return }
+func first(x int, _ int) int { return x }
+func zero(int, int) int      { return 0 }
+```
+
+函数的类型被称为**函数签名**。当两个函数拥有同样的形参和返回值时，那么这两个函数被认为有相同的类型或签名。形参和返回值的名字不会影响到函数签名，也不影响它们是否可以以省略参数类型的形式表示。
+
+每次调用函数都必须按照声明顺序为所有参数提供实参（参数值）。在调用函数时，go中没有默认参数值，也没有任何地方可以通过参数名指定形参。因此形参和返回值的变量名对于函数调用者而言没有意义。
+
+形参是函数的局部变量，初始值由调用者提供的实参传递。函数形参以及具名返回值作为函数最外层的局部变量，被存储在相同的词法块中。
+
+实参是按值传递的，所以函数接收到的是每个实参的副本；修改函数的形参变量不会影响到调用者传递的实参。如果传递的是引用类型，比如指针、`slice`、`map`、函数或通道，那么当函数使用形参时就有可能回间接地修改实参数。
+
+你可能会偶尔看到一些函数的声明没有函数体，这表示该函数不是以Go实现的。这样的声明定义了该函数的签名。
+
+```go
+package math
+
+func Sin(x float64) float64
+```
