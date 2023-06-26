@@ -63,3 +63,96 @@ package math
 
 func Sin(x float64) float64
 ```
+
+### 递归
+
+递归就是通过调用自身，无限循环，直到有一个终止条件才会停止。下面我们用递归来实现一个斐波那契数列。
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+  for i := 0; i < 100; i++ {
+    fmt.Printf("%d\n", fibonaci(i))
+  }
+}
+
+func fibonaci(i int) int {
+  if i == 0 {
+    return 0
+  }
+
+  if i == 1 {
+    return 1
+  }
+  return fibonaci(i-1) + fibonaci(i-2)
+}
+```
+
+### 返回值
+
+go中的返回值是可以被命名的，并且就像在函数体开头声明的变量那样使用。返回值的名称应该具有一定的意义，可以作为文档使用。函数如果有命名的返回值，可以省略`return`语句的操作数，这叫做“**裸**”返回。
+
+```go
+package main
+
+import "fmt"
+
+func add(x, y int) (z int) {
+  z = x + y
+  return
+}
+
+func calc(a, b int) (sum, avg int) {
+  sum = a + b
+  avg = (a + b) / 3
+  return
+}
+
+func main() {
+  var x, y int = 10, 20
+  z := add(x, y)
+  sum, avg := calc(x, y)
+  fmt.Println(z, sum, avg) // 30 30 10
+}
+```
+
+在go中一个函数可以返回多个结果。
+
+```go
+func compute(x, y, z int) (int, int, int) {
+ return x, y, z
+}
+
+func main() {
+ x, y, _ := compute(10, 20, 30)
+ fmt.Println(x, y) // 10 20
+}
+```
+
+调用多个返回值的函数时，如果需要用到这些值，必须把值赋给变量或者空标识符“_”。
+
+多返回值可以作为函数的实参进行传递。
+
+```go
+package main
+
+import "fmt"
+
+func getNum(x, y, z int) (int, int, int) {
+ return x, y, z
+}
+
+func sum(x, y, z int) (t int) {
+ return x + y*z
+}
+
+func main() {
+ fmt.Println(sum(getNum(10, 20, 30))) // 610
+}
+
+```
+
+### 函数变量
