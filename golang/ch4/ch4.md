@@ -156,3 +156,162 @@ func main() {
 ```
 
 ### 函数变量
+
+函数在go中属于头等公民的存在，和JS函数一样，可以赋值给变量或者传递或者从其他函数中返回。
+
+```go
+func square(n int) int {
+ return n * n
+}
+
+func negative(n int) int {
+ return -n
+}
+
+func product(m, n int) int {
+ return m * n
+}
+
+func main() {
+ f := square
+ fmt.Println(f(10)) // 100
+
+ f = negative
+ fmt.Println(f(9))     // -9
+ fmt.Printf("%T\n", f) // func(int) int
+
+ f = product // 编译错误：不能把类型 func(m int, n int) int 赋给 func(n int) int
+}
+```
+
+函数类型的零值是`nil`（空值），调用一个空的函数变量会导致宕机。
+
+```go
+var a func(int) int
+
+func main() {
+  fmt.Println(a(3)) // panic
+}
+```
+
+函数变量可以跟空值进行比较。
+
+```go
+var a func(int) int
+
+func main() {
+  if a == nil {
+    fmt.Print("a是一个空函数")
+  } else {
+    fmt.Print("a不是一个空函数")
+  }
+}
+```
+
+但函数本身不可比较，所以不可以互相进行比较或者用做`map`中的键值。
+
+函数变量不仅可以把数据进行参数化，还可以当作参数进行传递。看下面简单的例子：
+
+```go
+func add(x, y int) (count int) {
+  return x * y
+}
+
+func sum(add func(x, y int) int, n int) int {
+  return add(10, 20) + n
+}
+
+func main() {
+  var sum int = sum(add, 9)
+  fmt.Println(sum)
+}
+```
+
+### 匿名函数
+
+命名函数只能在包级别的作用域进行声明，但我们能使用函数字面量在任何表达式内指定函数变量。函数字面量就像函数声明，但在`func`关键字后面没有函数的名称。它是一种表达式，叫做**匿名函数**。
+
+用这种方式来定义的函数可以获取整个词法环境，里面的函数可以使用外层函数的变量。
+
+```go
+package main
+
+import "fmt"
+
+func squares() func() int {
+  var x int = 2
+  return func() int {
+    x++
+    return x * x
+  }
+}
+
+func main() {
+  f := squares()
+  fmt.Println(f()) // 9
+  fmt.Println(f()) // 16
+  fmt.Println(f()) // 25
+  fmt.Println(f()) // 36
+}
+```
+
+这里我们实现了一个闭包函数`squares`，它返回了一个函数，类型为`func() int`。调用`squares`创建一个局部变量`x`而且返回一个函数，每次调用`squares`都会递增`x`的值然后返回`x`的平方。第二次调用`squares`函数会创建第二个变量`x`，然后返回一个递增`x`值的新匿名函数。
+
+### 变长函数
+
+**变长**函数被调用的时候可以有可变的参数个数。`fmt.Printf`就是一个典型的例子，`Printf`开头固定一个参数，后面可以接受任意数目的参数。
+
+在参数列表最后的类型前使用省略号`...`表示声明一个变长函数，调用该函数时可以传递该类型任意数目的参数。
+
+```go
+func sum(vals ...int) int {
+  total := 0
+  for _, v := range vals {
+    total += v
+  }
+  return total
+}
+
+func main() {
+  fmt.Println(sum())           // 0
+  fmt.Println(sum(10))         // 10
+  fmt.Println(sum(10, 20, 30)) // 60
+}
+```
+
+还可以传递一个数组，把实参复制给这个数组，并将一个数组`slice`传递给函数。上面的最后一个调用和下面的调用是一样的，这里只是展示当实参已经存在于一个`slice`中的时候怎么调用变长函数。只需要在最后一个参数后面加上`...`省略号即可。
+
+```go
+func main() {
+  values := []int{1, 2, 3, 4, 5, 6}
+  fmt.Println(sum(values...)) // 21
+}
+```
+
+虽然`...int`参数看上去有点像一个`slice`，但变长函数的类型和一个带有普通`slice`参数的函数的类型截然不同。
+
+```go
+func x(...int) {}
+
+func y([]int) {}
+
+func main() {
+  fmt.Printf("%T\n", x) // func(...int)
+  fmt.Printf("%T\n", y) // func([]int)
+}
+```
+
+变长函数通常用于格式化字符串。下面的`errorf`函数构建一条格式化的错误消息，在消息的开头带有行号。函数的后缀`f`是广泛使用的命名习惯，用于可变长`Printf`风格的字符串格式化输出函数。
+
+```go
+func errorf(linenum int, format string, args ...interface{}) {
+  fmt.Fprintf(os.Stderr, "Line %d: ", linenum)
+  fmt.Fprintf(os.Stderr, format, args...)
+  fmt.Fprintln(os.Stderr)
+}
+
+func main() {
+  linenum, name := 12, "count"
+  errorf(linenum, "undefined: %s", name) // Line 12: undefined: count
+}
+```
