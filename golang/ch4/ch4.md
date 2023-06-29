@@ -315,3 +315,215 @@ func main() {
   errorf(linenum, "undefined: %s", name) // Line 12: undefined: count
 }
 ```
+
+### defer延迟函数调用
+
+`defer`语句是一个普通的函数或方法调用，在调用前加上关键字`defer`。`defer`调用只会在`return`之后或函数执行完之后调用，这种操作可以用来清除资源占用问题。`defer`没有限制调用次数，执行时以调用`defer`语句顺序的倒序进行。
+
+```go
+import "fmt"
+
+func main() {
+  defer delay(1)
+  defer delay(2)
+  defer delay(3)
+}
+
+func delay(x int) {
+  fmt.Println("a", x)
+  // a 3
+  // a 2
+  // a 1
+}
+```
+
+如果`defer`后面是一个匿名函数一定要加上括号。
+
+```go
+func main() {
+  defer func () {
+    fmt.Println("a", 1)
+  } // error: function must be invoked in defer statement
+  defer func () {
+    fmt.Println("a", 2) // a 2
+  }()
+}
+```
+
+`defer`语句经常用于成对的操作，比如打开和关闭，连接和断开，加锁和解锁，即使是再复杂的控制流，资源在任何情况下都能得到释放。
+
+延迟执行函数在`return`之后执行，并且可以更新函数的结果变量。因为匿名函数可以得到其外层函数作用域内的变量，所以延迟执行的函数可以观察到函数的返回结果。看下面的例子：
+
+```go
+import "fmt"
+
+func main() {
+  fmt.Println(deferFunc(1, 2)) // 5
+}
+
+func deferFunc(x, y int) (result int) {
+  var z int = x + y
+  defer func() {
+    result += 2
+  }()
+  return z
+}
+```
+
+通过命名结果变量和`defer`语句，我们可以每次调用函数的时候修改它的结果。
+
+```go
+func main() {
+  fmt.Println(triple(3))
+  // double(3) = 6
+  // 9
+}
+
+func double(x int) (result int) {
+  defer func() {
+    fmt.Printf("double(%d) = %d\n", x, result)
+  }()
+  return x + x
+}
+
+func triple(x int) (result int) {
+  defer func() {
+    result += x
+  }()
+  return double(x)
+}
+```
+
+### 异常处理
+
+在go中，是没有`try...catch`语句的。只能通过`panic`内置函数抛出一个异常，然后通过`defer`中调用`recover`函数捕获这个异常，然后正常处理。如果碰到一些不可能发生的状况，宕机是最好的处理方式。比如逻辑上不可能满足条件的时候。
+
+```go
+func main()  {
+  switch s := suit(drawCard); s {
+    case "spades":
+      break
+    case "hearts":
+      break
+    case "diamonds":
+      break
+    case "clubs":
+      break
+    default:
+      panic(fmt.Sprintf("invalid suit %q:" s))
+  }
+}
+```
+
+当发生宕机时，所有的延迟函数以倒序执行，从栈最上面的函数开始一直返回至`main`函数，如下面所示：
+
+```go
+func main() {
+  d(3)
+}
+
+func d(x int) {
+  fmt.Printf("f(%d)\n", x+0/x)
+  defer fmt.Printf("defer %d\n", x)
+  d(x - 1)
+}
+
+// 输出结果：
+// f(3)
+// f(2)
+// f(1)
+// defer 1
+// defer 2
+// defer 3
+// panic: runtime error: integer divide by zero
+
+// goroutine 1 [running]:
+// main.d(0x10c7ac0?)
+//  /Users/main.go:12 +0x113
+// main.d(0x1)
+//  /Users/main.go:14 +0xf5
+// main.d(0x2)
+//  /Users/main.go:14 +0xf5
+// main.d(0x3)
+//  /Users/main.go:14 +0xf5
+// main.main()
+//  /Users/main.go:8 +0x1e
+// exit status 2
+```
+
+当调用`f(0)`时发生了宕机，执行了三个延迟`fmt.Printf`调用。之后，运行时终止了这个程序，输出了宕机消息和一个栈转储信息到标准错误流。
+
+`runtime`包提供了转储栈的方法使得我们可以诊断错误。下面在代码`main`函数中延迟`printStack`的执行：
+
+```go
+func printStack() {
+  var buf [4096]byte
+  n := runtime.Stack(buf[:], false)
+  os.Stdout.Write(buf[:n])
+}
+
+func main() {
+  defer printStack()
+  d(3)
+}
+```
+
+内置的`recover`函数可以让宕机流程中的`goroutine`恢复过来，`recover`只在`defer`延迟函数中有效，看下面的例子：
+
+```go
+func test() {
+  defer func() {
+    if err := recover(); err != nil {
+    fmt.Print("宕机啦！！！", err) // 宕机啦！！！panic error
+    }
+  }()
+  panic("panic error")
+}
+
+func main() {
+  test()
+}
+```
+
+`defer`中引发的错误，可以被后面延迟调用捕获，但是只有最后一个错误可被捕获。
+
+```go
+func test() {
+  defer func() {
+    fmt.Println(recover()) // defer中发生错误啦
+  }()
+
+  defer func() {
+    panic("defer中发生错误啦")
+  }()
+  panic("宕机啦！")
+}
+
+func main() {
+  test()
+}
+```
+
+捕获函数`recover`只有在延迟函数内调用才会终止`panic`继续向上传递，一直沿着调用栈向外传递。在正常的执行过程中调用`recover`，会返回`nil`值。
+
+```go
+func test() {
+  defer func() {
+    fmt.Println(recover()) // 宕机啦!!!
+  }()
+  defer recover()              // 无效recover
+  defer fmt.Println(recover()) // nil
+  defer func() {
+    // 这里的代码块直接导致编辑器报错
+    func() {
+    println("defer inner") // defer inner
+    recover()
+    }()
+  }()
+  panic("宕机啦!!!")
+}
+
+func main() {
+  test()
+}
+```
