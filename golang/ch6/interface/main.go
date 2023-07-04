@@ -1,38 +1,27 @@
 package main
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"io"
+)
 
-type stockPosition struct {
-	ticker     string
-	sharePrice float32
-	count      float32
-}
-
-func (s stockPosition) getValue() float32 {
-	return s.sharePrice * s.count
-}
-
-type car struct {
-	make  string
-	model string
-	price float32
-}
-
-func (c car) getValue() float32 {
-	return c.price
-}
-
-type valuable interface {
-	getValue() float32
-}
-
-func showValue(asset valuable) {
-	fmt.Printf("%f\n", asset.getValue())
-}
+const debug = true
 
 func main() {
-	var o valuable = stockPosition{"goog", 302.20, 4}
-	showValue(o) // 1208.800049
-	o = car{"bmw", "x5", 100000}
-	showValue(o) // 100000.000000
+	var buf *bytes.Buffer
+	var wri io.Writer
+	if debug {
+		buf = new(bytes.Buffer)
+	}
+	fmt.Println(buf)
+	fmt.Println(wri)
+	f(buf)
+}
+
+func f(out io.Writer) {
+	if out != nil {
+		/* fmt.Println(out.Write([]byte("done!\n"))) */
+		// panic: runtime error: invalid memory address or nil pointer dereference
+	}
 }
