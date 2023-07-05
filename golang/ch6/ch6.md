@@ -315,3 +315,132 @@ func f(out io.Writer) {
 
 问题在于，尽管一个空的`*bytes.Buffer`指针拥有的方法满足了该接口，但它并不满足该接口所需的行为。特别是，这个调用违背了`(*bytes.Buffer).Write`的一个隐式的前置条件，接收者不能为空，所以把空指针赋给这个接口是个错误的操作。
 只要把`main`函数中的`buf`类型改为`io.Writer`即可。
+
+## 类型断言
+
+类型断言是一个用在接口值上的操作，语法为`x.(T)`。`x`是一个接口类型的表达式，`T`是一个类型（断言类型）。类型断言会检查操作对象的动态类型是否和断言的类型匹配。也就是说，检测`x`中是否包含`T`的值。
+
+这里有两种可能。第一种，如果断言类型`T`是一个具体类型，那么类型断言会检查`x`的动态类型是否满足`T`。如果满足，类型断言的结果就是`x`的动态值，当然类型也是`T`。换句话说，类型断言就是用来从它的操作对象中把具体类型的值提取出来的操作。
+如果`x`的动态类型不是`T`，接下来会抛出`panic`。比如:
+
+```go
+import (
+ "bytes"
+ "fmt"
+ "io"
+ "os"
+)
+
+func main() {
+  var w io.Writer
+  w = os.Stdout
+  f := w.(*os.File) // 成功：*os.File有Read和Write方法
+  c := w.(*bytes.Buffer) // 宕机: 接口转换: io.Writer 是 *os.File, 不是 *bytes.Buffer
+  fmt.Println(c, f)
+}
+```
+
+第二种，如果断言类型`T`是接口类型，类型断言检查`x`的动态类型是否满足`T`。如果满足，动态值并不会提取出来，结果依然是一个接口值，接口值的类型和值部分也不会变更，只是结果的类型为接口类型`T`。也就是说，类型断言是一个接口值表达式，
+从一个接口类型变成拥有另一套方法的接口类型，但保留了接口值中的动态类型和动态值部分。
+
+```go
+type ByteCounter int
+
+func (c *ByteCounter) Write(p []byte) (int, error) {
+  *c += ByteCounter(len(p)) // convert int to ByteCounter
+  return len(p), nil
+}
+
+var w io.Writer
+w = os.Stdout
+rw := w.(io.ReadWriter) // 成功: *os.File有Read和Write方法
+
+w = new(ByteCounter)
+rw = w.(io.ReadWriter) // panic *ByteCounter没有Read方法
+```
+
+不管哪种类型作为断言类型，操作对象是一个空接口值的话，类型断言都会失败。我们不需要从一个接口类型向一个要求更宽松的类型做类型断言，该宽松类型的接口方法比原类型的少（是原类型的子集），因为除了在操作`nil`之外的情况下，在其他情况下这种操作和赋值一样。
+
+```go
+var w io.Writer
+w = os.Stdout
+rw := w.(io.ReadWriter)
+
+w = rw // io.ReadWriter 可以赋给 io.Writer
+w = rw.(io.Writer) // 只有rw为nil时失败
+```
+
+我们经常无法确定一个接口值的动态类型，此时需要检测它是否为某一个特定类型。如果类型断言出现在需要两个结果的赋值表达式中，那么断言就不会在失败时崩溃，而是会多返回一个布尔型的返回值来表示断言是否成功。
+
+```go
+var w io.Writer = os.Stdout
+f, ok := w.(*os.File)      // true
+b, ok := w.(*bytes.Buffer) // false
+```
+
+一般会把第二个返回值赋给`ok`变量，如果操作失败，`ok`为`false`，而第一个返回值为断言类型的零值`nil`，在这个例子中`*bytes.Buffer`是一个空指针。
+
+下面是以一种更安全的方式来进行类型断言。
+
+```go
+if v, ok := x.(T); ok {
+  // ...用v做一些操作
+}
+```
+
+如果`x`满足`T`，那么`v`是`x`转换到类型`T`的值，ok就为`true`；否则`v`是类型`T`的零值，`ok`为`false`，也并不会影响程序运行。我们应该用这种方式来进行类型断言。
+
+## 类型分支
+
+接口变量的类型也可以用一种特殊形式来检测：`type switch`语句：
+
+```go
+switch x.(type) {
+  case nil:
+    //...
+  case int, unit:
+    //...
+  case bool:
+    //...
+  case string:
+    //...
+  default:
+    //...
+}
+```
+
+类型分支的形式和普通分支语句类似，差别在于操作对象改为`x.(type)`（注意：这里直接写`type`关键字，而不是特定类型），每个分支是一个或多个类型。类型分支的分支判定基于接口值的动态类型，其中`nil`分支需要`x == nil`，而`default`分支则是在
+其他分支都没满足的情况下运行的。另外，类型分支是不允许使用`fallthrough`的。
+
+如果需要访问由类型断言提取出来的原始值，类型分支语句还有一种扩展形式，它用来把每个分支中提取出来的原始值绑定到一个新变量中:
+
+```go
+switch x := x.(type) {
+  // ....
+}
+```
+
+这里把新的变量也命名为`x`，和类型断言类似，重用变量名很普遍。和`switch`语句类似，类型分支也会隐私创建一个词法块，所以声明一个新变量`x`并不会和外部块中的变量`x`冲突。每个分支也会隐式创建各自的词法块。
+
+下面是一个完整的例子:
+
+```go
+func typeDiagnose(x interface{}) string {
+  var s string
+  switch x := x.(type) {
+  case nil:
+    s = "NULL"
+  case int, uint:
+    return fmt.Sprintf("%d", x)
+  case bool:
+    if x {
+      s = "TRUE"
+    }
+  case string:
+    return fmt.Sprintf("%d", x)
+  default:
+    panic(fmt.Sprintf("unexpected type %T: %v", x, x))
+  }
+  return s
+}
+```
