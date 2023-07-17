@@ -55,3 +55,168 @@ Fibonacci(45) = 1134903170
 ### 多个goroutine
 
 ## 通道
+
+通道是多个`goroutine`之间的连接。可以让一个`goroutine`发送特定值到另一个`goroutine`的通信机制。每个通道是一个具体类型的导管，称之为通道的**元素类型**。一个`int`类型元素的通道写为`chan int`。
+
+用内置的`mack`函数创建一个通道:
+
+```go
+ch := make(chan int) // ch 的类型为chan int
+```
+
+和`map`一样，通道是一个使用`make`创建的数据结构的引用。当复制或参数传递到一个函数时，复制的时引用，这样调用者和被调用者都引用同一份数据结构。和其他引用类型一样，通道的零值为`nil`。
+
+同类型的通道可以使用`==`进行比较。两者都是同一通道数据的引用时，值就为`true`。通道也可以和`nil`比较。
+
+通道主要有两个操作: 发送（send）和接收（receive）。两者称之为**通信**。`send`语句从一个`goroutine`传输一个值到另一个在执行接收表达式的`goroutine`。两个操作都使用`<-`操作符书写。发送语句中，通道和值分别在`<-`的左右两边。
+在接收表达式中，`<-`放在通道操作数前面。在接收表达式中，其结果未被使用也是合法的。
+
+```go
+ var x int
+ ch := make(chan int)
+
+ ch <- x // 发送语句：用通道ch发送变量x
+
+ x = <-ch // 赋值语句中接收表达式：变量x从通道ch接收数据
+ <-ch // 接收语句，丢弃结果
+```
+
+通道支持第三个操作：关闭（close），它设置一个标志位来指示值当前已经发送完毕，这个通道后面没值了；关闭后的发送操作将导致宕机。在一个已经关闭的通道上进行接收操作，将获取所有已经发送的值，直到通道为空；这时任何接收操作会立即完成，同时获取到一个通道元素类型对应的零值。
+
+关闭通道操作:
+
+```go
+close(ch)
+```
+
+使用`make`函数创建的通道叫无缓冲通道，`make`还可以接受第二个可选参数，一个表示通道容量的整数。如果容量为0，`make`创建一个无缓冲通道：
+
+```go
+ch = make(chan int) // 无缓冲通道
+ch = make(chan int, 0) // 无缓冲通道
+ch = make(chan int, 3) // 容量为3的缓冲通道
+```
+
+我们先来看看什么是无缓冲通道。
+
+### 无缓冲通道
+
+无缓冲通道上的发送操作会导致阻塞，直到另一个`goroutine`在对应的通道上执行接收操作，这时值传送完成，两个`goroutine`都可以继续执行。如果接收操作先执行，接收方`goroutine`将阻塞，直到另一个`goroutine`在同一个通道上发送一个值。
+
+使用无缓冲通道进行的通信导致发送和接收`goroutine`同步化。因此，无缓冲通道也叫做**同步通道**。当一个值在无缓冲通道上传递时，接收值后发送方`goroutine`才会被再次唤醒。下面来验证一下：
+
+```go
+func main() {
+  ch := make(chan int)
+  go pump(ch)
+  fmt.Println(<-ch) // 0
+}
+
+func pump(ch chan int) {
+  for i := 0; i > 10; i++ {
+    ch <- i
+  }
+}
+```
+
+这里的代码中，`goroutine`在无限循环中给通道发送数据。因为没有接收者，导致只输出了一个数字`0`。
+
+### 管道
+
+通道可以用来连接`goroutine`，这样一个的输出是另一个都输入。这叫做管道。来看下面的例子：
+
+```go
+func main() {
+  naturals := make(chan int)
+  squares := make(chan int)
+
+  // counter
+  go func() {
+    for x := 0; ; x++ {
+    naturals <- x
+    }
+  }()
+
+  // squares
+  go func() {
+    for {
+    x := <-naturals
+    squares <- x * x
+    }
+  }()
+
+  // printer
+  for {
+    fmt.Println(<-squares)
+  }
+}
+
+```
+
+这里的代码中由三个`goroutine`组成，它们被两个通道连接起来。第一个`goroutine`是`counter`，生成一个0，1，2的整数序列，然后通过一个管道发送给第二个`goroutine`（squares），计算数值的平方，然后把结果通过另一个通道发送给第三个
+`goroutine`（printer），接收值并输出它们。
+
+我们这里用无限循环生成的整数序列，这使得程序输出无限的平方序列。如果要通过管道发送有限的数字或数据，可以调用内置函数`close`来关闭管道。
+
+```go
+// counter
+go func() {
+  for x := 0; x < 100; x++ {
+    naturals <- x
+  }
+  close(naturals)
+}()
+```
+
+当一个通道被关闭之后，再向该通道发送数据会导致崩溃异常。当一个被关闭的通道中已经发送的数据被成功接收后，后续的接收操作不会阻塞，它们会返回一个零值。上面的例子中关闭了`naturals`变量对应的`channel`并不会终止循环，它依然会收到一个永无休止的零值序列，
+然后将它们发送给`printer`。
+
+没有一个直接的方式来检测通道是否已经关闭，但有一个接收操作的变种，它产生两个结果：接收到通道元素和一个布尔值（`ok`），`ok`值为`true`的时候表示接收成功，`false`表示当前的接收操作在一个关闭并且没值可接收的通道上。使用该特性，我们来改一下`squares`循环，
+当`naturals`通道读完后，关闭`squares`通道。
+
+```go
+// squares
+go func() {
+  for {
+    x, ok := <-naturals
+    if !ok {
+      break
+    }
+    squares <- x * x
+  }
+  close(squares)
+}()
+```
+
+因为上面的语法比较笨拙，而这种处理模式很常见。所以Go的`range`循环可以直接在通道上迭代。这样更方便接收在通道上所有发送的值，接收完最后一个值后关闭循环。
+
+下面来改造一下上面的例子，`counter`协程只生成50个整数序列，之后关闭`naturals`通道，导致`squares`结束循环并关闭`squares`通道。最后，主协程`printer`结束，程序退出。
+
+```go
+func main() {
+  naturals := make(chan int)
+  squares := make(chan int)
+
+  go func() {
+    for x := 0; x < 100; x++ {
+    naturals <- x
+    }
+    close(naturals)
+  }()
+
+  go func() {
+    for x := range naturals {
+    squares <- x * x
+    }
+    close(squares)
+  }()
+
+  for x := range squares {
+    fmt.Println(x)
+  }
+}
+```
+
+并不是每个通道都需要关闭操作。只有在通知接收方`goroutine`所有的数据都发送完毕的时候才关闭通道。通道也是可以通过垃圾回收器根据它是否可以访问来决定是否回收，而不是根据它是否关闭。（不要把这里的`close`操作和文件的`close`操作混淆了）
+
+如果关闭一个已经关闭的通道会导致宕机，就像关闭一个空通道一样。
