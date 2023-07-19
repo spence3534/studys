@@ -113,13 +113,29 @@ func main() {
 }
 
 func pump(ch chan int) {
-  for i := 0; i > 10; i++ {
+  for i := 0; i < 10; i++ {
     ch <- i
   }
 }
 ```
 
 这里的代码中，`goroutine`在无限循环中给通道发送数据。因为没有接收者，导致只输出了一个数字`0`。
+
+为了解除通道阻塞，下面定义一个`suck`函数在无限循环中读取通道。
+
+```go
+func main() {
+  ch := make(chan int)
+  go pump(ch)
+  go suck(ch)
+}
+
+func suck() {
+  for {
+    fmt.Println(<-ch)
+  }
+}
+```
 
 ### 管道
 
@@ -220,3 +236,103 @@ func main() {
 并不是每个通道都需要关闭操作。只有在通知接收方`goroutine`所有的数据都发送完毕的时候才关闭通道。通道也是可以通过垃圾回收器根据它是否可以访问来决定是否回收，而不是根据它是否关闭。（不要把这里的`close`操作和文件的`close`操作混淆了）
 
 如果关闭一个已经关闭的通道会导致宕机，就像关闭一个空通道一样。
+
+### 单向通道类型
+
+Go的类型系统提供了单向通道类型，用于只发送或只接收。类型`chan<- int`是一个只能发送的通道，只能发送不能接收。相反，类型`<-chan int`是一个只能接收的`int`类型通道，只能接收不能发送。这种限制会在编译时检查出来。
+
+调用`close`操作就证明通道上没有数据发送了，那么只有在发送方`goroutine`才会调用`close`函数，如果关闭一个只接收的通道会在编译时报错。
+
+这里我们把上面的例子改成使用单向通道类型：
+
+```go
+func main() {
+  naturals := make(chan int)
+  squares := make(chan int)
+  go counter(naturals)
+  go squarer(squares, naturals)
+  printer(squares)
+}
+
+func counter(out chan<- int) {
+  for x := 0; x < 100; x++ {
+    out <- x
+  }
+}
+
+func squarer(out chan<- int, in <-chan int) {
+  for v := range in {
+    out <- v * v
+  }
+  close(out)
+}
+
+func printer(in <-chan int) {
+  for v := range in {
+    fmt.Println(v)
+  }
+}
+```
+
+`counter(naturals)`的调用隐式地把`chan int`类型转化为`chan<- int`类型。调用`printer(squares)`也做了类似`<-chan int`的转换。在任何赋值操作中把双向通道转成单向通道是可以的，但反过来就不行。一旦有一个像`chan<- int`这样的单向
+通道，是无法通过它获取到引用同一个数据结结构的`chan int`数据类型的。
+
+### 缓冲通道
+
+缓冲通道有一个元素队列，队列的最大长度在创建时通过`make`的容量参数来设置。下面的例子中创建一个容纳三个字符串的缓冲通道。
+
+```go
+ch := make(chan string)
+```
+
+缓冲通道上的发送操作在队列的尾部插入一个元素，接收操作从队列的头部移除一个元素。如果通道满了，发送操作会阻塞`goroutine`，一直到另一个`goroutine`进行接收操作才会释放空间。反之，如果通道是空的，执行接收操作的`goroutine`阻塞，直到另一个
+`goroutine`在通道上发送数据。
+
+可以在当前通道上无阻塞发送三个值并且接收一个值:
+
+```go
+ch := make(chan string, 3)
+ch <- "a"
+ch <- "b"
+ch <- "c"
+fmt.Println(<-ch) // a
+```
+
+这时，通道是满的，如果再向通道发送值会阻塞。控制台会死锁错误。
+
+通道在不满也不空的情况下，接收或发送操作都不会阻塞。通过这个方式，通道的缓冲区将发送和接收`goroutine`进行解耦。
+
+如果想知道缓冲通道的长度（或者说容量吧），可以通过调用`cap`函数获取。
+
+```go
+fmt.Println(cap(ch)) // 3
+```
+
+使用内置函数`len`时，可以获取当前通道中的元素个数。在并发程序中该信息会随着接收操作失效，但它用于错误诊断和性能优化很有帮助。
+
+```go
+ch := make(chan string, 3)
+ch <- "a"
+ch <- "b"
+ch <- "c"
+fmt.Println(len(ch)) // 3
+```
+
+接下来的接收操作，使得通道又变空了，第四次接收将会阻塞:
+
+```go
+// 接收一个值
+fmt.Println(<-ch)    // a
+fmt.Println(len(ch)) // 2
+
+fmt.Println(<-ch)    // b
+fmt.Println(len(ch)) // 1
+
+fmt.Println(<-ch)    // c
+fmt.Println(len(ch)) // 0
+```
+
+这里例子中，发送和接收操作都由同一个`goroutine`执行，但在开发中通常由不同的`goroutine`执行。由于语法简单，新手有时候粗暴地把缓冲通道作为队列在单个`goroutine`中使用，这是一个错误的用法。
+通道和`goroutine`的调度深度关联，如果没有另一个`goroutine`通过进行接收，发送者（也许是整个程序）会面临永久阻塞的风险。如果仅仅需要一个简单的队列，使用`slice`创建一个就可以。
+
+无缓冲和缓冲通道的选择、缓冲通道容量大小的选择，都有可能影响程序的正确性。无缓冲通道提供每个发送都需要和对应的同步接收操作，对于缓冲通道，这些操作为解耦的。

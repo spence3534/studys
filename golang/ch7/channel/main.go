@@ -3,24 +3,18 @@ package main
 import "fmt"
 
 func main() {
-	naturals := make(chan int)
-	squares := make(chan int)
+	ch := make(chan string, 3)
+	ch <- "a"
+	ch <- "b"
+	ch <- "c"
+	fmt.Println(len(ch)) // 3
 
-	go func() {
-		for x := 0; x < 100; x++ {
-			naturals <- x
-		}
-		close(naturals)
-	}()
+	fmt.Println(<-ch)    // a
+	fmt.Println(len(ch)) // 2
 
-	go func() {
-		for x := range naturals {
-			squares <- x * x
-		}
-		close(squares)
-	}()
+	fmt.Println(<-ch)    // b
+	fmt.Println(len(ch)) // 1
 
-	for x := range squares {
-		fmt.Println(x)
-	}
+	fmt.Println(<-ch)    // c
+	fmt.Println(len(ch)) // 0
 }
