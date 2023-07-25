@@ -52,8 +52,6 @@ Fibonacci(45) = 1134903170
 
 注意一下这里的两个单独的单元是怎么进行组合的（`spinner`和`fib`的计算），分别在独立的函数中，但两个函数都是同时执行的。
 
-### 多个goroutine
-
 ## 通道
 
 通道是多个`goroutine`之间的连接。可以让一个`goroutine`发送特定值到另一个`goroutine`的通信机制。每个通道是一个具体类型的导管，称之为通道的**元素类型**。一个`int`类型元素的通道写为`chan int`。
@@ -335,4 +333,71 @@ fmt.Println(len(ch)) // 0
 这里例子中，发送和接收操作都由同一个`goroutine`执行，但在开发中通常由不同的`goroutine`执行。由于语法简单，新手有时候粗暴地把缓冲通道作为队列在单个`goroutine`中使用，这是一个错误的用法。
 通道和`goroutine`的调度深度关联，如果没有另一个`goroutine`通过进行接收，发送者（也许是整个程序）会面临永久阻塞的风险。如果仅仅需要一个简单的队列，使用`slice`创建一个就可以。
 
-无缓冲和缓冲通道的选择、缓冲通道容量大小的选择，都有可能影响程序的正确性。无缓冲通道提供每个发送都需要和对应的同步接收操作，对于缓冲通道，这些操作为解耦的。
+无缓冲和缓冲通道的选择、缓冲通道容量大小的选择，都有可能影响程序的正确性。无缓冲通道提供每个发送都需要和对应的同步接收操作，对于缓冲通道，这些操作为解耦的。同样的，即使我们知道要发送到一个通道的信息的数量上限，创建一个对应容量大小的缓存
+通道也是不现实的，因为这要求在执行任何接收操作之前缓存所有已经发送的值。如果未能分配足够的缓冲将会导致死锁。
+
+## 使用select
+
+`select`语句只能用于通道相关的操作，和`switch`控制语句类似，有n个`case`分支和一个`default`分支。每一个`case`代表一个通信操作(在某个`channel`上进行发送和接收)，并且包含一些语句组成的一个语句块。一个接收表达式可能只包含接收表达式的自身，或者在一个短变量
+中。在短变量中，就是让你能够引用接收到的值。
+
+```go
+select {
+case <-ch1:
+//...
+case x := <-ch2:
+// 使用x做...事情
+default:
+// ...
+}
+```
+
+`select`会等待满足`case`中的条件时才执行，如果有条件满足，`select`才会去通信并执行`case`之后的语句；这时其他的通信不会执行。一个没有任何`case`的`select`写作`select{}`，将永远等待下去。
+
+```go
+func test1(ch chan string) {
+  time.Sleep(time.Second * 1)
+  ch <- "test1"
+}
+
+func test2(ch chan string) {
+  time.Sleep(time.Second * 2)
+  ch <- "test2"
+}
+
+func main() {
+  ch1 := make(chan string)
+  ch2 := make(chan string)
+  go test1(ch1)
+  go test2(ch2)
+  select {
+  case s1 := <-ch1:
+    fmt.Println("s1=", s1)
+  case s2 := <-ch2:
+    fmt.Println("s2=", s2)
+
+  }
+}
+```
+
+在`select`中使用发送操作并且有`default`可以确保发送不会被阻塞，如果没有`default`，`select`会一直阻塞。还有一点，如果多个条件同时满足，`select`会随机选择一个。
+
+```go
+func main() {
+  ch1 := make(chan int, 1)
+  ch2 := make(chan string, 1)
+  go func() {
+    ch1 <- 1
+  }()
+  go func() {
+    ch2 <- "hello"
+  }()
+
+  select {
+  case n := <-ch1:
+    fmt.Println("int:", n)
+  case s := <-ch2:
+    fmt.Println("string:", s)
+  }
+}
+```
