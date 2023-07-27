@@ -70,4 +70,121 @@ func main() {
 
 在A1r之后，表达式`balance + amount`求值结果为200，这个值在A1w步骤中用于写入，完全没有理会中间的存款操作。最终的余额为200块。银行从小美手上挣了100块。
 
-这种状况是竞争条件中的一种，叫作数据竞争（data race）。数据竞争发生于两个`goroutine`并发读写同一个变量，且其中一个是写入时会发生数据竞争。
+这种状况是竞争条件中的一种，叫作**数据竞争**（data race）。**数据竞争发生于两个`goroutine`并发读写同一个变量，且其中一个是写入时会发生数据竞争**。
+
+当发生数据竞争的变量类型是大于一个机器字长的类型（如接口、字符串或slice）时，事情就更复杂了。下面的代码并发将`x`更新位两个不同长度的`slice`。
+
+```go
+func main() {
+  var x []int
+  go func() {
+    x = make([]int, 10)
+  }()
+
+  go func() {
+    x = make([]int, 100000)
+  }()
+
+  x[999999] = 1 // 未定义行为，可能造成内存异常
+  time.Sleep(time.Minute)
+}
+```
+
+最后一个表达式中`x`的值是未定义的，它可能是`nil`、一个长度为10的`slice`或者一个长度为1000000的`slice`。`slice`的三部分：指针、长度和容量。如果指针来自第一个`make`调用而长度来自第二个`make`调用，那么`x`会变成一个嵌合体，它名义上长度为
+1000000但底层的数组只有10个元素。在这种情况下，尝试存储到第999999个元素会碰撞一个遥远的内存位置，这种情况下难以对值进行预测，而且debug也会变成噩梦。这种语义雷区称为**未定义行为**，在go中很少有这种问题。
+
+尽管并发程序的该娘让我们知道并发不是简单的语句交叉执行。后面会看到，数据竞争可能会有奇怪的结果。一个好的习惯是根本就没有什么所谓的良性数据竞争。所以我们一定要避免数据竞争，那怎么做呢？
+
+再回顾一下数据竞争的定义（因为定义非常重要）：数据竞争会在两个以上的`goroutine`并发访问相同的变量且至少其中一个为写操作时发生。根据定义，有三种方式避免数据竞争：
+
+第一种方法时不要去写变量。看下面的`map`，会被“懒”填充，也就是说每个`key`被第一次请求到的时候才会填值。如果`Icon`是被顺序调用的话，这个程序会工作正常，但如果`Icon`的调用是并发的，在访问`map`时就存在数据竞争。
+
+```go
+var icons = make(map[string]image.Image)
+
+func loadIcon(name string) image.Image
+
+// 并发不安全
+func Icon(name string) image.Image {
+  icon, ok := icons[name]
+  if !ok {
+    icon = loadIcon(name)
+    icons[name] = icon
+  }
+  return icon
+}
+```
+
+如果在创建`goroutine`之前就初始化`map`中的所有条目并且再也不去修改它们，那么无论多少`goroutine`并发访问`Icon`都是安全的，因为每个`goroutine`只是去读取`map`而已。
+
+```go
+var icons = map[string]image.Image{
+  "spades.png":   loadIcon("spades.png"),
+  "hearts.png":   loadIcon("hearts.png"),
+  "diamonds.png": loadIcon("diamonds.png"),
+  "clubs.png":    loadIcon("clubs.png"),
+}
+
+// 并发不安全
+func Icon(name string) image.Image {
+  return icons[name]
+}
+```
+
+上面的例子中，`icons`变量在包初始化阶段就已经被赋值了，包的初始化时在程序`main`函数开始执行之前就完成了的。只要初始化完成，`icons`就再也不会被修改。数据结构如果从不被修改或不变量则是并发安全的，无需进行同步，不过显然，如果更新操作是
+必要的，我们就没法用这种方法，比如银行账户。
+
+第二种避免数据竞争的方法是避免从多个`goroutine`访问同一个变量。也就是说把变量限制在单个`goroutine`内部。由于其他的`goroutine`不能直接访问变量，它们只要使用通道来发送请求给指定的`goroutine`来查询更新变量。这也就是GO的口头禅：“不要使用
+共享数据来通信，而是用通信来共享数据”。用通道请求来代理一个受限变量的所有访问的`goroutine`叫作该变量的监控`goroutine`（monitor goroutine）。
+
+下面来重写之前的例子，用一个叫`teller`的监控`goroutine`限制`balance`变量:
+
+```go
+var deposit = make(chan int)
+var balances = make(chan int)
+
+func Deposit(amount int) {
+  deposit <- amount
+}
+
+func Balance() int {
+  return <-balances
+}
+
+func teller() {
+  var balance int // 将balance限制在teller goroutine中
+  for {
+    select {
+    case amount := <-deposit:
+    balance += amount
+    case balances <- balance:
+    }
+  }
+}
+```
+
+即使当一个变量无法在整个声明周期内被绑定到一个独立的`goroutine`，绑定依然是并发问题的一个解决方案。比如在一条流水线上的`goroutine`之间共享变量是很常见的行为，在这两者间会通过通道来传输地址信息。如果流水线的每一个阶段都能够避免
+在将变量传送到下一阶段后再去访问它，那么对这个变量的所有访问就是串行的。其效果是变量会被绑定到流水线的一个阶段，传送完后被绑定到下一个，以此类推。这种规则有时也被称为串行受限。
+
+在下面的例子中，`Cakes`会被严格地顺序访问，首先受限于`baker goroutine`，然后受限于`icer goroutine`。
+
+```go
+type Cake struct{ state string }
+
+func baker(cooked chan<- *Cake) {
+  for {
+    cake := new(Cake)
+    cake.state = "cooked"
+    cooked <- cake // baker 不再访问 cake变量
+  }
+}
+
+func icer(iced chan<- *Cake, cooked <-chan *Cake) {
+  for cake := range cooked {
+    cake.state = "iced"
+    iced <- cake // icer 不再访问cake变量
+  }
+}
+```
+
+第三种避免数据竞争的办法是允许多个`goroutine`访问同一个变量，但在同一时间只有一个`goroutine`可以访问。这种方法称为**互斥机制**。
