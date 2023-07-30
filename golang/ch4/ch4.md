@@ -516,8 +516,8 @@ func test() {
   defer func() {
     // 这里的代码块直接导致编辑器报错
     func() {
-    println("defer inner") // defer inner
-    recover()
+      println("defer inner") // defer inner
+      recover()
     }()
   }()
   panic("宕机啦!!!")

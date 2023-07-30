@@ -161,6 +161,22 @@ func teller() {
     }
   }
 }
+
+func init() {
+  go teller()
+}
+
+func main() {
+  go func() {
+    Deposit(200)
+    fmt.Println("=", Balance()) // = 300
+  }()
+
+  go func() {
+    Deposit(100)
+  }()
+  time.Sleep(time.Minute)
+}
 ```
 
 即使当一个变量无法在整个声明周期内被绑定到一个独立的`goroutine`，绑定依然是并发问题的一个解决方案。比如在一条流水线上的`goroutine`之间共享变量是很常见的行为，在这两者间会通过通道来传输地址信息。如果流水线的每一个阶段都能够避免
@@ -188,3 +204,126 @@ func icer(iced chan<- *Cake, cooked <-chan *Cake) {
 ```
 
 第三种避免数据竞争的办法是允许多个`goroutine`访问同一个变量，但在同一时间只有一个`goroutine`可以访问。这种方法称为**互斥机制**。
+
+## 互斥锁: sync.Mutex
+
+互斥锁模式应用非常广泛，所以`sync`包有一个单独的`Mutex`类型来支持这种模式。它的`Lock`方法用于获取`token`（这个过程称为上锁），`Unlock`方法用于释放这个`token`：
+
+```go
+var (
+  mu      sync.Mutex
+  balance int
+)
+
+func Deposit(amount int) {
+  mu.Lock()
+  balance = balance + amount
+  mu.Unlock()
+}
+
+func Balance() int {
+  mu.Lock()
+  b := balance
+  mu.Unlock()
+  return b
+}
+```
+
+一个`goroutine`在每次访问变量（这里只有balance）之前，都会调用`Mutex`的`Lock`方法获取一个互斥锁。如果其他的`goroutine`已经获得这个锁的话，此操作会被阻塞到其它`goroutine`调用了`Unlock`使该锁变回可用状态。
+`Mutex`会保护共享变量。按照惯例，被`Mutex`保护的变量是在`Mutex`变量声明之后立刻声明的。
+
+在`Lock`和`Unlock`之间的代码，可以随意读取或修改，这部分称为**临界区**。在锁的持有人调用`Unlock`之前，其他`goroutine`不能获取锁。所以很重要的一点是，`goroutine`在结束后必须释放锁，无论以哪条路径通过函数都需要释放，
+即使在错误路径中，也要记得释放。
+
+每个函数在开始时获取互斥锁并且在结束后释放锁，确保共享变量不会被并发访问。这种函数、互斥锁、变量的组合方法称为监控模式。
+
+因为`Deposit`和`Balance`函数中的临界区都很短（只有一行，也没有分支），所以直接在函数结束时调用`Unlock`。在更复杂的临界区中，尤其是必须要尽早处理错误并返回的情况下，很难确定在所有的分支中`Lock`和`Unlock`都是成对执行的。
+使用`defer`就能解决这个问题：通过延迟执行`Unlock`可以把临界区隐式地延伸到当前函数作用域最后，这样我们就从“总要记得在函数返回之后或者发生错误返回时要记得调一次`Unlock`”这种状态中获得解放了。Go会自动帮我们完成这些事情。
+
+```go
+func Balance () int {
+  mu.Lock()
+  defer mu.Unlock()
+  return balance
+}
+```
+
+在上面的例子中，`Unlock`在`return`语句读取完`balance`的值后执行，所以`Balance`函数是并发安全的。另外，也不需要使用局部变量`b`了。
+
+此外，在临界区崩溃时延迟执行的`Unlock`也能正确执行，这对于用`recover`来恢复的程序来说是很重要的。`defer`调用只会比显式地调用`Unlock`成本要一点，不过却在很大程度上保证了代码的整洁性，大多数情况下对于并发程序来说，代码的
+整洁性比过度的优化更重要。如果可能的话尽量使用`defer`来将临界区扩展到函数的结尾。
+
+看下面的`Withdraw`函数。当成功时，余额减少了指定的数量，并返回`true`，但如果余额不足，无法完成交易，`Withdraw`恢复余额并且返回`false`。
+
+```go
+func Withdraw(amount int) bool {
+  Deposit(-amount)
+  if Balance() < 0 {
+    Deposit(amount)
+    return false
+  }
+  return true
+}
+```
+
+函数最终能给出正确的结果，但有一个副作用。在超额取款操作时，`balance`可能会瞬间被减到0以下。着可能会引起一个并发的取款被不合逻辑地拒绝。问题在于取款不是一个原子操作：它包含了三个步骤，每一步都需要去获取并释放互斥锁，但对于整个流程没有上锁。
+
+理想的情况下，`Withdraw`应当给整个操作获取一次互斥锁。下面这样的尝试是错误的：
+
+```go
+func Withdraw(amount int) bool {
+  mu.Lock()
+  defer mu.Unlock()
+  Deposit(-amount)
+  if Balance() < 0 {
+    Deposit(amount)
+    return false
+  }
+  return true
+}
+```
+
+这个例子中，`Deposit`会通过调用`mu.Lock`二次获取互斥锁，但因为`Mutex`已经锁上了，而无法重入（go中没有重入锁）。也就是说没法对一个已经锁上的`Mutex`再次上锁，因此会导致死锁。`Withdraw`会永远阻塞下去。
+
+Go的`Mutex`不能重入这一点具体看后面，`Mutex`的目的是确保共享变量在程序执行时的关键点上能保证不变性。不变性的含义是“没有`goroutine`访问共享变量”，但实际上这里对于`Mutex`保护的变量来说，不变性还有更深层含义：当一个`goroutine`
+获得了一个互斥锁时，它能断定被互斥锁保护的变量正处于不变状态（即没有其他代码快正在读写共享变量），在其获取并保持锁期间，可能会去更新共享变量，这样不变性只是短暂地被破坏，然后当其释放锁之后，锁必须保证共享变量重获不变性并且多个`goroutine`
+按顺序访问共享变量。尽管一个可以重入的`Mutex`也可以保证没有其他的`goroutine`在访问共享变量，但它不具备不变性更深层含义。
+
+一个常见的解决方案时把`Deposit`这样的函数拆成两部分：一个不导出的函数`deposit`，它假定已经获得互斥锁，并完成实际的业务逻辑；以及一个导出的函数`Deposit`，它用来获取锁并调用`deposit`。这样我们就可以用`deposit`来实现`Withdraw`。
+
+```go
+var (
+ mu      sync.Mutex
+ balance int
+)
+
+func Deposit(amount int) {
+  mu.Lock()
+  defer mu.Unlock()
+  deposit(amount)
+}
+
+func Balance() int {
+  mu.Lock()
+  defer mu.Unlock()
+  return balance
+}
+
+func Withdraw(amount int) bool {
+  Deposit(-amount)
+  if Balance() < 0 {
+    deposit(amount)
+    return false
+  }
+  return true
+}
+
+// 这个函数要求已获取互斥锁
+func deposit(amount int) {
+  balance += amount
+}
+```
+
+当然，这里的存款`deposit`函数很小，实际上取款`Withdraw`函数不需要理会对它的调用，但无论如果通过这个例子很好地演示了这个规则。
+
+封装，用限制一个程序的意外交互的方式，来帮助我们保证数据结构中的不变性。因为某种原因，封装也可以用来保持并发的不变性。当使用`Mutex`时，确保`Mutex`和其保护的变量没有导出，无论这些变量是包级的变量还是一个`struct`的字段。
