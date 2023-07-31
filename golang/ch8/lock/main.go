@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	mu      sync.Mutex
+	mu      sync.RWMutex
 	balance int
 )
 
@@ -17,10 +17,9 @@ func Deposit(amount int) {
 }
 
 func Balance() int {
-	mu.Lock()
-	b := balance
-	mu.Unlock()
-	return b
+	mu.RLock()
+	defer mu.RUnlock()
+	return balance
 }
 
 func Withdraw(amount int) bool {
