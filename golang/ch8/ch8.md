@@ -411,3 +411,179 @@ y:0 x:0
 两个语句的执行顺序。CPU 也有类似的问题，如果两个`goroutine`在不同的CPU上执行，每个CPU都有自己的缓存，那么一个`goroutine`的写入操作在同步到内存之前对另外一个`goroutine`的`Print`语句是不可见的。
 
 这些并发问题都可以通过采用简单、成熟的模式来避免，即在可能的情况下，把变量限制到单个`goroutine`中，对于其它变量，使用互斥锁。
+
+## 延迟初始化: sync.Once
+
+如果初始化成本比较大的话，那么将初始化延迟到需要的时候再去做是一个较好的选择。如果程序启动的时候就去做这类初始化的话，会增加程序的启动时间，并且因为执行的时候可能也并不需要这些变量，所以实际上有些浪费。下面来看看之前的`icons`变量:
+
+这里的`Icon`使用了延迟初始化
+
+```go
+func loadIcons() {
+  icons = map[string]image.Image{
+    "spades.png":   loadIcon("spades.png"),
+    "hearts.png":   loadIcon("hearts.png"),
+    "diamonds.png": loadIcon("diamonds.png"),
+    "clubs.png":    loadIcon("clubs.png"),
+  }
+}
+
+// 注意：并发并不安全
+func Icon(name string) image.Image  {
+  if icons == nil {
+    loadIcons() // 一次性地初始化
+  }
+  return icons[name]
+}
+```
+
+对于那些只被一个`goroutine`访问的变量，这个模板是没问题的，但这个模板在`Icon`被并发调用时并不安全。就像前面的`Deposit`函数一样，`Icon`函数也是由多个步骤组成的：首先测试`icons`是否为空，然后`load`这些`icons`，之后将`icons`更新为一个
+非空的值。直觉会告诉我们最差的情况是`loadIcons`函数会被多次访问会带来数据竞争。当第一个`goroutine`在忙着加载这些`icons`时，另一个`goroutine`进入了`Icon`函数，发现变量是`nil`，然后也会调用`loadIcons`函数。
+
+但这种直觉是错的。（希望你现在已经有一个关于并发的新直觉，就是关于并发的直觉都不可靠）。回想上面关于内存的讨论，在缺乏显式同步的情况下，编译器和CPU在能保证每个`goroutine`都满足串行一致性的基础上可以自由地重排访问内存的顺序。
+其中一种可能`loadIcons`语句重排如下所示。它在填充数据之前把一个空`map`赋值给`icons`：
+
+```go
+func loadIcons() {
+  icons = make(map[string]image.Image)
+  icons["spades.png"] = loadIcon("spades.png")
+  icons["hearts.png"] = loadIcon("hearts.png")
+  icons["diamonds.png"] = loadIcon("diamonds.png")
+  icons["clubs.png"] = loadIcon("clubs.png")
+}
+```
+
+因此，一个`goroutine`发现`icons`为非空时，并不代表变量的初始化就完成了。
+确保所有`goroutine`都能观察到`loadIcons`效果的方式就是用一个`Mutex`来做同步：
+
+```go
+var mu sync.Mutex
+var icons map[string]image.Image
+
+func Icon(name string) image.Image  {
+  mu.Lock()
+  defer mu.Unlock()
+  if icons == nil {
+    loadIcons()
+  }
+  return icons[name]
+}
+```
+
+采用互斥锁访问`icons`到代价是两个`goroutine`不能并发访问这个变量，即使变量已经被初始化完成切再也不会进行变动。这里我们可以引入一个运行多读的锁:
+
+```go
+var mu sync.RWMutex
+var icons map[string]image.Image
+
+// 并发安全
+func Icon(name string) image.Image {
+  mu.RLock()
+  if icons != nil {
+    icon := icons[name]
+    mu.RUnlock()
+    return icon
+  }
+  mu.RUnlock()
+
+  mu.Lock()
+  if icons == nil {
+    loadIcons()
+  }
+  icon := icons[name]
+  mu.Unlock()
+  return icon
+}
+```
+
+上面的代码中有两个临界区。`goroutine`首先会获取一个读锁，查询`map`，然后释放锁。如果条目被找到了，那么会直接返回。如果没有找到，那`goroutine`会获取一个锁。不释放共享锁的话，就无法将一个共享锁升级为互斥。为了避免执行这一段代码时，`icons`变量已经被其它`goroutine`
+初始化了，所以我们必须重新检查`icons`是否为`nil`。
+
+上面的模板具有更好的并发，但也更加复杂而且容易出错。幸运的是，`sync`包提供了针对一次性初始化问题的解决方案：`sync.Once`。`Once`包含一个布尔变量和一个`Mutex`互斥量，布尔变量记录初始化是否已经完成，互斥量则负责保护这个布尔变量和客户端数据结构。`Once`的唯一方法`Do`
+需要接收初始化函数作为参数。看下面的例子：
+
+```go
+
+var loadIconsOnce sync.Once
+var icons map[string]image.Image
+
+func Icon(name string)image.Image  {
+  loadIconsOnce.Do(loadIcons)
+  return icons[name]
+}
+```
+
+每次调用`Do(loadIcons)`时会先锁定`Mutex`互斥量并且检查里面的布尔变量。在第一次调用时，这个布尔变量为`false`，`Do`会调用`loadIcons`然后把变量设置为`true`。后续的调用相当于空操作，只是通过互斥量的同步保证`loadIcons`对内存产生的效果（在这里就是`icons`变量）
+对所有的`goroutine`可见。以这种方式来使用`sync.Once`，能避免在变量被构建完成之前和其它`goroutine`共享该变量。
+
+## 竞争条件检测
+
+Go的运行时和工具链为我们配备了一个复杂但好用的动态分析工具: 竞争检测器。
+
+简单地把`-race`命令行参数加到`go build`、`go run`、`go test`命令里面就可以使用该功能。它会让编译器为你的应用或者测试构建一个修改后的版本，这个版本有额外的手法用于高效记录在执行时对共享变量的所有访问，以及读写这些变量的`goroutine`标识。除此之外，修改后的版本还会
+记录所有的同步事件，包括`go`语句、通道操作、`(*sync.Mutex).Lock`调用、`(*sync.WaitGroup).Wait`调用等。
+
+竞争检查器会检查这些事件，会找到那些有问题的案例，即一个`goroutine`写入一个变量后，中间没有任何同步的操作，就有另外一个`goroutine`读写了该变量。这种案例表明有对共享变量的并发访问，即数据竞争。这个工具会打印一份报告，内容包含便来那个的标识以及读写`goroutine`
+的调用栈。这些信息在定位问题时很有用。
+
+竞争检测器会报告所有的已经发生的数据竞争。然后，它只能检测到运行时的竞争条件；并不能证明之后不会发生数据竞争。所以为了使结果尽量正确，请保证你的测试并发地覆盖到了你的包。
+
+由于需要额外的记录，因此构建时加了竞争检测的程序跑起来会慢一些，且需要更大的内存，即使是这样，这些代价对于很多生产环境的程序来说还是可以接受的。对于一些偶发的竞争条件来说，让竞争检测器来干活可以节省无数日夜的 debugging。
+
+## goroutine与线程
+
+接下来介绍一下`goroutine`和操作系统（OS）线程的差异。尽管两者的区别实际上只是一个量的区别，但量变会引起质变的道理同样适用于`goroutine`和线程。下面来讨论如何区分它们。
+
+### 可增长的栈
+
+每个OS线程都有一个固定大小的栈内存（通常为2MB），栈内存区域用于保存在其他函数调用期间那些正在执行或临时暂停的函数中的局部变量。这个固定的栈大小同时很大又很小。2MB的栈对于一个小的`goroutine`来说是很大的内存浪费，比如有的`goroutine`仅仅等待一个`Waitgroup`
+再关闭一个通道。在Go中，一次创建十万左右的`goroutine`也不罕见，对于这种情况，栈就太大了。另外，对于最复杂和深度递归的函数，固定大小的栈始终不够大。改变这个固定大小可以提高空间效率并且运行创建更多的线程，或者也可以容许更深的递归函数，但无法同时做到上面两点。
+
+作为对比，一个`goroutine`在生命周期开始时只是一个很小的栈，典型情况下为2KB。和OS线程类似，`goroutine`的栈也用于存放那些正在执行或临时暂停的函数中的局部变量。但和OS线程不同的是，`goroutine`的栈是不固定大小的，它可以按需增大和缩小。`goroutine`的栈大小
+限制可达到1GB，比线程典型的固定大小栈高几个数量级。一般情况下，大多数`goroutine`不会需要这么大的栈。
+
+### goroutine 调度
+
+OS 线程由OS内核来调度。每隔几毫秒，一个硬件计时器会中断CPU，CPU会调用一个叫作调度器(scheduler)的内核函数。这个函数暂停当前正在运行的线程，把它的寄存器信息保存到内存，查看线程列表并决定接下来运行哪个线程，再从内存恢复线程的注册表信息，最后继续执行选中的线程。
+因为OS线程由内核来调度，所以控制权限从一个线程到另一个线程需要一个完成的上下文切换：保存一个线程的状态到内存，再恢复另外一个线程的状态，最后更新调度器的数据结构。考虑这个操作涉及的内存局域性以及涉及的内存访问数量，还有访问内存所需的CPU周期数量的增加，
+这个操作是很慢的。
+
+Go运行时包含一个自己的调度器，这个调度器使用一个称为`m:n`调度的技术（因为它可以复用/调度m个goroutine到n个OS线程）。Go调度器和内核调度器的工作类似，但Go调度器只需关心单个Go程序的`goroutine`调度问题。
+
+和操作系统的线程调度器不同的是，Go调度器不是由硬件时钟来定时触发的，而是由特定的Go语言结构来触发的。比如当一个`goroutine`调用`time.Sleep`或被通道阻塞或对`Mutex`操作时，调度器就会把这个`goroutine`设为休眠模式，并运行其它`goroutine`直到前一个
+可重新唤醒为止。因为它不需要切换到内核的上下文，所以调度一个`goroutine`比调度一个线程成本低很多。
+
+### GOMAXPROCS
+
+Go调度器使用GOMAXPROCS参数来确定需要使用多少个OS线程来同时执行Go代码。默认值是机器上的CPU数量，所以在一个有8个CPU的机器上，调度器会把Go代码同时调度到8个OS线程上。（GOMAXPROCS是m:n调度中的n。）正在休眠或者正被通道通行阻塞的`goroutine`不需要占用线程。
+阻塞在I/O和其他系统调用中或调用非Go语言写的函数的`goroutine`需要一个独立的OS线程，但这个线程不计算在GOMAXPROCS内。
+
+可以用GOMAXPROCS环境变量或者`runtime.GOMAXPROCS`函数来显式控制这个参数。在下面的小程序中会看到GOMAXPROCS的效果，这个程序会无限打印0和1。
+
+```go
+$ GOMAXPROCS=1 go run /Desktop/go-study/ch8/for.go
+111111111111111111110000000000000000000011111
+
+$ GOMAXPROCS=1 go run /Desktop/go-study/ch8/for.go
+010101010101010101011001100101011010010100110
+
+func main() {
+  for {
+    go fmt.Print(0)
+    fmt.Print(1)
+  }
+}
+```
+
+在第一次运行时，每次最多只能有一个`goroutine`运行。最开始是主`goroutine`，它输出1。过一段时间后，Go调度器让主`goroutine`休眠，并且唤醒另一个输出0的`goroutine`，让它有机会执行。在第二次运行时，这里有两个可用的OS线程，所以两个`goroutine`可以
+同时运行，以同样的频率交替打印0和1。我们必须强调的是`goroutine`的调度是受很多因子影响的。而`runtime`也是在不断发展演进的，所以这里实际得到的结果可能会因为版本的不同而跟我们运行的结果有所不同。
+
+### goroutine没有标识
+
+在大多数支持多线程的操作系统和程序语言中，当前的线程都有一个独特的身份（id），并且这个身份信息可以以一个普通值的形式被很容易地获取到，典型的可以是一个`integer`或者指针。这个特性让我们可以轻松构建一个线程的局部存储，它本质上就是一个全部的`map`，
+以线程的标识作为键，这样每个线程都可以独立地用这个`map`存储和获取值，而不受其他线程干扰。
+
+`goroutine`没有可供我们访问的标识。这点是设计上故意而为之，因为线程局部存储由一种被滥用的倾向。比如说，一个Web服务器用一个支持线程局部存储的语言来实现时，很多函数都会通过访问这个存储来查找关于HTT请求的信息。但就像那些过度依赖于全局变量的程序一样，
+这也会导致一种不健康的“距离外行为”，在这种行为下，函数的行为不仅取决于它的参数，还取决于运行它的线程标识。因此，在线程的标识需要改变的场景（比如需要使用工作线程时），这些函数的行为就会变得神秘莫测。
+
+Go语言鼓励更为简单的模式，在这种模式下参数（外部显式参数和内部显式参数）对函数的影响都是显式的。这样不仅可以让程序变得更容易阅读，还让我们能自由地把一个韩素的子任务分发到多个不同的`goroutine`而无需担心这些`goroutine`的标识。

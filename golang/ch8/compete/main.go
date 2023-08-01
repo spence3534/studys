@@ -1,4 +1,6 @@
-package compete
+package main
+
+import "fmt"
 
 /* var balance int
 
@@ -38,7 +40,7 @@ func main() {
 }
 */
 
-type Cake struct{ state string }
+/* type Cake struct{ state string }
 
 func baker(cooked chan<- *Cake) {
 	for {
@@ -52,5 +54,12 @@ func icer(iced chan<- *Cake, cooked <-chan *Cake) {
 	for cake := range cooked {
 		cake.state = "iced"
 		iced <- cake
+	}
+} */
+
+func main() {
+	for {
+		go fmt.Print(0)
+		fmt.Print(1)
 	}
 }
