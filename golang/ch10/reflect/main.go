@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 )
 
 func main() {
-	stdout := reflect.ValueOf(os.Stdout).Elem() // *os.Stdout, 一个os.File变量
-	fmt.Println(stdout.Type())                  // os.File
-	fd := stdout.FieldByName("fd")
-	fmt.Println(fd.CanAddr(), fd.CanSet()) // true false
+	n := 1
+	/* f := 3.14
+	b := true */
+
+	n1 := reflect.TypeOf(n).Kind()
+	fmt.Print(n1 == reflect.Int)
 }
