@@ -1,15 +1,13 @@
 package main
 
-import (
-	"fmt"
-	"reflect"
-)
+import "fmt"
 
 func main() {
-	n := 1
-	/* f := 3.14
-	b := true */
+	a := 1
+	b := 9
+	goto TAGET
 
-	n1 := reflect.TypeOf(n).Kind()
-	fmt.Print(n1 == reflect.Int)
+TAGET:
+	b += a
+	fmt.Printf("a is %v *** b is %v", a, b)
 }
