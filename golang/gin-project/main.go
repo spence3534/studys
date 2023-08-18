@@ -1,12 +1,9 @@
 package main
 
-type Person struct {
-	Username, Id string
-}
-
-type Login struct {
-	Username, Password string
-}
+import (
+	_ "database/sql"
+	_ "github.com/go-sql-driver/mysql"
+)
 
 // ----------------- gin中的请求方法以及获取参数 -----------------
 /*func main() {
