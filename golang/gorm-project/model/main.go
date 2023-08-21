@@ -30,7 +30,7 @@ type TestUser struct {
 
 func main() {
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		DSN: "root:Aa602107@tcp(localhost：3306)/ginclass?charset=utf8&parseTime=True&loc=Local",
+		DSN: "root:Aa602107@tcp(localhost:3306)/ginclass?charset=utf8&parseTime=True&loc=Local",
 	}), &gorm.Config{
 		SkipDefaultTransaction: false,
 		NamingStrategy: schema.NamingStrategy{
