@@ -3,9 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"os"
+
+	"github.com/gorilla/websocket"
 )
 
 func main() {
